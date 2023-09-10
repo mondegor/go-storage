@@ -17,11 +17,11 @@ func FilledFieldsToUpdate(entity any) (map[string]any, error) {
     }
 
     if rv.Kind() != reflect.Struct {
-        return nil, mrerr.FactoryInternalInvalidType.Caller(1).New(rv.Kind().String(), reflect.Struct.String())
+        return nil, mrerr.ErrFactoryInternalInvalidType.Caller(1).New(rv.Kind().String(), reflect.Struct.String())
     }
 
     if !rv.IsValid() {
-        return nil, mrerr.FactoryInternalInvalidData.Caller(1).New(rv)
+        return nil, mrerr.ErrFactoryInternalInvalidData.Caller(1).New(rv)
     }
 
     values := make(map[string]any, 4)

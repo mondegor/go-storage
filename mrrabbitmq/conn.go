@@ -10,7 +10,7 @@ import (
 
 // go get github.com/rabbitmq/amqp091-go@v1.8.1
 
-const ConnectionName = "rabbitmq"
+const connectionName = "rabbitmq"
 
 type (
     Connection struct {
@@ -29,19 +29,15 @@ func New() *Connection {
     return &Connection{}
 }
 
-func (c *Connection) Cli() *amqp.Connection {
-    return c.conn
-}
-
 func (c *Connection) Connect(opt Options) error {
     if c.conn != nil {
-        return mrstorage.FactoryConnectionIsAlreadyCreated.New(ConnectionName)
+        return mrstorage.ErrFactoryConnectionIsAlreadyCreated.New(connectionName)
     }
 
     conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", opt.User, opt.Password, opt.Host, opt.Port))
 
     if err != nil {
-        return mrstorage.FactoryConnectionFailed.Wrap(err, ConnectionName)
+        return mrstorage.ErrFactoryConnectionFailed.Wrap(err, connectionName)
     }
 
     c.conn = conn
@@ -49,18 +45,22 @@ func (c *Connection) Connect(opt Options) error {
     return nil
 }
 
+func (c *Connection) Cli() *amqp.Connection {
+    return c.conn
+}
+
 func (c *Connection) Close() error {
     if c.conn == nil {
-        return mrstorage.FactoryConnectionIsNotOpened.New(ConnectionName)
+        return mrstorage.ErrFactoryConnectionIsNotOpened.New(connectionName)
     }
 
-    conn := c.conn
-    c.conn = nil
-    err := conn.Close()
+    err := c.conn.Close()
 
     if err != nil {
-        return mrstorage.FactoryConnectionFailed.Wrap(err, ConnectionName)
+        return mrstorage.ErrFactoryConnectionFailed.Wrap(err, connectionName)
     }
+
+    c.conn = nil
 
     return nil
 }

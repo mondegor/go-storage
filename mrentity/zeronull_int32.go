@@ -34,5 +34,5 @@ func (n *ZeronullInt32) Scan(value any) error {
         return nil
     }
 
-    return mrerr.FactoryInternalTypeAssertion.New("ZeronullInt32", value)
+    return mrerr.ErrFactoryInternalTypeAssertion.New("ZeronullInt32", value)
 }

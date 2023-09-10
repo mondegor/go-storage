@@ -30,5 +30,5 @@ func (n *ZeronullTime) Scan(value any) error {
         return nil
     }
 
-    return mrerr.FactoryInternalTypeAssertion.New("ZeronullTime", value)
+    return mrerr.ErrFactoryInternalTypeAssertion.New("ZeronullTime", value)
 }

@@ -3,27 +3,27 @@ package mrstorage
 import . "github.com/mondegor/go-sysmess/mrerr"
 
 var (
-    FactoryConnectionIsAlreadyCreated = NewFactory(
+    ErrFactoryConnectionIsAlreadyCreated = NewFactory(
         "errStorageConnectionIsAlreadyCreated", ErrorKindInternal, "connection '{{ .name }}' is already created")
 
-    FactoryConnectionIsNotOpened = NewFactory(
+    ErrFactoryConnectionIsNotOpened = NewFactory(
         "errStorageConnectionIsNotOpened", ErrorKindInternal, "connection '{{ .name }}' is not opened")
 
-    FactoryConnectionFailed = NewFactory(
+    ErrFactoryConnectionFailed = NewFactory(
         "errStorageConnectionFailed", ErrorKindSystem, "connection '{{ .name }}' is failed")
 
-    FactoryQueryFailed = NewFactory(
+    ErrFactoryQueryFailed = NewFactory(
         "errStorageQueryFailed", ErrorKindInternal, "query is failed")
 
-    FactoryFetchDataFailed = NewFactory(
+    ErrFactoryFetchDataFailed = NewFactory(
         "errStorageFetchDataFailed", ErrorKindInternal, "fetching data is failed")
 
-    FactoryFetchedInvalidData = NewFactory(
+    ErrFactoryFetchedInvalidData = NewFactory(
         "errStorageFetchedInvalidData", ErrorKindInternal, "fetched data '{{ .value }}' is invalid")
 
-    FactoryNoRowFound = NewFactory(
+    ErrFactoryNoRowFound = NewFactory(
         "errStorageNoRowFound", ErrorKindInternalNotice, "no row found")
 
-    FactoryRowsNotAffected = NewFactory(
+    ErrFactoryRowsNotAffected = NewFactory(
         "errStorageRowsNotAffected", ErrorKindInternalNotice, "rows not affected")
 )

@@ -14,7 +14,7 @@ func (c *Connection) SqUpdate(ctx context.Context, query squirrel.UpdateBuilder)
     sql, args, err := query.ToSql()
 
     if err != nil {
-        return mrerr.FactoryInternal.Caller(1).Wrap(err)
+        return mrerr.ErrFactoryInternal.Caller(1).Wrap(err)
     }
 
     c.debugQuery(ctx, sql)
@@ -26,7 +26,7 @@ func (c *Connection) SqUpdate(ctx context.Context, query squirrel.UpdateBuilder)
     }
 
     if commandTag.RowsAffected() < 1 {
-        return mrstorage.FactoryRowsNotAffected.Caller(1).New()
+        return mrstorage.ErrFactoryRowsNotAffected.Caller(1).New()
     }
 
     return nil
@@ -36,7 +36,7 @@ func (c *Connection) SqQuery(ctx context.Context, query squirrel.SelectBuilder) 
     sql, args, err := query.ToSql()
 
     if err != nil {
-        return nil, mrerr.FactoryInternal.Caller(1).Wrap(err)
+        return nil, mrerr.ErrFactoryInternal.Caller(1).Wrap(err)
     }
 
     c.debugQuery(ctx, sql)

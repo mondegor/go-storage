@@ -5,5 +5,5 @@ import (
 )
 
 func (c *Connection) wrapError(err error) error {
-    return mrstorage.FactoryQueryFailed.Caller(2).Wrap(err)
+    return mrstorage.ErrFactoryQueryFailed.Caller(2).Wrap(err)
 }

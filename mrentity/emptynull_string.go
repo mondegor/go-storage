@@ -29,5 +29,5 @@ func (n *EmptynullString) Scan(value any) error {
         return nil
     }
 
-    return mrerr.FactoryInternalTypeAssertion.New("EmptynullString", value)
+    return mrerr.ErrFactoryInternalTypeAssertion.New("EmptynullString", value)
 }

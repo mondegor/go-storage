@@ -12,7 +12,7 @@ import (
 // go get -u github.com/jackc/pgx/v5
 // go get -u github.com/Masterminds/squirrel
 
-const ConnectionName = "postgres"
+const connectionName = "postgres"
 
 type (
     Connection struct {
@@ -35,9 +35,9 @@ func New() *Connection {
     return &Connection{}
 }
 
-func (c *Connection) Connect(ctx context.Context, opt Options) error {
+func (c *Connection) Connect(opt Options) error {
     if c.pool != nil {
-        return mrstorage.FactoryConnectionIsAlreadyCreated.New(ConnectionName)
+        return mrstorage.ErrFactoryConnectionIsAlreadyCreated.New(connectionName)
     }
 
     cnf, err := pgxpool.ParseConfig(getConnString(&opt))
@@ -50,25 +50,36 @@ func (c *Connection) Connect(ctx context.Context, opt Options) error {
     cnf.ConnConfig.ConnectTimeout = opt.ConnTimeout
     cnf.MaxConnLifetime = opt.ConnTimeout
 
-    c.pool, err = pgxpool.NewWithConfig(ctx, cnf)
+    pool, err := pgxpool.NewWithConfig(context.Background(), cnf)
 
     if err != nil {
-        return mrstorage.FactoryConnectionFailed.Wrap(err, ConnectionName)
+        return mrstorage.ErrFactoryConnectionFailed.Wrap(err, connectionName)
     }
+
+    c.pool = pool
 
     return nil
 }
 
 func (c *Connection) Ping(ctx context.Context) error {
+    if c.pool == nil {
+        return mrstorage.ErrFactoryConnectionIsNotOpened.New(connectionName)
+    }
+
     return c.pool.Ping(ctx)
+}
+
+func (c *Connection) Cli() *pgxpool.Pool {
+    return c.pool
 }
 
 func (c *Connection) Close() error {
     if c.pool == nil {
-        return mrstorage.FactoryConnectionIsNotOpened.New(ConnectionName)
+        return mrstorage.ErrFactoryConnectionIsNotOpened.New(connectionName)
     }
 
     c.pool.Close()
+    c.pool = nil
 
     return nil
 }

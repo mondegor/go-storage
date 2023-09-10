@@ -9,18 +9,18 @@ import (
 
     "github.com/go-redsync/redsync/v4"
     "github.com/go-redsync/redsync/v4/redis/goredis/v9"
-    redislib "github.com/redis/go-redis/v9"
+    "github.com/redis/go-redis/v9"
 )
 
 // go get -u github.com/redis/go-redis/v9
 // go get github.com/go-redsync/redsync/v4
 
-const ConnectionName = "redis"
+const connectionName = "redis"
 
 type (
     Connection struct {
-        conn redislib.UniversalClient
-        redsync *redsync.Redsync
+        conn redis.UniversalClient
+        sync *redsync.Redsync
     }
 
     Options struct {
@@ -35,52 +35,66 @@ func New() *Connection {
     return &Connection{}
 }
 
-func (c *Connection) Cli() redislib.UniversalClient {
-    return c.conn
-}
-
 func (c *Connection) Connect(opt Options) error {
     if c.conn != nil {
-        return mrstorage.FactoryConnectionIsAlreadyCreated.New(ConnectionName)
+        return mrstorage.ErrFactoryConnectionIsAlreadyCreated.New(connectionName)
     }
 
-    conn := redislib.NewClient(getOptions(&opt))
+    conn := redis.NewClient(getOptions(&opt))
     _, err := conn.Ping(context.Background()).Result()
 
     if err != nil {
-        return mrstorage.FactoryConnectionFailed.Wrap(err, ConnectionName)
+        return mrstorage.ErrFactoryConnectionFailed.Wrap(err, connectionName)
     }
 
-    c.conn = conn
-
     pool := goredis.NewPool(conn)
-    c.redsync = redsync.New(pool)
+
+    c.conn = conn
+    c.sync = redsync.New(pool)
 
     return nil
+}
+
+func (c *Connection) Ping(ctx context.Context) error {
+    if c.conn == nil {
+        return mrstorage.ErrFactoryConnectionIsNotOpened.New(connectionName)
+    }
+
+    _, err := c.conn.Ping(ctx).Result()
+
+    if err != nil {
+        return mrstorage.ErrFactoryConnectionFailed.Wrap(err, connectionName)
+    }
+
+    return nil
+}
+
+func (c *Connection) Cli() redis.UniversalClient {
+    return c.conn
+}
+
+func (c *Connection) NewMutex(name string, options ...redsync.Option) *redsync.Mutex {
+    return c.sync.NewMutex(name, options...)
 }
 
 func (c *Connection) Close() error {
     if c.conn == nil {
-        return mrstorage.FactoryConnectionIsNotOpened.New(ConnectionName)
+        return mrstorage.ErrFactoryConnectionIsNotOpened.New(connectionName)
     }
 
-    conn := c.conn
-    c.conn = nil
-    err := conn.Close()
+    err := c.conn.Close()
 
     if err != nil {
-        return mrstorage.FactoryConnectionFailed.Wrap(err, ConnectionName)
+        return mrstorage.ErrFactoryConnectionFailed.Wrap(err, connectionName)
     }
+
+    c.conn = nil
 
     return nil
 }
 
-func (c *Connection) NewMutex(name string, options ...redsync.Option) *redsync.Mutex {
-    return c.redsync.NewMutex(name, options...)
-}
-
-func getOptions(o *Options) *redislib.Options {
-    return &redislib.Options{
+func getOptions(o *Options) *redis.Options {
+    return &redis.Options{
         Addr: fmt.Sprintf("%s:%s", o.Host, o.Port),
         Password: o.Password,
     }
