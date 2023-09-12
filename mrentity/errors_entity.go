@@ -3,6 +3,6 @@ package mrentity
 import . "github.com/mondegor/go-sysmess/mrerr"
 
 var (
-    FactoryInternalListOfFieldsIsEmpty = NewFactory(
+    factoryErrInternalListOfFieldsIsEmpty = NewFactory(
         "errInternalListOfFieldsIsEmpty", ErrorKindInternalNotice, "the list of fields is empty")
 )

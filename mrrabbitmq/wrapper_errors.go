@@ -1,9 +1,7 @@
 package mrrabbitmq
 
-import (
-    "github.com/mondegor/go-storage/mrstorage"
-)
+import "github.com/mondegor/go-webcore/mrcore"
 
 func (c *Connection) wrapError(err error) error {
-    return mrstorage.ErrFactoryQueryFailed.Caller(2).Wrap(err)
+    return mrcore.FactoryErrQueryFailed.Caller(2).Wrap(err)
 }

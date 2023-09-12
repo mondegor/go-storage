@@ -3,18 +3,16 @@ package mrpostgres
 import (
     "context"
 
-    "github.com/mondegor/go-storage/mrstorage"
-    "github.com/mondegor/go-sysmess/mrerr"
-
     "github.com/Masterminds/squirrel"
     "github.com/jackc/pgx/v5"
+    "github.com/mondegor/go-webcore/mrcore"
 )
 
 func (c *Connection) SqUpdate(ctx context.Context, query squirrel.UpdateBuilder) error {
     sql, args, err := query.ToSql()
 
     if err != nil {
-        return mrerr.ErrFactoryInternal.Caller(1).Wrap(err)
+        return mrcore.FactoryErrInternal.Caller(1).Wrap(err)
     }
 
     c.debugQuery(ctx, sql)
@@ -26,7 +24,7 @@ func (c *Connection) SqUpdate(ctx context.Context, query squirrel.UpdateBuilder)
     }
 
     if commandTag.RowsAffected() < 1 {
-        return mrstorage.ErrFactoryRowsNotAffected.Caller(1).New()
+        return mrcore.FactoryErrRowsNotAffected.Caller(1).New()
     }
 
     return nil
@@ -36,7 +34,7 @@ func (c *Connection) SqQuery(ctx context.Context, query squirrel.SelectBuilder) 
     sql, args, err := query.ToSql()
 
     if err != nil {
-        return nil, mrerr.ErrFactoryInternal.Caller(1).Wrap(err)
+        return nil, mrcore.FactoryErrInternal.Caller(1).Wrap(err)
     }
 
     c.debugQuery(ctx, sql)

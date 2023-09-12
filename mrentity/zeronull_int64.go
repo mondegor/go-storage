@@ -3,10 +3,12 @@ package mrentity
 import (
     "database/sql/driver"
 
-    "github.com/mondegor/go-sysmess/mrerr"
+    "github.com/mondegor/go-webcore/mrcore"
 )
 
-type ZeronullInt64 int64
+type (
+	ZeronullInt64 int64
+)
 
 // Value implements the driver Valuer interface.
 func (n ZeronullInt64) Value() (driver.Value, error) {
@@ -34,5 +36,5 @@ func (n *ZeronullInt64) Scan(value any) error {
         return nil
     }
 
-    return mrerr.ErrFactoryInternalTypeAssertion.New("ZeronullInt64", value)
+    return mrcore.FactoryErrInternalTypeAssertion.New("ZeronullInt64", value)
 }

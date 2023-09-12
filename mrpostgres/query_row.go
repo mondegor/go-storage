@@ -2,11 +2,13 @@ package mrpostgres
 
 import "github.com/jackc/pgx/v5"
 
-type QueryRow struct {
-    conn *Connection
-    row pgx.Row
-    err error
-}
+type (
+	QueryRow struct {
+        conn *Connection
+        row pgx.Row
+        err error
+    }
+)
 
 func (qr QueryRow) Scan(dest ...any) error {
     if qr.err != nil {

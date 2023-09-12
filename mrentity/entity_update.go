@@ -4,10 +4,12 @@ import (
     "reflect"
     "time"
 
-    "github.com/mondegor/go-sysmess/mrerr"
+    "github.com/mondegor/go-webcore/mrcore"
 )
 
-const tagNameDb = "db"
+const (
+	tagNameDb = "db"
+)
 
 func FilledFieldsToUpdate(entity any) (map[string]any, error) {
     rv := reflect.ValueOf(entity)
@@ -17,11 +19,11 @@ func FilledFieldsToUpdate(entity any) (map[string]any, error) {
     }
 
     if rv.Kind() != reflect.Struct {
-        return nil, mrerr.ErrFactoryInternalInvalidType.Caller(1).New(rv.Kind().String(), reflect.Struct.String())
+        return nil, mrcore.FactoryErrInternalInvalidType.Caller(1).New(rv.Kind().String(), reflect.Struct.String())
     }
 
     if !rv.IsValid() {
-        return nil, mrerr.ErrFactoryInternalInvalidData.Caller(1).New(rv)
+        return nil, mrcore.FactoryErrInternalInvalidData.Caller(1).New(rv)
     }
 
     values := make(map[string]any, 4)
@@ -68,7 +70,7 @@ func FilledFieldsToUpdate(entity any) (map[string]any, error) {
     }
 
     if len(values) == 0 {
-        return values, FactoryInternalListOfFieldsIsEmpty.Caller(1).New()
+        return values, factoryErrInternalListOfFieldsIsEmpty.Caller(1).New()
     }
 
     return values, nil

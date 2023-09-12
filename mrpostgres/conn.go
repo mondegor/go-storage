@@ -6,13 +6,15 @@ import (
     "time"
 
     "github.com/jackc/pgx/v5/pgxpool"
-    "github.com/mondegor/go-storage/mrstorage"
+    "github.com/mondegor/go-webcore/mrcore"
 )
 
 // go get -u github.com/jackc/pgx/v5
 // go get -u github.com/Masterminds/squirrel
 
-const connectionName = "postgres"
+const (
+	connectionName = "postgres"
+)
 
 type (
     Connection struct {
@@ -37,7 +39,7 @@ func New() *Connection {
 
 func (c *Connection) Connect(opt Options) error {
     if c.pool != nil {
-        return mrstorage.ErrFactoryConnectionIsAlreadyCreated.New(connectionName)
+        return mrcore.FactoryErrConnectionIsAlreadyCreated.New(connectionName)
     }
 
     cnf, err := pgxpool.ParseConfig(getConnString(&opt))
@@ -53,7 +55,7 @@ func (c *Connection) Connect(opt Options) error {
     pool, err := pgxpool.NewWithConfig(context.Background(), cnf)
 
     if err != nil {
-        return mrstorage.ErrFactoryConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrConnectionFailed.Wrap(err, connectionName)
     }
 
     c.pool = pool
@@ -63,7 +65,7 @@ func (c *Connection) Connect(opt Options) error {
 
 func (c *Connection) Ping(ctx context.Context) error {
     if c.pool == nil {
-        return mrstorage.ErrFactoryConnectionIsNotOpened.New(connectionName)
+        return mrcore.FactoryErrConnectionIsNotOpened.New(connectionName)
     }
 
     return c.pool.Ping(ctx)
@@ -75,7 +77,7 @@ func (c *Connection) Cli() *pgxpool.Pool {
 
 func (c *Connection) Close() error {
     if c.pool == nil {
-        return mrstorage.ErrFactoryConnectionIsNotOpened.New(connectionName)
+        return mrcore.FactoryErrConnectionIsNotOpened.New(connectionName)
     }
 
     c.pool.Close()

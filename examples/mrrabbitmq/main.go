@@ -1,13 +1,12 @@
 package main
 
 import (
-    "github.com/mondegor/go-core/mrcore"
-    "github.com/mondegor/go-core/mrlog"
     "github.com/mondegor/go-storage/mrrabbitmq"
+    "github.com/mondegor/go-webcore/mrcore"
 )
 
 func main() {
-    logger, _ := mrlog.New("[mrrabbitmq]", "debug", false)
+    logger := mrcore.DefaultLogger().With("mrrabbitmq")
     logger.Info("Create rabbitmq connection")
 
     appHelper := mrcore.NewAppHelper(logger)

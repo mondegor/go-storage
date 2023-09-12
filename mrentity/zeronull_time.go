@@ -4,10 +4,12 @@ import (
     "database/sql/driver"
     "time"
 
-    "github.com/mondegor/go-sysmess/mrerr"
+    "github.com/mondegor/go-webcore/mrcore"
 )
 
-type ZeronullTime time.Time
+type (
+	ZeronullTime time.Time
+)
 
 // Value implements the driver Valuer interface.
 func (n ZeronullTime) Value() (driver.Value, error) {
@@ -30,5 +32,5 @@ func (n *ZeronullTime) Scan(value any) error {
         return nil
     }
 
-    return mrerr.ErrFactoryInternalTypeAssertion.New("ZeronullTime", value)
+    return mrcore.FactoryErrInternalTypeAssertion.New("ZeronullTime", value)
 }

@@ -3,10 +3,12 @@ package mrentity
 import (
     "database/sql/driver"
 
-    "github.com/mondegor/go-sysmess/mrerr"
+    "github.com/mondegor/go-webcore/mrcore"
 )
 
-type EmptynullString string
+type (
+	EmptynullString string
+)
 
 // Value implements the driver Valuer interface.
 func (n EmptynullString) Value() (driver.Value, error) {
@@ -29,5 +31,5 @@ func (n *EmptynullString) Scan(value any) error {
         return nil
     }
 
-    return mrerr.ErrFactoryInternalTypeAssertion.New("EmptynullString", value)
+    return mrcore.FactoryErrInternalTypeAssertion.New("EmptynullString", value)
 }

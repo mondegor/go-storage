@@ -5,17 +5,18 @@ import (
     "fmt"
     "time"
 
-    "github.com/mondegor/go-storage/mrstorage"
-
     "github.com/go-redsync/redsync/v4"
     "github.com/go-redsync/redsync/v4/redis/goredis/v9"
+    "github.com/mondegor/go-webcore/mrcore"
     "github.com/redis/go-redis/v9"
 )
 
 // go get -u github.com/redis/go-redis/v9
 // go get github.com/go-redsync/redsync/v4
 
-const connectionName = "redis"
+const (
+	connectionName = "redis"
+)
 
 type (
     Connection struct {
@@ -37,14 +38,14 @@ func New() *Connection {
 
 func (c *Connection) Connect(opt Options) error {
     if c.conn != nil {
-        return mrstorage.ErrFactoryConnectionIsAlreadyCreated.New(connectionName)
+        return mrcore.FactoryErrConnectionIsAlreadyCreated.New(connectionName)
     }
 
     conn := redis.NewClient(getOptions(&opt))
     _, err := conn.Ping(context.Background()).Result()
 
     if err != nil {
-        return mrstorage.ErrFactoryConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrConnectionFailed.Wrap(err, connectionName)
     }
 
     pool := goredis.NewPool(conn)
@@ -57,13 +58,13 @@ func (c *Connection) Connect(opt Options) error {
 
 func (c *Connection) Ping(ctx context.Context) error {
     if c.conn == nil {
-        return mrstorage.ErrFactoryConnectionIsNotOpened.New(connectionName)
+        return mrcore.FactoryErrConnectionIsNotOpened.New(connectionName)
     }
 
     _, err := c.conn.Ping(ctx).Result()
 
     if err != nil {
-        return mrstorage.ErrFactoryConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrConnectionFailed.Wrap(err, connectionName)
     }
 
     return nil
@@ -79,13 +80,13 @@ func (c *Connection) NewMutex(name string, options ...redsync.Option) *redsync.M
 
 func (c *Connection) Close() error {
     if c.conn == nil {
-        return mrstorage.ErrFactoryConnectionIsNotOpened.New(connectionName)
+        return mrcore.FactoryErrConnectionIsNotOpened.New(connectionName)
     }
 
     err := c.conn.Close()
 
     if err != nil {
-        return mrstorage.ErrFactoryConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrConnectionFailed.Wrap(err, connectionName)
     }
 
     c.conn = nil
