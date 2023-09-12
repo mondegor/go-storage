@@ -7,7 +7,7 @@ require (
 	github.com/go-redsync/redsync/v4 v4.9.4
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/mondegor/go-sysmess v0.3.0
-	github.com/mondegor/go-webcore v0.4.2
+	github.com/mondegor/go-webcore v0.4.4
 	github.com/rabbitmq/amqp091-go v1.8.1
 	github.com/redis/go-redis/v9 v9.1.0
 )

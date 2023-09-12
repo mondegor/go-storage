@@ -32,13 +32,13 @@ func New() *Connection {
 
 func (c *Connection) Connect(opt Options) error {
     if c.conn != nil {
-        return mrcore.FactoryErrConnectionIsAlreadyCreated.New(connectionName)
+        return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
     }
 
     conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", opt.User, opt.Password, opt.Host, opt.Port))
 
     if err != nil {
-        return mrcore.FactoryErrConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     c.conn = conn
@@ -52,13 +52,13 @@ func (c *Connection) Cli() *amqp.Connection {
 
 func (c *Connection) Close() error {
     if c.conn == nil {
-        return mrcore.FactoryErrConnectionIsNotOpened.New(connectionName)
+        return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }
 
     err := c.conn.Close()
 
     if err != nil {
-        return mrcore.FactoryErrConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     c.conn = nil

@@ -38,14 +38,14 @@ func New() *Connection {
 
 func (c *Connection) Connect(opt Options) error {
     if c.conn != nil {
-        return mrcore.FactoryErrConnectionIsAlreadyCreated.New(connectionName)
+        return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
     }
 
     conn := redis.NewClient(getOptions(&opt))
     _, err := conn.Ping(context.Background()).Result()
 
     if err != nil {
-        return mrcore.FactoryErrConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     pool := goredis.NewPool(conn)
@@ -58,13 +58,13 @@ func (c *Connection) Connect(opt Options) error {
 
 func (c *Connection) Ping(ctx context.Context) error {
     if c.conn == nil {
-        return mrcore.FactoryErrConnectionIsNotOpened.New(connectionName)
+        return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }
 
     _, err := c.conn.Ping(ctx).Result()
 
     if err != nil {
-        return mrcore.FactoryErrConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     return nil
@@ -80,13 +80,13 @@ func (c *Connection) NewMutex(name string, options ...redsync.Option) *redsync.M
 
 func (c *Connection) Close() error {
     if c.conn == nil {
-        return mrcore.FactoryErrConnectionIsNotOpened.New(connectionName)
+        return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }
 
     err := c.conn.Close()
 
     if err != nil {
-        return mrcore.FactoryErrConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     c.conn = nil

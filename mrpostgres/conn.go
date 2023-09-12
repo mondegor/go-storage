@@ -39,7 +39,7 @@ func New() *Connection {
 
 func (c *Connection) Connect(opt Options) error {
     if c.pool != nil {
-        return mrcore.FactoryErrConnectionIsAlreadyCreated.New(connectionName)
+        return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
     }
 
     cnf, err := pgxpool.ParseConfig(getConnString(&opt))
@@ -55,7 +55,7 @@ func (c *Connection) Connect(opt Options) error {
     pool, err := pgxpool.NewWithConfig(context.Background(), cnf)
 
     if err != nil {
-        return mrcore.FactoryErrConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     c.pool = pool
@@ -65,7 +65,7 @@ func (c *Connection) Connect(opt Options) error {
 
 func (c *Connection) Ping(ctx context.Context) error {
     if c.pool == nil {
-        return mrcore.FactoryErrConnectionIsNotOpened.New(connectionName)
+        return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }
 
     return c.pool.Ping(ctx)
@@ -77,7 +77,7 @@ func (c *Connection) Cli() *pgxpool.Pool {
 
 func (c *Connection) Close() error {
     if c.pool == nil {
-        return mrcore.FactoryErrConnectionIsNotOpened.New(connectionName)
+        return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }
 
     c.pool.Close()

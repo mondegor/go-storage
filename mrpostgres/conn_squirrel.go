@@ -24,7 +24,7 @@ func (c *Connection) SqUpdate(ctx context.Context, query squirrel.UpdateBuilder)
     }
 
     if commandTag.RowsAffected() < 1 {
-        return mrcore.FactoryErrRowsNotAffected.Caller(1).New()
+        return mrcore.FactoryErrStorageRowsNotAffected.Caller(1).New()
     }
 
     return nil
