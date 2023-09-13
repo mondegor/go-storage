@@ -4,7 +4,7 @@ import "github.com/jackc/pgx/v5"
 
 type (
 	QueryRow struct {
-        conn *Connection
+        conn *ConnAdapter
         row pgx.Row
         err error
     }

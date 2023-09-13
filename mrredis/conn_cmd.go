@@ -6,7 +6,7 @@ import (
     "time"
 )
 
-func (c *Connection) GetStruct(ctx context.Context, key string, data any) error {
+func (c *ConnAdapter) GetStruct(ctx context.Context, key string, data any) error {
     err := c.conn.Get(ctx, key).Scan(data)
 
     if err != nil {
@@ -18,7 +18,7 @@ func (c *Connection) GetStruct(ctx context.Context, key string, data any) error 
     return nil
 }
 
-func (c *Connection) SetStruct(ctx context.Context, key string, data any, expiration time.Duration) error {
+func (c *ConnAdapter) SetStruct(ctx context.Context, key string, data any, expiration time.Duration) error {
     c.debugCmd(ctx, "set-struct", key, data)
 
     err := c.conn.Set(ctx, key, data, expiration).Err()
@@ -30,7 +30,7 @@ func (c *Connection) SetStruct(ctx context.Context, key string, data any, expira
     return nil
 }
 
-func (c *Connection) Delete(ctx context.Context, key ...string) error {
+func (c *ConnAdapter) Delete(ctx context.Context, key ...string) error {
     c.debugCmd(ctx, "delete-row", strings.Join(key, ", "), nil)
 
     err := c.conn.Del(ctx, key...).Err()

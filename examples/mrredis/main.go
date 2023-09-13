@@ -6,13 +6,14 @@ import (
 
     "github.com/mondegor/go-storage/mrredis"
     "github.com/mondegor/go-webcore/mrcore"
+    "github.com/mondegor/go-webcore/mrtool"
 )
 
 func main() {
     logger := mrcore.DefaultLogger().With("mrredis")
     logger.Info("Create redis connection")
 
-    appHelper := mrcore.NewAppHelper(logger)
+    appHelper := mrtool.NewAppHelper(logger)
 
     opt := mrredis.Options{
         Host: "127.0.0.1",

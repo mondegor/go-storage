@@ -5,7 +5,7 @@ import (
     "github.com/mondegor/go-webcore/mrcore"
 )
 
-func (c *Connection) wrapError(err error) error {
+func (c *ConnAdapter) wrapError(err error) error {
     _, ok := err.(*pgconn.PgError)
 
     if ok {

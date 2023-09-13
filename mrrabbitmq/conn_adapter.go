@@ -14,7 +14,7 @@ const (
 )
 
 type (
-    Connection struct {
+    ConnAdapter struct {
         conn *amqp.Connection
     }
 
@@ -26,11 +26,11 @@ type (
     }
 )
 
-func New() *Connection {
-    return &Connection{}
+func New() *ConnAdapter {
+    return &ConnAdapter{}
 }
 
-func (c *Connection) Connect(opt Options) error {
+func (c *ConnAdapter) Connect(opt Options) error {
     if c.conn != nil {
         return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
     }
@@ -46,11 +46,11 @@ func (c *Connection) Connect(opt Options) error {
     return nil
 }
 
-func (c *Connection) Cli() *amqp.Connection {
+func (c *ConnAdapter) Cli() *amqp.Connection {
     return c.conn
 }
 
-func (c *Connection) Close() error {
+func (c *ConnAdapter) Close() error {
     if c.conn == nil {
         return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }

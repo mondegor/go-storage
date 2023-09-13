@@ -19,7 +19,7 @@ const (
 )
 
 type (
-    Connection struct {
+    ConnAdapter struct {
         conn redis.UniversalClient
         sync *redsync.Redsync
     }
@@ -32,11 +32,11 @@ type (
     }
 )
 
-func New() *Connection {
-    return &Connection{}
+func New() *ConnAdapter {
+    return &ConnAdapter{}
 }
 
-func (c *Connection) Connect(opt Options) error {
+func (c *ConnAdapter) Connect(opt Options) error {
     if c.conn != nil {
         return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
     }
@@ -56,7 +56,7 @@ func (c *Connection) Connect(opt Options) error {
     return nil
 }
 
-func (c *Connection) Ping(ctx context.Context) error {
+func (c *ConnAdapter) Ping(ctx context.Context) error {
     if c.conn == nil {
         return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }
@@ -70,15 +70,15 @@ func (c *Connection) Ping(ctx context.Context) error {
     return nil
 }
 
-func (c *Connection) Cli() redis.UniversalClient {
+func (c *ConnAdapter) Cli() redis.UniversalClient {
     return c.conn
 }
 
-func (c *Connection) NewMutex(name string, options ...redsync.Option) *redsync.Mutex {
+func (c *ConnAdapter) NewMutex(name string, options ...redsync.Option) *redsync.Mutex {
     return c.sync.NewMutex(name, options...)
 }
 
-func (c *Connection) Close() error {
+func (c *ConnAdapter) Close() error {
     if c.conn == nil {
         return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }

@@ -7,7 +7,7 @@ import (
     "github.com/jackc/pgx/v5/pgconn"
 )
 
-func (c *Connection) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
+func (c *ConnAdapter) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
     c.debugQuery(ctx, sql)
 
     commandTag, err := c.pool.Exec(ctx, sql, args...)
@@ -19,7 +19,7 @@ func (c *Connection) Exec(ctx context.Context, sql string, args ...any) (pgconn.
     return commandTag, nil
 }
 
-func (c *Connection) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+func (c *ConnAdapter) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
     c.debugQuery(ctx, sql)
 
     rows, err := c.pool.Query(ctx, sql, args...)
@@ -31,7 +31,7 @@ func (c *Connection) Query(ctx context.Context, sql string, args ...any) (pgx.Ro
     return rows, nil
 }
 
-func (c *Connection) QueryRow(ctx context.Context, sql string, args ...any) QueryRow {
+func (c *ConnAdapter) QueryRow(ctx context.Context, sql string, args ...any) QueryRow {
     c.debugQuery(ctx, sql)
 
     return QueryRow{

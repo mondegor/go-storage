@@ -8,7 +8,7 @@ import (
     "github.com/mondegor/go-webcore/mrcore"
 )
 
-func (c *Connection) SqUpdate(ctx context.Context, query squirrel.UpdateBuilder) error {
+func (c *ConnAdapter) SqUpdate(ctx context.Context, query squirrel.UpdateBuilder) error {
     sql, args, err := query.ToSql()
 
     if err != nil {
@@ -30,7 +30,7 @@ func (c *Connection) SqUpdate(ctx context.Context, query squirrel.UpdateBuilder)
     return nil
 }
 
-func (c *Connection) SqQuery(ctx context.Context, query squirrel.SelectBuilder) (pgx.Rows, error) {
+func (c *ConnAdapter) SqQuery(ctx context.Context, query squirrel.SelectBuilder) (pgx.Rows, error) {
     sql, args, err := query.ToSql()
 
     if err != nil {
@@ -48,7 +48,7 @@ func (c *Connection) SqQuery(ctx context.Context, query squirrel.SelectBuilder) 
     return rows, nil
 }
 
-func (c *Connection) SqQueryRow(ctx context.Context, query squirrel.SelectBuilder) QueryRow {
+func (c *ConnAdapter) SqQueryRow(ctx context.Context, query squirrel.SelectBuilder) QueryRow {
     sql, args, err := query.ToSql()
 
     if err != nil {

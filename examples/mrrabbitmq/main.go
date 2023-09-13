@@ -3,13 +3,14 @@ package main
 import (
     "github.com/mondegor/go-storage/mrrabbitmq"
     "github.com/mondegor/go-webcore/mrcore"
+    "github.com/mondegor/go-webcore/mrtool"
 )
 
 func main() {
     logger := mrcore.DefaultLogger().With("mrrabbitmq")
     logger.Info("Create rabbitmq connection")
 
-    appHelper := mrcore.NewAppHelper(logger)
+    appHelper := mrtool.NewAppHelper(logger)
 
     opt := mrrabbitmq.Options{
         Host: "127.0.0.1",

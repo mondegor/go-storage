@@ -6,6 +6,6 @@ import (
     "github.com/mondegor/go-webcore/mrctx"
 )
 
-func (c *Connection) debugCmd(ctx context.Context, command string, key string, data any) {
+func (c *ConnAdapter) debugCmd(ctx context.Context, command string, key string, data any) {
     mrctx.Logger(ctx).Debug("Redis: cmd=%s, key=%s, struct=%+v", command, key, data)
 }

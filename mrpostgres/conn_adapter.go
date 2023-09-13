@@ -17,7 +17,7 @@ const (
 )
 
 type (
-    Connection struct {
+    ConnAdapter struct {
         pool *pgxpool.Pool
     }
 
@@ -33,11 +33,11 @@ type (
     }
 )
 
-func New() *Connection {
-    return &Connection{}
+func New() *ConnAdapter {
+    return &ConnAdapter{}
 }
 
-func (c *Connection) Connect(opt Options) error {
+func (c *ConnAdapter) Connect(opt Options) error {
     if c.pool != nil {
         return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
     }
@@ -63,7 +63,7 @@ func (c *Connection) Connect(opt Options) error {
     return nil
 }
 
-func (c *Connection) Ping(ctx context.Context) error {
+func (c *ConnAdapter) Ping(ctx context.Context) error {
     if c.pool == nil {
         return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }
@@ -71,11 +71,11 @@ func (c *Connection) Ping(ctx context.Context) error {
     return c.pool.Ping(ctx)
 }
 
-func (c *Connection) Cli() *pgxpool.Pool {
+func (c *ConnAdapter) Cli() *pgxpool.Pool {
     return c.pool
 }
 
-func (c *Connection) Close() error {
+func (c *ConnAdapter) Close() error {
     if c.pool == nil {
         return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }

@@ -7,6 +7,6 @@ import (
     "github.com/mondegor/go-webcore/mrctx"
 )
 
-func (c *Connection) debugQuery(ctx context.Context, query string) {
+func (c *ConnAdapter) debugQuery(ctx context.Context, query string) {
     mrctx.Logger(ctx).Debug("SQL Query: %s", strings.Join(strings.Fields(query), " "))
 }
