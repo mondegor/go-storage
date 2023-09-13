@@ -5,6 +5,7 @@
 ### Changed
 - Обновлены зависимости библиотеки;
 - Переименованы Connection -> ConnAdapter;
+- Добавлен интерфейс mrstorage.Sqlizer, для того чтобы снять зависимость от squirrel;
 
 ## 2023-09-12
 ### Changed

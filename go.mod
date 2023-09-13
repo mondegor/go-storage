@@ -3,17 +3,17 @@ module github.com/mondegor/go-storage
 go 1.20
 
 require (
-	github.com/Masterminds/squirrel v1.5.4
 	github.com/go-redsync/redsync/v4 v4.9.4
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/mondegor/go-sysmess v0.3.1
-	github.com/mondegor/go-webcore v0.5.2
+	github.com/mondegor/go-webcore v0.5.3
 	github.com/rabbitmq/amqp091-go v1.8.1
 	github.com/redis/go-redis/v9 v9.1.0
 )
 
 require (
 	github.com/BurntSushi/toml v1.3.2 // indirect
+	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/google/uuid v1.3.1 // indirect

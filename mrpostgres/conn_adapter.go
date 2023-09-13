@@ -10,7 +10,6 @@ import (
 )
 
 // go get -u github.com/jackc/pgx/v5
-// go get -u github.com/Masterminds/squirrel
 
 const (
 	connectionName = "postgres"
