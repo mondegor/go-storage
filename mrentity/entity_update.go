@@ -70,7 +70,7 @@ func FilledFieldsToUpdate(entity any) (map[string]any, error) {
     }
 
     if len(values) == 0 {
-        return values, factoryErrInternalListOfFieldsIsEmpty.Caller(1).New()
+        return values, FactoryErrInternalListOfFieldsIsEmpty.Caller(1).New()
     }
 
     return values, nil

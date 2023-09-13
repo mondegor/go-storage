@@ -87,8 +87,8 @@ github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 h1:P6pPBnrTSX3DEVR4fDembhR
 github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0/go.mod h1:vmVJ0l/dxyfGW6FmdpVm2joNMFikkuWg0EoCKLGUMNw=
 github.com/mondegor/go-sysmess v0.3.1 h1:qQjw5ljtTjmJIPGIOz/F4pQT+Mq+DlHb7gLih3BMsoA=
 github.com/mondegor/go-sysmess v0.3.1/go.mod h1:GtJeZujWYCVm6uR9Y/Yhxa8d68qqoFQ0iOYXEpgOsoA=
-github.com/mondegor/go-webcore v0.5.1 h1:A5JJdoxoQBj8yn5Tbso51gwAsIQsLD1NYAmSyvAPLwo=
-github.com/mondegor/go-webcore v0.5.1/go.mod h1:vrKCg7W5byngKYXtEz1xREtSzuT4BEjcNaM/F7PBb0o=
+github.com/mondegor/go-webcore v0.5.2 h1:WhzE9moba3ruVOe3yz1MjhjBe80tXOyD2PHXAaN1Wew=
+github.com/mondegor/go-webcore v0.5.2/go.mod h1:vrKCg7W5byngKYXtEz1xREtSzuT4BEjcNaM/F7PBb0o=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
 github.com/oklog/ulid/v2 v2.1.0/go.mod h1:rcEKHmBBKfef9DhnvX7y1HZBYxjXb0cP5ExxNsTT1QQ=
