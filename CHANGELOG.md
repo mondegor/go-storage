@@ -3,7 +3,7 @@
 
 ## 2023-09-16
 ### Added
-- Реализован интерфейс mrcore.locker на базе redsync;
+- Реализован интерфейс mrcore.locker на базе redsync и redislock;
 - Добавлен интерфейс mrstorage.FileProvider для работы с файлами;
 - Добавлена поддержка работы с minio;
 

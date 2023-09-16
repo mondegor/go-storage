@@ -3,11 +3,12 @@ module github.com/mondegor/go-storage
 go 1.20
 
 require (
+	github.com/bsm/redislock v0.9.4
 	github.com/go-redsync/redsync/v4 v4.9.4
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/minio/minio-go/v7 v7.0.63
 	github.com/mondegor/go-sysmess v0.3.2
-	github.com/mondegor/go-webcore v0.5.4
+	github.com/mondegor/go-webcore v0.5.5
 	github.com/rabbitmq/amqp091-go v1.8.1
 	github.com/redis/go-redis/v9 v9.1.0
 )

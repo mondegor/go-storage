@@ -1,29 +1,26 @@
-package mrredsync
+package mrredislock
 
 import (
     "context"
     "time"
 
-    "github.com/go-redsync/redsync/v4"
-    "github.com/go-redsync/redsync/v4/redis/goredis/v9"
+    "github.com/bsm/redislock"
     "github.com/mondegor/go-webcore/mrcore"
     "github.com/mondegor/go-webcore/mrctx"
     "github.com/redis/go-redis/v9"
 )
 
-// go get -u github.com/go-redsync/redsync/v4
+// go get -u github.com/bsm/redislock
 
 type (
     lockerAdapter struct {
-        lock *redsync.Redsync
+        lock *redislock.Client
     }
 )
 
 func NewLockerAdapter(conn redis.UniversalClient) *lockerAdapter {
-    pool := goredis.NewPool(conn)
-
     return &lockerAdapter{
-        lock: redsync.New(pool),
+        lock: redislock.New(conn),
     }
 }
 
@@ -37,24 +34,18 @@ func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
         expiry = mrcore.LockerDefaultExpiry
     }
 
-    options := []redsync.Option{
-        redsync.WithExpiry(expiry),
-    }
-
-    mutex := l.lock.NewMutex(key, options...)
-
-    err := mutex.LockContext(ctx)
+    mutex, err := l.lock.Obtain(ctx, key, expiry, nil)
 
     if err != nil {
         return nil, mrcore.FactoryErrInternal.Wrap(err)
     }
 
     return func() {
-        _, err := mutex.UnlockContext(ctx)
+        err := mutex.Release(ctx)
 
         if err != nil {
             mrctx.Logger(ctx).Error(
-                "mrredis.lockerAdapter::MutexUnlock=%s; err: %s",
+                "mrredislock.lockerAdapter::MutexUnlock=%s; err: %s",
                 key,
                 err,
             )

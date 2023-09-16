@@ -10,7 +10,7 @@ import (
     "github.com/mondegor/go-webcore/mrcore"
 )
 
-// go get github.com/minio/minio-go/v7
+// go get -u github.com/minio/minio-go/v7
 
 const (
     connectionName = "minio"
