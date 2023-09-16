@@ -19,15 +19,15 @@ func main() {
         Password: "123456",
     }
 
-    rabbitClient := mrrabbitmq.New()
-    err := rabbitClient.Connect(opt)
+    rabbitAdapter := mrrabbitmq.New()
+    err := rabbitAdapter.Connect(opt)
 
     appHelper.ExitOnError(err)
-    defer appHelper.Close(rabbitClient)
+    defer appHelper.Close(rabbitAdapter)
 
     logger.Info("Create rabbitmq channel")
 
-    rabbitChannel, err := rabbitClient.Cli().Channel()
+    rabbitChannel, err := rabbitAdapter.Cli().Channel()
     appHelper.ExitOnError(err)
 
     _, err = rabbitChannel.QueueDeclare(

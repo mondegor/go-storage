@@ -22,15 +22,15 @@ func main() {
         ConnTimeout: 10 * time.Second,
     }
 
-    redisClient := mrredis.New()
-    err := redisClient.Connect(opt)
+    redisAdapter := mrredis.New()
+    err := redisAdapter.Connect(opt)
 
     appHelper.ExitOnError(err)
-    defer appHelper.Close(redisClient)
+    defer appHelper.Close(redisAdapter)
 
     key := "my-test-key"
-    redisClient.Cli().Set(context.Background(), key, "my-test-value", 1 * time.Second)
-    value := redisClient.Cli().Get(context.Background(), key).Val()
+    redisAdapter.Cli().Set(context.Background(), key, "my-test-value", 1 * time.Second)
+    value := redisAdapter.Cli().Get(context.Background(), key).Val()
 
     logger.Info("value from redis by key '%s': %s", key, value)
 }

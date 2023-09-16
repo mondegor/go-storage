@@ -5,14 +5,11 @@ import (
     "fmt"
     "time"
 
-    "github.com/go-redsync/redsync/v4"
-    "github.com/go-redsync/redsync/v4/redis/goredis/v9"
     "github.com/mondegor/go-webcore/mrcore"
     "github.com/redis/go-redis/v9"
 )
 
 // go get -u github.com/redis/go-redis/v9
-// go get github.com/go-redsync/redsync/v4
 
 const (
 	connectionName = "redis"
@@ -21,7 +18,6 @@ const (
 type (
     ConnAdapter struct {
         conn redis.UniversalClient
-        sync *redsync.Redsync
     }
 
     Options struct {
@@ -41,17 +37,7 @@ func (c *ConnAdapter) Connect(opt Options) error {
         return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
     }
 
-    conn := redis.NewClient(getOptions(&opt))
-    _, err := conn.Ping(context.Background()).Result()
-
-    if err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
-    }
-
-    pool := goredis.NewPool(conn)
-
-    c.conn = conn
-    c.sync = redsync.New(pool)
+    c.conn = redis.NewClient(getOptions(&opt))
 
     return nil
 }
@@ -72,10 +58,6 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 
 func (c *ConnAdapter) Cli() redis.UniversalClient {
     return c.conn
-}
-
-func (c *ConnAdapter) NewMutex(name string, options ...redsync.Option) *redsync.Mutex {
-    return c.sync.NewMutex(name, options...)
 }
 
 func (c *ConnAdapter) Close() error {
