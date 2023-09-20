@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	ZeronullTime time.Time
+    ZeronullTime time.Time
 )
 
 // Value implements the driver Valuer interface.

@@ -1,7 +1,7 @@
 package mrredis
 
 import (
-	"github.com/mondegor/go-webcore/mrcore"
+    "github.com/mondegor/go-webcore/mrcore"
     "github.com/redis/go-redis/v9"
 )
 

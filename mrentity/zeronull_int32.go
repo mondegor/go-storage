@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	ZeronullInt32 int32
+    ZeronullInt32 int32
 )
 
 // Value implements the driver Valuer interface.

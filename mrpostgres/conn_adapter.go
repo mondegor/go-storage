@@ -12,12 +12,13 @@ import (
 // go get -u github.com/jackc/pgx/v5
 
 const (
-	connectionName = "postgres"
+    connectionName = "postgres"
 )
 
 type (
     ConnAdapter struct {
         pool *pgxpool.Pool
+        dbExecHelper
     }
 
     Options struct {
@@ -54,7 +55,7 @@ func (c *ConnAdapter) Connect(opt Options) error {
     pool, err := pgxpool.NewWithConfig(context.Background(), cnf)
 
     if err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
     }
 
     c.pool = pool

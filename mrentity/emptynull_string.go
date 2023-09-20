@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	EmptynullString string
+    EmptynullString string
 )
 
 // Value implements the driver Valuer interface.

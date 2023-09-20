@@ -1,24 +1,25 @@
 package mrpostgres
 
-import "github.com/jackc/pgx/v5"
+import (
+    "github.com/jackc/pgx/v5"
+)
 
 type (
-	QueryRow struct {
-        conn *ConnAdapter
+    queryRow struct {
         row pgx.Row
         err error
     }
 )
 
-func (qr QueryRow) Scan(dest ...any) error {
+func (qr *queryRow) Scan(dest ...any) error {
     if qr.err != nil {
-        return qr.conn.wrapError(qr.err)
+        return qr.err
     }
 
     err := qr.row.Scan(dest...)
 
     if err != nil {
-        return qr.conn.wrapError(err)
+        return wrapError(err, skipThisMethod)
     }
 
     return nil

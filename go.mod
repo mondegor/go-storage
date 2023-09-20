@@ -7,10 +7,10 @@ require (
 	github.com/go-redsync/redsync/v4 v4.9.4
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/minio/minio-go/v7 v7.0.63
-	github.com/mondegor/go-sysmess v0.3.2
-	github.com/mondegor/go-webcore v0.5.5
+	github.com/mondegor/go-sysmess v0.3.3
+	github.com/mondegor/go-webcore v0.5.6
 	github.com/rabbitmq/amqp091-go v1.8.1
-	github.com/redis/go-redis/v9 v9.1.0
+	github.com/redis/go-redis/v9 v9.2.0
 )
 
 require (
@@ -27,7 +27,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.16.7 // indirect
+	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect

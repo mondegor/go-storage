@@ -10,7 +10,7 @@ import (
 // go get github.com/rabbitmq/amqp091-go@v1.8.1
 
 const (
-	connectionName = "rabbitmq"
+    connectionName = "rabbitmq"
 )
 
 type (
@@ -38,7 +38,7 @@ func (c *ConnAdapter) Connect(opt Options) error {
     conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", opt.User, opt.Password, opt.Host, opt.Port))
 
     if err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
     }
 
     c.conn = conn
@@ -58,7 +58,7 @@ func (c *ConnAdapter) Close() error {
     err := c.conn.Close()
 
     if err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
     }
 
     c.conn = nil

@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	tagNameDb = "db"
+    tagNameDb = "db"
 )
 
 func FilledFieldsToUpdate(entity any) (map[string]any, error) {

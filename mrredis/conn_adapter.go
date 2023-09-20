@@ -12,7 +12,7 @@ import (
 // go get -u github.com/redis/go-redis/v9
 
 const (
-	connectionName = "redis"
+    connectionName = "redis"
 )
 
 type (
@@ -50,7 +50,7 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
     _, err := c.conn.Ping(ctx).Result()
 
     if err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
     }
 
     return nil
@@ -68,7 +68,7 @@ func (c *ConnAdapter) Close() error {
     err := c.conn.Close()
 
     if err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
     }
 
     c.conn = nil

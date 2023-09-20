@@ -1,21 +1,35 @@
 package mrpostgres
 
 import (
+    "context"
+    "errors"
+    "strings"
+
+    "github.com/jackc/pgx/v5"
     "github.com/jackc/pgx/v5/pgconn"
     "github.com/mondegor/go-webcore/mrcore"
+    "github.com/mondegor/go-webcore/mrctx"
 )
 
-func (c *ConnAdapter) wrapError(err error) error {
+const (
+    skipThisMethod = 1
+)
+
+func wrapError(err error, skip int) error {
     _, ok := err.(*pgconn.PgError)
 
     if ok {
         // Severity: ERROR; Code: 42601; Message syntax error at or near "item_status"
-        return mrcore.FactoryErrStorageQueryFailed.Caller(2).Wrap(err)
+        return mrcore.FactoryErrStorageQueryFailed.Caller(skip + 1).Wrap(err)
     }
 
-    if err.Error() == "no rows in result set" {
-        return mrcore.FactoryErrStorageNoRowFound.Caller(2).Wrap(err)
+    if errors.Is(err, pgx.ErrNoRows) {
+        return mrcore.FactoryErrStorageNoRowFound.Caller(skip + 1).Wrap(err)
     }
 
-    return mrcore.FactoryErrInternal.Caller(2).Wrap(err)
+    return mrcore.FactoryErrInternal.Caller(skip + 1).Wrap(err)
+}
+
+func debugQuery(ctx context.Context, sql string) {
+    mrctx.Logger(ctx).Debug("SQL Query: %s", strings.Join(strings.Fields(sql), " "))
 }

@@ -10,6 +10,9 @@ import (
     "github.com/redis/go-redis/v9"
 )
 
+// https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html
+// http://antirez.com/news/101
+
 // go get -u github.com/bsm/redislock
 
 type (
@@ -37,7 +40,7 @@ func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
     mutex, err := l.lock.Obtain(ctx, key, expiry, nil)
 
     if err != nil {
-        return nil, mrcore.FactoryErrInternal.Wrap(err)
+        return nil, mrcore.FactoryErrInternal.Caller(1).Wrap(err)
     }
 
     return func() {

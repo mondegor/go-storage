@@ -51,7 +51,7 @@ func (c *connAdapter) Connect(opt Options) error {
     )
 
     if err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
     }
 
     c.conn = conn
@@ -67,7 +67,7 @@ func (c *connAdapter) Ping(ctx context.Context) error {
     _, err := c.conn.GetBucketLocation(ctx, c.backetName)
 
     if err != nil && strings.Contains(err.Error(), "connection") {
-        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
     }
 
     return nil
