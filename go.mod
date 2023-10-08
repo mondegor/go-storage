@@ -7,10 +7,10 @@ require (
 	github.com/go-redsync/redsync/v4 v4.9.4
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/minio/minio-go/v7 v7.0.63
-	github.com/mondegor/go-sysmess v0.3.3
-	github.com/mondegor/go-webcore v0.5.6
-	github.com/rabbitmq/amqp091-go v1.8.1
-	github.com/redis/go-redis/v9 v9.2.0
+	github.com/mondegor/go-sysmess v0.3.4
+	github.com/mondegor/go-webcore v0.5.7
+	github.com/rabbitmq/amqp091-go v1.9.0
+	github.com/redis/go-redis/v9 v9.2.1
 )
 
 require (
@@ -36,10 +36,10 @@ require (
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/stretchr/testify v1.8.2 // indirect
-	golang.org/x/crypto v0.13.0 // indirect
-	golang.org/x/net v0.15.0 // indirect
-	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/net v0.16.0 // indirect
+	golang.org/x/sync v0.4.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

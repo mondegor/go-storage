@@ -5,6 +5,7 @@ import (
     "fmt"
     "time"
 
+    "github.com/jackc/pgx/v5"
     "github.com/jackc/pgx/v5/pgxpool"
     "github.com/mondegor/go-webcore/mrcore"
 )
@@ -30,7 +31,10 @@ type (
         MaxPoolSize int32
         ConnAttempts int32
         ConnTimeout time.Duration
+        AfterConnectFunc func() any
     }
+
+    pgxConnectFunc func(ctx context.Context, conn *pgx.Conn) error
 )
 
 func New() *ConnAdapter {
@@ -51,6 +55,16 @@ func (c *ConnAdapter) Connect(opt Options) error {
     cnf.MaxConns = opt.MaxPoolSize
     cnf.ConnConfig.ConnectTimeout = opt.ConnTimeout
     cnf.MaxConnLifetime = opt.ConnTimeout
+
+    if opt.AfterConnectFunc != nil {
+        pgxFunc, ok := opt.AfterConnectFunc().(pgxConnectFunc)
+
+        if !ok {
+            return mrcore.FactoryErrInternalTypeAssertion.New("pgxConnectFunc", opt.AfterConnectFunc())
+        }
+
+        cnf.AfterConnect = pgxFunc
+    }
 
     pool, err := pgxpool.NewWithConfig(context.Background(), cnf)
 

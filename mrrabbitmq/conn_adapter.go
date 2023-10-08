@@ -55,9 +55,7 @@ func (c *ConnAdapter) Close() error {
         return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }
 
-    err := c.conn.Close()
-
-    if err != nil {
+    if err := c.conn.Close(); err != nil {
         return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
     }
 
