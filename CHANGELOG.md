@@ -1,9 +1,31 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2023-11-01
+### Added
+- Добавлен пакет `mrsql` (`SqlBuilder`) для генерации SQL фрагментов, которые можно подключать к основному SQL запросу;
+- Добавлена обработка тегов `fieldTagFreeUpdate`, `fieldTagSortByField`;
+- Добавлены новые сущности:
+    - `mrentity.ListSorter` + `mrreq.ParseListSorter`;
+    - `mrentity.ListPager` + `mrreq.ParseListPager`;
+    - `mrentity.RangeInt64` + `mrreq.ParseRangeInt64`;
+    - `mrentity.SortDirection`;
+
+### Changed
+- Обновлены зависимости библиотеки;
+- Переименована сущность `mrstorage.File` -> `mrentity.File`;
+- Переработана `FilledFieldsToUpdate` и перенос кода в `NewEntityMetaUpdate`;
+
+### Removed
+- После внедрения `SqlBuilder` была удалена функциональность связанная с `DbSqlizer`:
+    - в пакете `mrstorage` удалены `SqQuery`, `SqQueryRow`, `SqExec`;
+    - в `exec_helper_sqlizer.go` удалены `sqQuery`, `sqQueryRow`, `sqExec`, `parseSql`;
+    - в сущности `mrpostgres.Transaction` удалены `SqQuery`, `SqQueryRow`, `SqExec`;
+- Удалена ошибка не используемая `FactoryErrInternalListOfFieldsIsEmpty`;
+
 ## 2023-10-08
 ### Added
-- В пакет mrpostgres в Options добавлен AfterConnectFunc;
+- В пакет `mrpostgres` в `Options` добавлен `AfterConnectFunc`;
 
 ### Changed
 - Обновлены зависимости библиотеки;
@@ -11,33 +33,33 @@
 
 ## 2023-09-20
 ### Added
-- Добавлены интерфейсы для БД: DbConn, DbTransaction, DbQuery и др.;
+- Добавлены интерфейсы для БД: `DbConn`, `DbTransaction`, `DbQuery` и др.;
 
 ### Changed
-- Заменены tabs на пробелы в коде;
-- Переработан адаптер для postgres, под новые интерфейсы, добавлена сущность транзакции;
+- Заменены `tabs` на пробелы в коде;
+- Переработан адаптер для `postgres`, под новые интерфейсы, добавлена сущность транзакции;
 - Обновлены зависимости библиотеки;
 
 ## 2023-09-16
 ### Added
-- Реализован интерфейс mrcore.locker на базе redsync и redislock;
-- Добавлен интерфейс mrstorage.FileProvider для работы с файлами;
-- Добавлена поддержка работы с minio;
+- Реализован интерфейс `mrcore.locker` на базе `redsync` и `redislock`;
+- Добавлен интерфейс `mrstorage.FileProvider` для работы с файлами;
+- Добавлена поддержка работы с `minio`;
 
 ### Changed
-- Из адаптера redis удалён redsync;
+- Из адаптера `redis` удалён `redsync`;
 
 ## 2023-09-13
 ### Changed
 - Обновлены зависимости библиотеки;
-- Переименованы Connection -> ConnAdapter;
-- Добавлен интерфейс mrstorage.Sqlizer, для того чтобы снять зависимость от squirrel;
+- Переименованы `Connection` -> `ConnAdapter`;
+- Добавлен интерфейс `mrstorage.Sqlizer`, для того чтобы снять зависимость от `squirrel`;
 
 ## 2023-09-12
 ### Changed
-- Все часто используемые ошибки теперь подключаются из пакета mrcore;
-- Формат глобальных const, type, var приведён к общему виду;
-- Некоторые названия ошибок переименованы для поддержки обновлённой версии go-webcore;
+- Все часто используемые ошибки теперь подключаются из пакета `mrcore`;
+- Формат глобальных `const`, `type`, `var` приведён к общему виду;
+- Некоторые названия ошибок переименованы для поддержки обновлённой версии `go-webcore`;
 
 ## 2023-09-11
 ### Changed

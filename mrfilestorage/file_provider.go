@@ -7,11 +7,11 @@ import (
     "path/filepath"
     "strings"
 
-    "github.com/mondegor/go-storage/mrstorage"
+    "github.com/mondegor/go-storage/mrentity"
     "github.com/mondegor/go-webcore/mrlib"
 )
 
-func (c *nativeAdapter) Download(ctx context.Context, file *mrstorage.File) error {
+func (c *nativeAdapter) Download(ctx context.Context, file *mrentity.File) error {
     fullPath := c.getFullPath(file.Name)
     fi, err := os.Stat(fullPath)
 
@@ -32,7 +32,7 @@ func (c *nativeAdapter) Download(ctx context.Context, file *mrstorage.File) erro
     return nil
 }
 
-func (c *nativeAdapter) Upload(ctx context.Context, file *mrstorage.File) error {
+func (c *nativeAdapter) Upload(ctx context.Context, file *mrentity.File) error {
     dst, err := os.Create(c.getFullPath(file.Name))
 
     if err != nil {

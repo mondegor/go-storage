@@ -2,24 +2,14 @@ package mrstorage
 
 import (
     "context"
-    "io"
-)
 
-const (
-    ModelNameFile = "File"
+    "github.com/mondegor/go-storage/mrentity"
 )
 
 type (
     FileProvider interface {
-        Download(ctx context.Context, file *File) error
-        Upload(ctx context.Context, file *File) error
+        Download(ctx context.Context, file *mrentity.File) error
+        Upload(ctx context.Context, file *mrentity.File) error
         Remove(ctx context.Context, filePath string) error
-    }
-
-    File struct {
-        ContentType string
-        Name string
-        Size int64
-        Body io.ReadCloser
     }
 )

@@ -5,11 +5,11 @@ import (
     "path/filepath"
 
     "github.com/minio/minio-go/v7"
-    "github.com/mondegor/go-storage/mrstorage"
+    "github.com/mondegor/go-storage/mrentity"
     "github.com/mondegor/go-webcore/mrlib"
 )
 
-func (c *connAdapter) Download(ctx context.Context, file *mrstorage.File) error {
+func (c *connAdapter) Download(ctx context.Context, file *mrentity.File) error {
     reader, err := c.conn.GetObject(
         ctx,
         c.backetName,
@@ -40,7 +40,7 @@ func (c *connAdapter) Download(ctx context.Context, file *mrstorage.File) error 
     return nil
 }
 
-func (c *connAdapter) Upload(ctx context.Context, file *mrstorage.File) error {
+func (c *connAdapter) Upload(ctx context.Context, file *mrentity.File) error {
     var opts minio.PutObjectOptions
 
     if file.ContentType != "" {
