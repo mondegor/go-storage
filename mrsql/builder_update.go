@@ -8,7 +8,7 @@ import (
 type (
 	BuilderUpdate struct {
 		meta *EntityMetaUpdate
-		set mrstorage.SqlBuilderSet
+		set  mrstorage.SqlBuilderSet
 	}
 )
 
@@ -21,11 +21,11 @@ func NewBuilderUpdate(set mrstorage.SqlBuilderSet) *BuilderUpdate {
 func NewBuilderUpdateWithMeta(meta *EntityMetaUpdate, set mrstorage.SqlBuilderSet) *BuilderUpdate {
 	return &BuilderUpdate{
 		meta: meta,
-		set: set,
+		set:  set,
 	}
 }
 
-func (b *BuilderUpdate) Set(f func (s mrstorage.SqlBuilderSet) mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPart {
+func (b *BuilderUpdate) Set(f func(s mrstorage.SqlBuilderSet) mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPart {
 	return NewBuilderPart(f(b.set))
 }
 
@@ -55,4 +55,3 @@ func (b *BuilderUpdate) SetFromEntityWith(entity any, extFields func(s mrstorage
 		),
 	), nil
 }
-

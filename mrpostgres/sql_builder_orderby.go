@@ -75,7 +75,7 @@ func (b *SqlBuilderOrderBy) Field(name string, direction mrenum.SortDirection) m
 		return nil
 	}
 
-	return func (paramNumber int) (string, []any) {
+	return func(paramNumber int) (string, []any) {
 		return fmt.Sprintf("%s %s", name, direction.String()), []any{}
 	}
 }

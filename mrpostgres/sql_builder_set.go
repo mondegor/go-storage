@@ -36,13 +36,13 @@ func (b *SqlBuilderSet) Join(fields ...mrstorage.SqlBuilderPartFunc) mrstorage.S
 }
 
 func (b *SqlBuilderSet) Field(name string, value any) mrstorage.SqlBuilderPartFunc {
-	return func (paramNumber int) (string, []any) {
+	return func(paramNumber int) (string, []any) {
 		return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value}
 	}
 }
 
 func (b *SqlBuilderSet) Fields(names []string, args []any) mrstorage.SqlBuilderPartFunc {
-	return func (paramNumber int) (string, []any) {
+	return func(paramNumber int) (string, []any) {
 		set := make([]string, len(names))
 
 		for i := range names {

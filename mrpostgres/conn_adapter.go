@@ -23,14 +23,14 @@ type (
 	}
 
 	Options struct {
-		Host string
-		Port string
-		Database string
-		Username string
-		Password string
-		MaxPoolSize int32
-		ConnAttempts int32
-		ConnTimeout time.Duration
+		Host             string
+		Port             string
+		Database         string
+		Username         string
+		Password         string
+		MaxPoolSize      int32
+		ConnAttempts     int32
+		ConnTimeout      time.Duration
 		AfterConnectFunc func() any
 	}
 

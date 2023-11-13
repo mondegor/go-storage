@@ -29,7 +29,7 @@ func (b *SqlBuilderPager) OffsetLimit(index, size uint64) mrstorage.SqlBuilderPa
 		if index > 0 {
 			return fmt.Sprintf(
 				" OFFSET %d LIMIT %d",
-				index * size,
+				index*size,
 				size,
 			), []any{}
 		}

@@ -21,9 +21,9 @@ type (
 	}
 
 	Options struct {
-		Host string
-		Port string
-		Password string
+		Host        string
+		Port        string
+		Password    string
 		ConnTimeout time.Duration
 	}
 )
@@ -76,7 +76,7 @@ func (c *ConnAdapter) Close() error {
 
 func getOptions(o *Options) *redis.Options {
 	return &redis.Options{
-		Addr: fmt.Sprintf("%s:%s", o.Host, o.Port),
+		Addr:     fmt.Sprintf("%s:%s", o.Host, o.Port),
 		Password: o.Password,
 	}
 }

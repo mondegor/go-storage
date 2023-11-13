@@ -19,9 +19,9 @@ type (
 	}
 
 	Options struct {
-		Host string
-		Port string
-		User string
+		Host     string
+		Port     string
+		User     string
 		Password string
 	}
 )

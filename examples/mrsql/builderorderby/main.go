@@ -35,11 +35,11 @@ func main() {
 	fmt.Println("SAMPLE3:")
 
 	type OrderedStruct struct {
-		ID		  string	`sort:"id"`
-		Caption	 string	`sort:"caption"`
-		CreatedAt   time.Time `sort:"createdAt,default,desc"`
-		NotSorted   string
-		IsRemoved   bool	  `sort:"isRemoved"`
+		ID        string    `sort:"id"`
+		Caption   string    `sort:"caption"`
+		CreatedAt time.Time `sort:"createdAt,default,desc"`
+		NotSorted string
+		IsRemoved bool `sort:"isRemoved"`
 	}
 
 	meta, _ := mrsql.NewEntityMetaOrderBy(OrderedStruct{})

@@ -19,7 +19,7 @@ type (
 	}
 
 	fieldInfo struct {
-		kind reflect.Kind
+		kind   reflect.Kind
 		dbName string
 	}
 )
@@ -60,7 +60,7 @@ func NewEntityMetaUpdate(entity any) (*EntityMetaUpdate, error) {
 		}
 
 		meta.fieldsInfo[i] = fieldInfo{
-			kind: fieldType.Type.Kind(),
+			kind:   fieldType.Type.Kind(),
 			dbName: dbName,
 		}
 
@@ -156,4 +156,3 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 
 	return fields, args, nil
 }
-

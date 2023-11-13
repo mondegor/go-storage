@@ -15,10 +15,10 @@ func main() {
 	appHelper := mrtool.NewAppHelper(logger)
 
 	opt := mrminio.Options{
-		Host: "127.0.0.1",
-		Port: "9000",
-		UseSSL: false,
-		User: "admin",
+		Host:     "127.0.0.1",
+		Port:     "9000",
+		UseSSL:   false,
+		User:     "admin",
 		Password: "12345678",
 	}
 

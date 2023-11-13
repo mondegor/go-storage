@@ -9,15 +9,15 @@ import (
 type (
 	BuilderPart struct {
 		paramNumber int
-		prefix string
-		bodyFunc mrstorage.SqlBuilderPartFunc
+		prefix      string
+		bodyFunc    mrstorage.SqlBuilderPartFunc
 	}
 )
 
 func NewBuilderPart(body mrstorage.SqlBuilderPartFunc) *BuilderPart {
 	return &BuilderPart{
 		paramNumber: 1,
-		bodyFunc: body,
+		bodyFunc:    body,
 	}
 }
 
@@ -28,16 +28,16 @@ func (b *BuilderPart) Empty() bool {
 func (b *BuilderPart) WithPrefix(value string) mrstorage.SqlBuilderPart {
 	return &BuilderPart{
 		paramNumber: b.paramNumber,
-		prefix: value,
-		bodyFunc: b.bodyFunc,
+		prefix:      value,
+		bodyFunc:    b.bodyFunc,
 	}
 }
 
 func (b *BuilderPart) Param(number int) mrstorage.SqlBuilderPart {
 	return &BuilderPart{
 		paramNumber: number,
-		prefix: b.prefix,
-		bodyFunc: b.bodyFunc,
+		prefix:      b.prefix,
+		bodyFunc:    b.bodyFunc,
 	}
 }
 

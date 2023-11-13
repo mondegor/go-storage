@@ -62,7 +62,7 @@ func (fp *fileProvider) Download(ctx context.Context, path string) (*mrtype.File
 
 	return &mrtype.File{
 		FileInfo: fp.getFileInfo(&info, path),
-		Body:	 object,
+		Body:     object,
 	}, nil
 }
 
@@ -74,7 +74,7 @@ func (fp *fileProvider) Upload(ctx context.Context, file *mrtype.File) error {
 		file.Body,
 		file.Size, // -1 - calculating size
 		minio.PutObjectOptions{
-			ContentType:		fp.getContentType(file.ContentType, file.Path),
+			ContentType:        fp.getContentType(file.ContentType, file.Path),
 			ContentDisposition: fp.getContentDisposition(file.OriginalName),
 		},
 	)
@@ -95,9 +95,9 @@ func (fp *fileProvider) getFileInfo(info *minio.ObjectInfo, path string) mrtype.
 	return mrtype.FileInfo{
 		ContentType:  fp.getContentType(info.ContentType, path),
 		OriginalName: fp.getOriginalName(info.Metadata.Get("Content-Disposition")),
-		Name:		 info.Key,
+		Name:         info.Key,
 		LastModified: info.LastModified,
-		Size:		 info.Size,
+		Size:         info.Size,
 	}
 }
 
@@ -124,9 +124,9 @@ func (fp *fileProvider) getOriginalName(contentDisposition string) string {
 	length := len(contentDisposition)
 
 	if length > minLength &&
-		contentDisposition[:minLength - 1] == prefix &&
-		contentDisposition[length - 1] == '"' {
-		return contentDisposition[minLength - 1:length - 1]
+		contentDisposition[:minLength-1] == prefix &&
+		contentDisposition[length-1] == '"' {
+		return contentDisposition[minLength-1 : length-1]
 	}
 
 	return contentDisposition

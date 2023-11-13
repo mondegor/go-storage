@@ -11,7 +11,7 @@ type (
 		fmt.Stringer
 	}
 
-	SqlBuilderPartFunc func (paramNumber int) (string, []any)
+	SqlBuilderPartFunc func(paramNumber int) (string, []any)
 )
 
 func SqlBuilderPartFuncRemoveNil(parts []SqlBuilderPartFunc) []SqlBuilderPartFunc {

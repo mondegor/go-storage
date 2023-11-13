@@ -43,8 +43,8 @@ func (n *nativeAdapter) Download(ctx context.Context, path string) (*mrtype.File
 
 	return &mrtype.File{
 		FileInfo: fileInfo,
-		Path: path,
-		Body: fd,
+		Path:     path,
+		Body:     fd,
 	}, nil
 }
 
@@ -78,9 +78,9 @@ func (n *nativeAdapter) getFileInfo(path string) (mrtype.FileInfo, error) {
 	}
 
 	return mrtype.FileInfo{
-		ContentType: mrlib.MimeTypeByExt(filepath.Ext(path)),
-		Name: filepath.Base(path),
+		ContentType:  mrlib.MimeTypeByExt(filepath.Ext(path)),
+		Name:         filepath.Base(path),
 		LastModified: fi.ModTime(),
-		Size: fi.Size(),
+		Size:         fi.Size(),
 	}, nil
 }

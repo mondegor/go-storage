@@ -13,9 +13,9 @@ func main() {
 	appHelper := mrtool.NewAppHelper(logger)
 
 	opt := mrrabbitmq.Options{
-		Host: "127.0.0.1",
-		Port: "5672",
-		User: "admin",
+		Host:     "127.0.0.1",
+		Port:     "5672",
+		User:     "admin",
 		Password: "123456",
 	}
 
@@ -32,11 +32,11 @@ func main() {
 
 	_, err = rabbitChannel.QueueDeclare(
 		"my.test.queue", // name
-		true, // durable
-		false, // autoDelete
-		true, // exclusive
-		false, // noWait
-		nil, // args
+		true,            // durable
+		false,           // autoDelete
+		true,            // exclusive
+		false,           // noWait
+		nil,             // args
 	)
 
 	appHelper.ExitOnError(err)

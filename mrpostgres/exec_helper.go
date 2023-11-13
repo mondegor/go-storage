@@ -25,7 +25,7 @@ func (e *dbExecHelper) query(conn pgxQuery, skip int, ctx context.Context, sql s
 	rows, err := conn.Query(ctx, sql, args...)
 
 	if err != nil {
-		return nil, wrapError(err, skip + 1)
+		return nil, wrapError(err, skip+1)
 	}
 
 	return &queryRows{
@@ -47,7 +47,7 @@ func (e *dbExecHelper) exec(conn pgxQuery, skip int, ctx context.Context, sql st
 	commandTag, err := conn.Exec(ctx, sql, args...)
 
 	if err != nil {
-		return wrapError(err, skip + 1)
+		return wrapError(err, skip+1)
 	}
 
 	if commandTag.Update() && commandTag.RowsAffected() < 1 {

@@ -23,10 +23,10 @@ type (
 	}
 
 	Options struct {
-		Host string
-		Port string
-		UseSSL bool
-		User string
+		Host     string
+		Port     string
+		UseSSL   bool
+		User     string
 		Password string
 	}
 )

@@ -16,13 +16,13 @@ const (
 
 type (
 	EntityMetaOrderBy struct {
-		fieldMap	map[string]bool
+		fieldMap    map[string]bool
 		defaultSort mrtype.SortParams
 	}
 )
 
 // NewEntityMetaOrderBy - WARNING: use only when starting the main process
-func NewEntityMetaOrderBy(entity any) (*EntityMetaOrderBy, error)  {
+func NewEntityMetaOrderBy(entity any) (*EntityMetaOrderBy, error) {
 	rvt := reflect.TypeOf(entity)
 
 	for rvt.Kind() == reflect.Pointer {

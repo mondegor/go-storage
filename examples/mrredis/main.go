@@ -16,9 +16,9 @@ func main() {
 	appHelper := mrtool.NewAppHelper(logger)
 
 	opt := mrredis.Options{
-		Host: "127.0.0.1",
-		Port: "6379",
-		Password: "123456",
+		Host:        "127.0.0.1",
+		Port:        "6379",
+		Password:    "123456",
 		ConnTimeout: 10 * time.Second,
 	}
 
@@ -29,7 +29,7 @@ func main() {
 	defer appHelper.Close(redisAdapter)
 
 	key := "my-test-key"
-	redisAdapter.Cli().Set(context.Background(), key, "my-test-value", 1 * time.Second)
+	redisAdapter.Cli().Set(context.Background(), key, "my-test-value", 1*time.Second)
 	value := redisAdapter.Cli().Get(context.Background(), key).Val()
 
 	logger.Info("value from redis by key '%s': %s", key, value)

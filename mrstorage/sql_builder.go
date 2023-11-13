@@ -39,9 +39,9 @@ type (
 	}
 
 	SqlBuilderSelect interface {
-		Where(f func (w SqlBuilderWhere) SqlBuilderPartFunc) SqlBuilderPart
-		OrderBy(f func (o SqlBuilderOrderBy) SqlBuilderPartFunc) SqlBuilderPart
-		Pager(f func (p SqlBuilderPager) SqlBuilderPartFunc) SqlBuilderPart
+		Where(f func(w SqlBuilderWhere) SqlBuilderPartFunc) SqlBuilderPart
+		OrderBy(f func(o SqlBuilderOrderBy) SqlBuilderPartFunc) SqlBuilderPart
+		Pager(f func(p SqlBuilderPager) SqlBuilderPartFunc) SqlBuilderPart
 	}
 
 	SqlSelectParams struct {
