@@ -38,7 +38,7 @@ func (c *ConnAdapter) Connect(opt Options) error {
     conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", opt.User, opt.Password, opt.Host, opt.Port))
 
     if err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     c.conn = conn
@@ -56,7 +56,7 @@ func (c *ConnAdapter) Close() error {
     }
 
     if err := c.conn.Close(); err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     c.conn = nil

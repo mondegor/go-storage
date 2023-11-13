@@ -3,14 +3,13 @@ package main
 import (
     "context"
 
-    "github.com/minio/minio-go/v7"
     "github.com/mondegor/go-storage/mrminio"
     "github.com/mondegor/go-webcore/mrcore"
     "github.com/mondegor/go-webcore/mrtool"
 )
 
 func main() {
-    logger := mrcore.DefaultLogger().With("mrminio")
+    logger := mrcore.Log().With("mrminio")
     logger.Info("Create minio S3 connection")
 
     appHelper := mrtool.NewAppHelper(logger)
@@ -23,9 +22,7 @@ func main() {
         Password: "12345678",
     }
 
-    bucketName := "test-backet"
-
-    minioAdapter := mrminio.New(bucketName)
+    minioAdapter := mrminio.New()
     err := minioAdapter.Connect(opt)
 
     appHelper.ExitOnError(err)
@@ -33,24 +30,21 @@ func main() {
 
     appHelper.ExitOnError(minioAdapter.Ping(context.Background()))
 
-    logger.Info("Create test backet")
+    logger.Info("Create test bucket")
 
-    exists, err := minioAdapter.Cli().BucketExists(context.Background(), bucketName)
+    bucketName := "test-bucket"
+
+    created, err := minioAdapter.InitBucket(context.Background(), bucketName, true)
     appHelper.ExitOnError(err)
 
-    if !exists {
-        err = minioAdapter.Cli().MakeBucket(
-            context.Background(),
-            bucketName,
-            minio.MakeBucketOptions{}, // "ru-central1"
-        )
-        appHelper.ExitOnError(err)
-
-        logger.Info("Test backet created")
+    if created {
+        mrcore.LogInfo("Bucket '%s' created", bucketName)
+    } else {
+        mrcore.LogInfo("Bucket '%s' exists, OK", bucketName)
     }
 
     err = minioAdapter.Cli().RemoveBucket(context.Background(), bucketName)
     appHelper.ExitOnError(err)
 
-    logger.Info("Test backet removed")
+    logger.Info("Test bucket removed")
 }

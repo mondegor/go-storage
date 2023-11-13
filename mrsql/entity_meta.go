@@ -1,9 +1,14 @@
 package mrsql
 
+import "regexp"
+
 const (
-    fieldTagFreeUpdate  = "update"
-    fieldTagJson        = "json"
-    fieldTagDbFieldName = "db"
+    fieldTagDBFieldName = "db"
+    fieldTagFieldUpdate  = "upd"
     fieldTagSortByField = "sort"
+)
+
+var (
+    regexpDbName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 )
 

@@ -44,7 +44,7 @@ func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
     mutex := l.lock.NewMutex(key, options...)
 
     if err := mutex.LockContext(ctx); err != nil {
-        return nil, mrcore.FactoryErrInternal.Caller(1).Wrap(err)
+        return nil, mrcore.FactoryErrInternal.Wrap(err)
     }
 
     return func() {

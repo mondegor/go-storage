@@ -11,15 +11,15 @@ import (
 )
 
 // go get -u github.com/minio/minio-go/v7
+// https://min.io/docs/minio/linux/developers/go/API.html
 
 const (
     connectionName = "minio"
 )
 
 type (
-    connAdapter struct {
+    ConnAdapter struct {
         conn *minio.Client
-        backetName string
     }
 
     Options struct {
@@ -31,19 +31,17 @@ type (
     }
 )
 
-func New(backetName string) *connAdapter {
-    return &connAdapter{
-        backetName: backetName,
-    }
+func New() *ConnAdapter {
+    return &ConnAdapter{}
 }
 
-func (c *connAdapter) Connect(opt Options) error {
+func (c *ConnAdapter) Connect(opt Options) error {
     if c.conn != nil {
         return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
     }
 
     conn, err := minio.New(
-        getUrl(&opt),
+        getURL(&opt),
         &minio.Options{
             Creds:  credentials.NewStaticV4(opt.User, opt.Password, ""),
             Secure: opt.UseSSL,
@@ -51,7 +49,7 @@ func (c *connAdapter) Connect(opt Options) error {
     )
 
     if err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     c.conn = conn
@@ -59,25 +57,53 @@ func (c *connAdapter) Connect(opt Options) error {
     return nil
 }
 
-func (c *connAdapter) Ping(ctx context.Context) error {
+func (c *ConnAdapter) Ping(ctx context.Context) error {
     if c.conn == nil {
         return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }
 
-    _, err := c.conn.GetBucketLocation(ctx, c.backetName)
+    _, err := c.conn.BucketExists(ctx, "bucket-ping") // :TODO: возможно есть способ пинга лучше
 
     if err != nil && strings.Contains(err.Error(), "connection") {
-        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     return nil
 }
 
-func (c *connAdapter) Cli() *minio.Client {
+func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string, createIfNotExists bool) (bool, error) {
+    exists, err := c.conn.BucketExists(ctx, bucketName)
+
+    if err != nil {
+        return false, err
+    }
+
+    if exists {
+        return false, nil
+    }
+
+    if !createIfNotExists {
+        return false, fmt.Errorf("bucket with name '%s' not exists", bucketName)
+    }
+
+    err = c.conn.MakeBucket(
+        ctx,
+        bucketName,
+        minio.MakeBucketOptions{}, // "ru-central1"
+    )
+
+    if err != nil {
+        return false, err
+    }
+
+    return true, nil
+}
+
+func (c *ConnAdapter) Cli() *minio.Client {
     return c.conn
 }
 
-func (c *connAdapter) Close() error {
+func (c *ConnAdapter) Close() error {
     if c.conn == nil {
         return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
     }
@@ -87,6 +113,6 @@ func (c *connAdapter) Close() error {
     return nil
 }
 
-func getUrl(o *Options) string {
+func getURL(o *Options) string {
     return fmt.Sprintf("%s:%s", o.Host, o.Port)
 }

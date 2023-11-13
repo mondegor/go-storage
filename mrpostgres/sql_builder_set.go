@@ -9,28 +9,11 @@ import (
 
 type (
     SqlBuilderSet struct {
-        fieldMap map[string]string // field name -> db field name
     }
 )
 
 func NewSqlBuilderSet() *SqlBuilderSet {
     return &SqlBuilderSet{}
-}
-
-func NewSqlBuilderSetWithFieldMap(fieldMap map[string]string) *SqlBuilderSet {
-    return &SqlBuilderSet{
-        fieldMap: fieldMap,
-    }
-}
-
-func (b *SqlBuilderSet) DbName(name string) string {
-    if b.fieldMap != nil {
-        if dbName, ok := b.fieldMap[name]; ok {
-            return dbName
-        }
-    }
-
-    return name
 }
 
 func (b *SqlBuilderSet) Join(fields ...mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPartFunc {
@@ -52,18 +35,18 @@ func (b *SqlBuilderSet) Join(fields ...mrstorage.SqlBuilderPartFunc) mrstorage.S
     }
 }
 
-func (b *SqlBuilderSet) Field(dbName string, value any) mrstorage.SqlBuilderPartFunc {
+func (b *SqlBuilderSet) Field(name string, value any) mrstorage.SqlBuilderPartFunc {
     return func (paramNumber int) (string, []any) {
-        return fmt.Sprintf("%s = $%d", dbName, paramNumber), []any{value}
+        return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value}
     }
 }
 
-func (b *SqlBuilderSet) Fields(dbNames []string, args []any) mrstorage.SqlBuilderPartFunc {
+func (b *SqlBuilderSet) Fields(names []string, args []any) mrstorage.SqlBuilderPartFunc {
     return func (paramNumber int) (string, []any) {
-        set := make([]string, len(dbNames))
+        set := make([]string, len(names))
 
-        for i := range dbNames {
-            set[i] = fmt.Sprintf("%s = $%d", dbNames[i], paramNumber)
+        for i := range names {
+            set[i] = fmt.Sprintf("%s = $%d", names[i], paramNumber)
             paramNumber++
         }
 

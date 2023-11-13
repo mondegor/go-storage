@@ -50,7 +50,7 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
     _, err := c.conn.Ping(ctx).Result()
 
     if err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     return nil
@@ -66,7 +66,7 @@ func (c *ConnAdapter) Close() error {
     }
 
     if err := c.conn.Close(); err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     c.conn = nil

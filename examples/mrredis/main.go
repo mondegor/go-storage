@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-    logger := mrcore.DefaultLogger().With("mrredis")
+    logger := mrcore.Log().With("mrredis")
     logger.Info("Create redis connection")
 
     appHelper := mrtool.NewAppHelper(logger)

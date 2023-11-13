@@ -1,15 +1,15 @@
 package mrstorage
 
 import (
-    "github.com/mondegor/go-storage/mrentity"
+    "github.com/mondegor/go-webcore/mrenum"
+    "github.com/mondegor/go-webcore/mrtype"
 )
 
 type (
     SqlBuilderSet interface {
-        DbName(name string) string
         Join(fields ...SqlBuilderPartFunc) SqlBuilderPartFunc
-        Field(dbName string, value any) SqlBuilderPartFunc
-        Fields(dbNames []string, args []any) SqlBuilderPartFunc
+        Field(name string, value any) SqlBuilderPartFunc
+        Fields(names []string, args []any) SqlBuilderPartFunc
     }
 
     SqlBuilderWhere interface {
@@ -17,23 +17,25 @@ type (
         JoinOr(conds ...SqlBuilderPartFunc) SqlBuilderPartFunc
         Expr(expr string) SqlBuilderPartFunc
         ExprWithValue(expr string, value any) SqlBuilderPartFunc
-        Equal(dbName string, value any) SqlBuilderPartFunc
-        NotEqual(dbName string, value any) SqlBuilderPartFunc
-        FilterLike(dbName string, value string) SqlBuilderPartFunc
-        FilterLikeFields(dbNames []string, value string) SqlBuilderPartFunc
-        FilterEqualInt64(dbName string, value int64, empty int64) SqlBuilderPartFunc
-        FilterRangeInt64(dbName string, value mrentity.RangeInt64, empty int64) SqlBuilderPartFunc
-        FilterAnyOf(dbName string, values any) SqlBuilderPartFunc
+        Equal(name string, value any) SqlBuilderPartFunc
+        NotEqual(name string, value any) SqlBuilderPartFunc
+        FilterEqualString(name, value string) SqlBuilderPartFunc
+        FilterEqualInt64(name string, value, empty int64) SqlBuilderPartFunc
+        FilterEqualBool(name string, value mrtype.NullableBool) SqlBuilderPartFunc
+        FilterLike(name, value string) SqlBuilderPartFunc
+        FilterLikeFields(names []string, value string) SqlBuilderPartFunc
+        FilterRangeInt64(name string, value mrtype.RangeInt64, empty int64) SqlBuilderPartFunc
+        FilterAnyOf(name string, values any) SqlBuilderPartFunc
     }
 
     SqlBuilderOrderBy interface {
-        DbName(name string) string
+        WrapWithDefault(field SqlBuilderPartFunc) SqlBuilderPartFunc
         Join(fields ...SqlBuilderPartFunc) SqlBuilderPartFunc
-        Field(dbName string, direction mrentity.SortDirection) SqlBuilderPartFunc
+        Field(name string, direction mrenum.SortDirection) SqlBuilderPartFunc
     }
 
     SqlBuilderPager interface {
-        OffsetLimit(index uint64, size uint64) SqlBuilderPartFunc
+        OffsetLimit(index, size uint64) SqlBuilderPartFunc
     }
 
     SqlBuilderSelect interface {
@@ -51,5 +53,6 @@ type (
     SqlBuilderUpdate interface {
         Set(f func(s SqlBuilderSet) SqlBuilderPartFunc) SqlBuilderPart
         SetFromEntity(entity any) (SqlBuilderPart, error)
+        SetFromEntityWith(entity any, extFields func(s SqlBuilderSet) SqlBuilderPartFunc) (SqlBuilderPart, error)
     }
 )

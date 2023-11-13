@@ -6,9 +6,9 @@ import (
     "strings"
 
     "github.com/lib/pq"
-    "github.com/mondegor/go-storage/mrentity"
     "github.com/mondegor/go-storage/mrsql"
     "github.com/mondegor/go-storage/mrstorage"
+    "github.com/mondegor/go-webcore/mrtype"
 )
 
 // go get -u github.com/lib/pq
@@ -19,8 +19,7 @@ type (
 )
 
 func NewSqlBuilderWhere() *SqlBuilderWhere {
-    return &SqlBuilderWhere{
-    }
+    return &SqlBuilderWhere{}
 }
 
 func (b *SqlBuilderWhere) JoinAnd(conds ...mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPartFunc {
@@ -51,49 +50,69 @@ func (b *SqlBuilderWhere) ExprWithValue(expr string, value any) mrstorage.SqlBui
     }
 }
 
-func (b *SqlBuilderWhere) Equal(dbName string, value any) mrstorage.SqlBuilderPartFunc {
+func (b *SqlBuilderWhere) Equal(name string, value any) mrstorage.SqlBuilderPartFunc {
     return func (paramNumber int) (string, []any) {
-        return fmt.Sprintf("%s = $%d", dbName, paramNumber), []any{value}
+        return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value}
     }
 }
 
-func (b *SqlBuilderWhere) NotEqual(dbName string, value any) mrstorage.SqlBuilderPartFunc {
+func (b *SqlBuilderWhere) NotEqual(name string, value any) mrstorage.SqlBuilderPartFunc {
     return func (paramNumber int) (string, []any) {
-        return fmt.Sprintf("%s <> $%d", dbName, paramNumber), []any{value}
+        return fmt.Sprintf("%s <> $%d", name, paramNumber), []any{value}
     }
 }
 
-func (b *SqlBuilderWhere) FilterLike(dbName string, value string) mrstorage.SqlBuilderPartFunc {
-    return b.FilterLikeFields([]string{dbName}, value)
-}
-
-func (b *SqlBuilderWhere) FilterLikeFields(dbNames []string, value string) mrstorage.SqlBuilderPartFunc {
-   if value == "" {
-       return nil
-   }
+func (b *SqlBuilderWhere) FilterEqualString(name, value string) mrstorage.SqlBuilderPartFunc {
+    if value == "" {
+        return nil
+    }
 
     return func (paramNumber int) (string, []any) {
-       var conds []string
-
-       for i := range dbNames {
-            conds = append(conds, fmt.Sprintf("%s LIKE '%%' || $%d || '%%'", dbNames[i], paramNumber))
-       }
-
-       return fmt.Sprintf("(%s)", strings.Join(conds, " OR ")), []any{value}
-   }
+        return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value}
+    }
 }
 
-func (b *SqlBuilderWhere) FilterEqualInt64(dbName string, value int64, empty int64) mrstorage.SqlBuilderPartFunc {
+func (b *SqlBuilderWhere) FilterEqualInt64(name string, value, empty int64) mrstorage.SqlBuilderPartFunc {
     if value == empty {
         return nil
     }
 
     return func (paramNumber int) (string, []any) {
-        return fmt.Sprintf("%s = $%d", dbName, paramNumber), []any{value}
+        return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value}
     }
 }
 
-func (b *SqlBuilderWhere) FilterRangeInt64(dbName string, value mrentity.RangeInt64, empty int64) mrstorage.SqlBuilderPartFunc {
+func (b *SqlBuilderWhere) FilterEqualBool(name string, value mrtype.NullableBool) mrstorage.SqlBuilderPartFunc {
+    if value.IsNull() {
+        return nil
+    }
+
+    return func (paramNumber int) (string, []any) {
+        return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value.Val()}
+    }
+}
+
+func (b *SqlBuilderWhere) FilterLike(name, value string) mrstorage.SqlBuilderPartFunc {
+    return b.FilterLikeFields([]string{name}, value)
+}
+
+func (b *SqlBuilderWhere) FilterLikeFields(names []string, value string) mrstorage.SqlBuilderPartFunc {
+    if value == "" {
+        return nil
+    }
+
+    return func (paramNumber int) (string, []any) {
+        var conds []string
+
+        for i := range names {
+            conds = append(conds, fmt.Sprintf("%s LIKE '%%' || $%d || '%%'", names[i], paramNumber))
+        }
+
+        return fmt.Sprintf("(%s)", strings.Join(conds, " OR ")), []any{value}
+    }
+}
+
+func (b *SqlBuilderWhere) FilterRangeInt64(name string, value mrtype.RangeInt64, empty int64) mrstorage.SqlBuilderPartFunc {
    if value.Min != empty {
        if value.Max != empty {
            if value.Min > value.Max {
@@ -101,23 +120,23 @@ func (b *SqlBuilderWhere) FilterRangeInt64(dbName string, value mrentity.RangeIn
            }
 
            return func (paramNumber int) (string, []any) {
-               return fmt.Sprintf("(%s BETWEEN $%d AND $%d)", dbName, paramNumber, paramNumber + 1), []any{value.Min, value.Max}
+               return fmt.Sprintf("(%s BETWEEN $%d AND $%d)", name, paramNumber, paramNumber + 1), []any{value.Min, value.Max}
            }
        } else {
            return func (paramNumber int) (string, []any) {
-               return fmt.Sprintf("%s >= $%d", dbName, paramNumber), []any{value.Min}
+               return fmt.Sprintf("%s >= $%d", name, paramNumber), []any{value.Min}
            }
        }
    } else if value.Max != empty {
        return func (paramNumber int) (string, []any) {
-           return fmt.Sprintf("%s <= $%d", dbName, paramNumber), []any{value.Max}
+           return fmt.Sprintf("%s <= $%d", name, paramNumber), []any{value.Max}
        }
    }
 
    return nil
 }
 
-func (b *SqlBuilderWhere) FilterAnyOf(dbName string, values any) mrstorage.SqlBuilderPartFunc {
+func (b *SqlBuilderWhere) FilterAnyOf(name string, values any) mrstorage.SqlBuilderPartFunc {
     val := reflect.ValueOf(values)
 
     if val.Kind() != reflect.Slice || val.Len() == 0 {
@@ -125,7 +144,7 @@ func (b *SqlBuilderWhere) FilterAnyOf(dbName string, values any) mrstorage.SqlBu
     }
 
     return func (paramNumber int) (string, []any) {
-        return fmt.Sprintf("%s = ANY($%d)", dbName, paramNumber), []any{pq.Array(values)}
+        return fmt.Sprintf("%s = ANY($%d)", name, paramNumber), []any{pq.Array(values)}
     }
 }
 

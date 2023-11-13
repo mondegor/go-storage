@@ -27,7 +27,11 @@ func (b *BuilderSelect) Where(f func (w mrstorage.SqlBuilderWhere) mrstorage.Sql
 }
 
 func (b *BuilderSelect) OrderBy(f func (o mrstorage.SqlBuilderOrderBy) mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPart {
-    return NewBuilderPart(f(b.orderBy))
+    return NewBuilderPart(
+        b.orderBy.WrapWithDefault(
+            f(b.orderBy),
+        ),
+    )
 }
 
 func (b *BuilderSelect) Pager(f func (p mrstorage.SqlBuilderPager) mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPart {

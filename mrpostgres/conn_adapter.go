@@ -69,7 +69,7 @@ func (c *ConnAdapter) Connect(opt Options) error {
     pool, err := pgxpool.NewWithConfig(context.Background(), cnf)
 
     if err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Caller(1).Wrap(err, connectionName)
+        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
     }
 
     c.pool = pool

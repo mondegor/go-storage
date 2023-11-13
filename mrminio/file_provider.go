@@ -2,70 +2,132 @@ package mrminio
 
 import (
     "context"
+    "fmt"
     "path/filepath"
 
     "github.com/minio/minio-go/v7"
-    "github.com/mondegor/go-storage/mrentity"
     "github.com/mondegor/go-webcore/mrlib"
+    "github.com/mondegor/go-webcore/mrtype"
 )
 
-func (c *connAdapter) Download(ctx context.Context, file *mrentity.File) error {
-    reader, err := c.conn.GetObject(
+// https://min.io/docs/minio/linux/developers/go/API.html
+
+type (
+    fileProvider struct {
+        *ConnAdapter
+        bucketName string
+    }
+)
+
+func NewFileProvider(conn *ConnAdapter, bucketName string) *fileProvider {
+    return &fileProvider{
+        ConnAdapter: conn,
+        bucketName:  bucketName,
+    }
+}
+
+func (fp *fileProvider) Info(ctx context.Context, path string) (mrtype.FileInfo, error) {
+    info, err := fp.conn.StatObject(
         ctx,
-        c.backetName,
-        file.Name,
+        fp.bucketName,
+        path,
+        minio.StatObjectOptions{},
+    )
+
+    if err != nil {
+        return mrtype.FileInfo{}, err
+    }
+
+    return fp.getFileInfo(&info, path), nil
+}
+
+func (fp *fileProvider) Download(ctx context.Context, path string) (*mrtype.File, error) {
+    object, err := fp.conn.GetObject(
+        ctx,
+        fp.bucketName,
+        path,
         minio.GetObjectOptions{},
     )
 
     if err != nil {
-        return err
+        return nil, err
     }
 
-    fi, err := reader.Stat()
+    info, err := object.Stat()
 
     if err != nil {
-        reader.Close()
-        return err
+        object.Close()
+        return nil, err
     }
 
-    if fi.ContentType != "" {
-        file.ContentType = fi.ContentType
-    } else {
-        file.ContentType = mrlib.MimeTypeByExt(filepath.Ext(file.Name))
-    }
-
-    file.Size = fi.Size
-    file.Body = reader
-
-    return nil
+    return &mrtype.File{
+        FileInfo: fp.getFileInfo(&info, path),
+        Body:     object,
+    }, nil
 }
 
-func (c *connAdapter) Upload(ctx context.Context, file *mrentity.File) error {
-    var opts minio.PutObjectOptions
-
-    if file.ContentType != "" {
-        opts.ContentType = file.ContentType
-    } else {
-        opts.ContentType = mrlib.MimeTypeByExt(filepath.Ext(file.Name))
-    }
-
-    _, err := c.conn.PutObject(
+func (fp *fileProvider) Upload(ctx context.Context, file *mrtype.File) error {
+    _, err := fp.conn.PutObject(
         ctx,
-        c.backetName,
-        file.Name,
+        fp.bucketName,
+        file.Path,
         file.Body,
-        file.Size,
-        opts,
+        file.Size, // -1 - calculating size
+        minio.PutObjectOptions{
+            ContentType:        fp.getContentType(file.ContentType, file.Path),
+            ContentDisposition: fp.getContentDisposition(file.OriginalName),
+        },
     )
 
     return err
 }
 
-func (c *connAdapter) Remove(ctx context.Context, filePath string) error {
-    return c.conn.RemoveObject(
+func (fp *fileProvider) Remove(ctx context.Context, path string) error {
+    return fp.conn.RemoveObject(
         ctx,
-        c.backetName,
-        filePath,
+        fp.bucketName,
+        path,
         minio.RemoveObjectOptions{},
     )
+}
+
+func (fp *fileProvider) getFileInfo(info *minio.ObjectInfo, path string) mrtype.FileInfo {
+    return mrtype.FileInfo{
+        ContentType:  fp.getContentType(info.ContentType, path),
+        OriginalName: fp.getOriginalName(info.Metadata.Get("Content-Disposition")),
+        Name:         info.Key,
+        LastModified: info.LastModified,
+        Size:         info.Size,
+    }
+}
+
+func (fp *fileProvider) getContentType(value, path string) string {
+    if value != "" {
+        return value
+    }
+
+    return mrlib.MimeTypeByExt(filepath.Ext(path))
+}
+
+func (fp *fileProvider) getContentDisposition(value string) string {
+    if value == "" {
+        return ""
+    }
+
+    return fmt.Sprintf("attachment; filename=\"%s\"", value) // :TODO: escape value
+}
+
+func (fp *fileProvider) getOriginalName(contentDisposition string) string {
+    const prefix = "attachment; filename=\""
+    const minLength = 23 // len of prefix + '"'
+
+    length := len(contentDisposition)
+
+    if length > minLength &&
+        contentDisposition[:minLength - 1] == prefix &&
+        contentDisposition[length - 1] == '"' {
+        return contentDisposition[minLength - 1:length - 1]
+    }
+
+    return contentDisposition
 }

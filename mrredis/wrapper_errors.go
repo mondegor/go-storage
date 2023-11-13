@@ -7,8 +7,8 @@ import (
 
 func (c *ConnAdapter) wrapError(err error) error {
     if err == redis.Nil {
-        return mrcore.FactoryErrStorageNoRowFound.Caller(2).Wrap(err)
+        return mrcore.FactoryErrStorageNoRowFound.Caller(1).Wrap(err)
     }
 
-    return mrcore.FactoryErrStorageQueryFailed.Caller(2).Wrap(err)
+    return mrcore.FactoryErrStorageQueryFailed.Caller(1).Wrap(err)
 }

@@ -14,9 +14,8 @@ const (
 
 type (
     EntityMetaUpdate struct {
-        StructName string
-        Fields map[string]string // field name -> db field name
-        FieldsInfo map[int]fieldInfo // field index -> fieldInfo
+        structName string
+        fieldsInfo map[int]fieldInfo // field index -> fieldInfo
     }
 
     fieldInfo struct {
@@ -25,7 +24,7 @@ type (
     }
 )
 
-// NewEntityMetaUpdate :WARNING: only for start service
+// NewEntityMetaUpdate - WARNING: use only when starting the main process
 func NewEntityMetaUpdate(entity any) (*EntityMetaUpdate, error) {
     rvt := reflect.TypeOf(entity)
 
@@ -34,48 +33,38 @@ func NewEntityMetaUpdate(entity any) (*EntityMetaUpdate, error) {
     }
 
     if rvt.Kind() != reflect.Struct {
-        return nil, mrcore.FactoryErrInternalInvalidType.Caller(1).New(rvt.Kind().String(), reflect.Struct.String())
+        return nil, mrcore.FactoryErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
     }
 
     debugInfo := fmt.Sprintf("[%s] %s:", ModelNameEntityMetaUpdate, rvt.String())
 
     meta := EntityMetaUpdate{
-        StructName: rvt.String(),
-        Fields: make(map[string]string, 0),
-        FieldsInfo: make(map[int]fieldInfo, 0),
+        structName: rvt.String(),
+        fieldsInfo: make(map[int]fieldInfo, 0),
     }
 
     for i, cnt := 0, rvt.NumField(); i < cnt; i++ {
         fieldType := rvt.Field(i)
-        update := fieldType.Tag.Get(fieldTagFreeUpdate)
-        name := fieldType.Tag.Get(fieldTagJson)
-        dbName := fieldType.Tag.Get(fieldTagDbFieldName)
+        update := fieldType.Tag.Get(fieldTagFieldUpdate)
+        dbName := fieldType.Tag.Get(fieldTagDBFieldName)
 
-        if update != "" && update != "on" {
-            mrcore.LogWarn(
-                fmt.Sprintf(
-                    "[%s] %s::%s update = %s, expected value = 'on'",
-                    ModelNameEntityMetaUpdate,
-                    rvt.String(),
-                    rvt.Field(i).Name,
-                    update,
-                ),
-            )
-
+        if update == "" {
             continue
         }
 
-        if name == "" || dbName == "" {
+        dbName, err := parseTagUpdate(rvt, update, dbName)
+
+        if err != nil {
+            mrcore.LogWarn(err)
             continue
         }
 
-        meta.Fields[name] = dbName
-        meta.FieldsInfo[i] = fieldInfo{
+        meta.fieldsInfo[i] = fieldInfo{
             kind: fieldType.Type.Kind(),
             dbName: dbName,
         }
 
-        debugInfo = fmt.Sprintf("%s\n- %s(%d) -> %s;", debugInfo, name, i, dbName)
+        debugInfo = fmt.Sprintf("%s\n- %s(%d) -> %s;", debugInfo, rvt.Field(i).Name, i, dbName)
     }
 
     mrcore.LogDebug(debugInfo)
@@ -83,25 +72,55 @@ func NewEntityMetaUpdate(entity any) (*EntityMetaUpdate, error) {
     return &meta, nil
 }
 
-func FieldsForUpdate(meta *EntityMetaUpdate, entity any) ([]string, []any, error) {
+func parseTagUpdate(rvt reflect.Type, value string, dbName string) (string, error) {
+    errFunc := func(errString string) (string, error) {
+        return "", fmt.Errorf(
+            "[%s] %s: parse error in '%s': %s",
+            ModelNameEntityMetaUpdate,
+            rvt.String(),
+            value,
+            errString,
+        )
+    }
+
+    if value == "+" {
+        if dbName == "" {
+            return errFunc("tag 'db' is empty")
+        }
+
+        if !regexpDbName.MatchString(dbName) {
+            return errFunc(fmt.Sprintf("value '%s' from 'db' is incorrect", dbName))
+        }
+    } else if dbName == "" {
+        if !regexpDbName.MatchString(value) {
+            return errFunc("value is incorrect")
+        }
+
+        dbName = value
+    }
+
+    return dbName, nil
+}
+
+func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) {
     rv := reflect.ValueOf(entity)
 
     for rv.Kind() == reflect.Pointer {
         rv = rv.Elem()
     }
 
-    if rv.Type().String() != meta.StructName {
-        return nil, nil, mrcore.FactoryErrInternalInvalidType.Caller(1).New(rv.Type().String(), meta.StructName)
+    if rv.Type().String() != m.structName {
+        return nil, nil, mrcore.FactoryErrInternalInvalidType.New(rv.Type().String(), m.structName)
     }
 
     if !rv.IsValid() {
-        return nil, nil, mrcore.FactoryErrInternalInvalidData.Caller(1).New(rv)
+        return nil, nil, mrcore.FactoryErrInternalInvalidData.New(rv)
     }
 
     var fields []string
     var args []any
 
-    for i, info := range meta.FieldsInfo {
+    for i, info := range m.fieldsInfo {
         field := rv.Field(i)
 
         if !field.IsValid() {

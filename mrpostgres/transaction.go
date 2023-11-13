@@ -22,11 +22,11 @@ func (t *Transaction) Rollback(ctx context.Context) error {
     return t.tx.Rollback(ctx)
 }
 
-func (t *Transaction) Query(ctx context.Context, sql string, args ...any) (mrstorage.DbQueryRows, error) {
+func (t *Transaction) Query(ctx context.Context, sql string, args ...any) (mrstorage.DBQueryRows, error) {
     return t.query(t.tx, skipThisMethod, ctx, sql, args...)
 }
 
-func (t *Transaction) QueryRow(ctx context.Context, sql string, args ...any) mrstorage.DbQueryRow {
+func (t *Transaction) QueryRow(ctx context.Context, sql string, args ...any) mrstorage.DBQueryRow {
     return t.queryRow(t.tx, skipThisMethod, ctx, sql, args...)
 }
 

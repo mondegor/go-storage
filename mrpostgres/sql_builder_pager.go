@@ -18,7 +18,7 @@ func NewSqlBuilderPager(maxSize uint64) *SqlBuilderPager {
     }
 }
 
-func (b *SqlBuilderPager) OffsetLimit(index uint64, size uint64) mrstorage.SqlBuilderPartFunc {
+func (b *SqlBuilderPager) OffsetLimit(index, size uint64) mrstorage.SqlBuilderPartFunc {
     if b.maxSize > 0 && (size < 1 || size > b.maxSize) {
         size = b.maxSize
     } else if size < 1 {

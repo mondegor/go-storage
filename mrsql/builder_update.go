@@ -30,15 +30,29 @@ func (b *BuilderUpdate) Set(f func (s mrstorage.SqlBuilderSet) mrstorage.SqlBuil
 }
 
 func (b *BuilderUpdate) SetFromEntity(entity any) (mrstorage.SqlBuilderPart, error) {
+    return b.SetFromEntityWith(entity, nil)
+}
+
+func (b *BuilderUpdate) SetFromEntityWith(entity any, extFields func(s mrstorage.SqlBuilderSet) mrstorage.SqlBuilderPartFunc) (mrstorage.SqlBuilderPart, error) {
     if b.meta == nil {
         return nil, mrcore.FactoryErrInternalNilPointer.New()
     }
 
-    dbNames, args, err := FieldsForUpdate(b.meta, entity)
+    dbNames, args, err := b.meta.FieldsForUpdate(entity)
 
     if err != nil {
         return nil, err
     }
 
-    return NewBuilderPart(b.set.Fields(dbNames, args)), nil
+    if extFields == nil {
+        return NewBuilderPart(b.set.Fields(dbNames, args)), nil
+    }
+
+    return NewBuilderPart(
+        b.set.Join(
+            b.set.Fields(dbNames, args),
+            extFields(b.set),
+        ),
+    ), nil
 }
+

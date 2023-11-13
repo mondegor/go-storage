@@ -3,31 +3,31 @@ package mrstorage
 import "context"
 
 type (
-    DbConn interface {
-        Begin(ctx context.Context) (DbTransaction, error)
-        DbQuery
+    DBConn interface {
+        Begin(ctx context.Context) (DBTransaction, error)
+        DBQuery
     }
 
-    DbTransaction interface {
+    DBTransaction interface {
         Commit(ctx context.Context) error
         Rollback(ctx context.Context) error
-        DbQuery
+        DBQuery
     }
 
-    DbQuery interface {
-        Query(ctx context.Context, sql string, args ...any) (DbQueryRows, error)
-        QueryRow(ctx context.Context, sql string, args ...any) DbQueryRow
+    DBQuery interface {
+        Query(ctx context.Context, sql string, args ...any) (DBQueryRows, error)
+        QueryRow(ctx context.Context, sql string, args ...any) DBQueryRow
         Exec(ctx context.Context, sql string, args ...any) error
     }
 
-    DbQueryRows interface {
+    DBQueryRows interface {
         Next() bool
         Scan(dest ...any) error
         Err() error
         Close()
     }
 
-    DbQueryRow interface {
+    DBQueryRow interface {
         Scan(dest ...any) error
     }
 )

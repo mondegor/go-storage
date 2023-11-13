@@ -17,7 +17,7 @@ func (qr *queryRows) Next() bool {
 
 func (qr *queryRows) Scan(dest ...any) error {
     if err := qr.rows.Scan(dest...); err != nil {
-        return mrcore.FactoryErrStorageFetchDataFailed.Caller(1).Wrap(err)
+        return mrcore.FactoryErrStorageFetchDataFailed.Wrap(err)
     }
 
     return nil
@@ -25,7 +25,7 @@ func (qr *queryRows) Scan(dest ...any) error {
 
 func (qr *queryRows) Err() error {
     if err := qr.rows.Err(); err != nil {
-        return mrcore.FactoryErrStorageFetchDataFailed.Caller(1).Wrap(err)
+        return mrcore.FactoryErrStorageFetchDataFailed.Wrap(err)
     }
 
     return nil
