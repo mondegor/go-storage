@@ -1,11 +1,11 @@
 package mrredis
 
 import (
-    "context"
+	"context"
 
-    "github.com/mondegor/go-webcore/mrctx"
+	"github.com/mondegor/go-webcore/mrctx"
 )
 
 func (c *ConnAdapter) debugCmd(ctx context.Context, command, key string, data any) {
-    mrctx.Logger(ctx).Debug("Redis: cmd=%s, key=%s, struct=%#v", command, key, data)
+	mrctx.Logger(ctx).Debug("Redis: cmd=%s, key=%s, struct=%#v", command, key, data)
 }

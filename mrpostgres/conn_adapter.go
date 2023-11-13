@@ -1,110 +1,110 @@
 package mrpostgres
 
 import (
-    "context"
-    "fmt"
-    "time"
+	"context"
+	"fmt"
+	"time"
 
-    "github.com/jackc/pgx/v5"
-    "github.com/jackc/pgx/v5/pgxpool"
-    "github.com/mondegor/go-webcore/mrcore"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/mondegor/go-webcore/mrcore"
 )
 
 // go get -u github.com/jackc/pgx/v5
 
 const (
-    connectionName = "postgres"
+	connectionName = "postgres"
 )
 
 type (
-    ConnAdapter struct {
-        pool *pgxpool.Pool
-        dbExecHelper
-    }
+	ConnAdapter struct {
+		pool *pgxpool.Pool
+		dbExecHelper
+	}
 
-    Options struct {
-        Host string
-        Port string
-        Database string
-        Username string
-        Password string
-        MaxPoolSize int32
-        ConnAttempts int32
-        ConnTimeout time.Duration
-        AfterConnectFunc func() any
-    }
+	Options struct {
+		Host string
+		Port string
+		Database string
+		Username string
+		Password string
+		MaxPoolSize int32
+		ConnAttempts int32
+		ConnTimeout time.Duration
+		AfterConnectFunc func() any
+	}
 
-    pgxConnectFunc func(ctx context.Context, conn *pgx.Conn) error
+	pgxConnectFunc func(ctx context.Context, conn *pgx.Conn) error
 )
 
 func New() *ConnAdapter {
-    return &ConnAdapter{}
+	return &ConnAdapter{}
 }
 
 func (c *ConnAdapter) Connect(opt Options) error {
-    if c.pool != nil {
-        return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
-    }
+	if c.pool != nil {
+		return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
+	}
 
-    cnf, err := pgxpool.ParseConfig(getConnString(&opt))
+	cnf, err := pgxpool.ParseConfig(getConnString(&opt))
 
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 
-    cnf.MaxConns = opt.MaxPoolSize
-    cnf.ConnConfig.ConnectTimeout = opt.ConnTimeout
-    cnf.MaxConnLifetime = opt.ConnTimeout
+	cnf.MaxConns = opt.MaxPoolSize
+	cnf.ConnConfig.ConnectTimeout = opt.ConnTimeout
+	cnf.MaxConnLifetime = opt.ConnTimeout
 
-    if opt.AfterConnectFunc != nil {
-        pgxFunc, ok := opt.AfterConnectFunc().(pgxConnectFunc)
+	if opt.AfterConnectFunc != nil {
+		pgxFunc, ok := opt.AfterConnectFunc().(pgxConnectFunc)
 
-        if !ok {
-            return mrcore.FactoryErrInternalTypeAssertion.New("pgxConnectFunc", opt.AfterConnectFunc())
-        }
+		if !ok {
+			return mrcore.FactoryErrInternalTypeAssertion.New("pgxConnectFunc", opt.AfterConnectFunc())
+		}
 
-        cnf.AfterConnect = pgxFunc
-    }
+		cnf.AfterConnect = pgxFunc
+	}
 
-    pool, err := pgxpool.NewWithConfig(context.Background(), cnf)
+	pool, err := pgxpool.NewWithConfig(context.Background(), cnf)
 
-    if err != nil {
-        return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
-    }
+	if err != nil {
+		return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+	}
 
-    c.pool = pool
+	c.pool = pool
 
-    return nil
+	return nil
 }
 
 func (c *ConnAdapter) Ping(ctx context.Context) error {
-    if c.pool == nil {
-        return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
-    }
+	if c.pool == nil {
+		return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
+	}
 
-    return c.pool.Ping(ctx)
+	return c.pool.Ping(ctx)
 }
 
 func (c *ConnAdapter) Cli() *pgxpool.Pool {
-    return c.pool
+	return c.pool
 }
 
 func (c *ConnAdapter) Close() error {
-    if c.pool == nil {
-        return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
-    }
+	if c.pool == nil {
+		return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
+	}
 
-    c.pool.Close()
-    c.pool = nil
+	c.pool.Close()
+	c.pool = nil
 
-    return nil
+	return nil
 }
 
 func getConnString(o *Options) string {
-    return fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
-        o.Username,
-        o.Password,
-        o.Host,
-        o.Port,
-        o.Database)
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
+		o.Username,
+		o.Password,
+		o.Host,
+		o.Port,
+		o.Database)
 }

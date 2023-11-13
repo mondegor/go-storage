@@ -1,17 +1,17 @@
 package mrpostgres
 
 import (
-    "context"
+	"context"
 
-    "github.com/mondegor/go-storage/mrstorage"
+	"github.com/mondegor/go-storage/mrstorage"
 )
 
 func (c *ConnAdapter) Begin(ctx context.Context) (mrstorage.DBTransaction, error) {
-    tx, err := c.pool.Begin(ctx)
+	tx, err := c.pool.Begin(ctx)
 
-    if err != nil {
-        return nil, wrapError(err, skipThisMethod)
-    }
+	if err != nil {
+		return nil, wrapError(err, skipThisMethod)
+	}
 
-    return &Transaction{tx: tx}, nil
+	return &Transaction{tx: tx}, nil
 }

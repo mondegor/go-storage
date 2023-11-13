@@ -1,159 +1,159 @@
 package mrsql
 
 import (
-    "fmt"
-    "reflect"
-    "time"
+	"fmt"
+	"reflect"
+	"time"
 
-    "github.com/mondegor/go-webcore/mrcore"
+	"github.com/mondegor/go-webcore/mrcore"
 )
 
 const (
-    ModelNameEntityMetaUpdate = "EntityMetaUpdate"
+	ModelNameEntityMetaUpdate = "EntityMetaUpdate"
 )
 
 type (
-    EntityMetaUpdate struct {
-        structName string
-        fieldsInfo map[int]fieldInfo // field index -> fieldInfo
-    }
+	EntityMetaUpdate struct {
+		structName string
+		fieldsInfo map[int]fieldInfo // field index -> fieldInfo
+	}
 
-    fieldInfo struct {
-        kind reflect.Kind
-        dbName string
-    }
+	fieldInfo struct {
+		kind reflect.Kind
+		dbName string
+	}
 )
 
 // NewEntityMetaUpdate - WARNING: use only when starting the main process
 func NewEntityMetaUpdate(entity any) (*EntityMetaUpdate, error) {
-    rvt := reflect.TypeOf(entity)
+	rvt := reflect.TypeOf(entity)
 
-    for rvt.Kind() == reflect.Pointer {
-        rvt = rvt.Elem()
-    }
+	for rvt.Kind() == reflect.Pointer {
+		rvt = rvt.Elem()
+	}
 
-    if rvt.Kind() != reflect.Struct {
-        return nil, mrcore.FactoryErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
-    }
+	if rvt.Kind() != reflect.Struct {
+		return nil, mrcore.FactoryErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
+	}
 
-    debugInfo := fmt.Sprintf("[%s] %s:", ModelNameEntityMetaUpdate, rvt.String())
+	debugInfo := fmt.Sprintf("[%s] %s:", ModelNameEntityMetaUpdate, rvt.String())
 
-    meta := EntityMetaUpdate{
-        structName: rvt.String(),
-        fieldsInfo: make(map[int]fieldInfo, 0),
-    }
+	meta := EntityMetaUpdate{
+		structName: rvt.String(),
+		fieldsInfo: make(map[int]fieldInfo, 0),
+	}
 
-    for i, cnt := 0, rvt.NumField(); i < cnt; i++ {
-        fieldType := rvt.Field(i)
-        update := fieldType.Tag.Get(fieldTagFieldUpdate)
-        dbName := fieldType.Tag.Get(fieldTagDBFieldName)
+	for i, cnt := 0, rvt.NumField(); i < cnt; i++ {
+		fieldType := rvt.Field(i)
+		update := fieldType.Tag.Get(fieldTagFieldUpdate)
+		dbName := fieldType.Tag.Get(fieldTagDBFieldName)
 
-        if update == "" {
-            continue
-        }
+		if update == "" {
+			continue
+		}
 
-        dbName, err := parseTagUpdate(rvt, update, dbName)
+		dbName, err := parseTagUpdate(rvt, update, dbName)
 
-        if err != nil {
-            mrcore.LogWarn(err)
-            continue
-        }
+		if err != nil {
+			mrcore.LogWarn(err)
+			continue
+		}
 
-        meta.fieldsInfo[i] = fieldInfo{
-            kind: fieldType.Type.Kind(),
-            dbName: dbName,
-        }
+		meta.fieldsInfo[i] = fieldInfo{
+			kind: fieldType.Type.Kind(),
+			dbName: dbName,
+		}
 
-        debugInfo = fmt.Sprintf("%s\n- %s(%d) -> %s;", debugInfo, rvt.Field(i).Name, i, dbName)
-    }
+		debugInfo = fmt.Sprintf("%s\n- %s(%d) -> %s;", debugInfo, rvt.Field(i).Name, i, dbName)
+	}
 
-    mrcore.LogDebug(debugInfo)
+	mrcore.LogDebug(debugInfo)
 
-    return &meta, nil
+	return &meta, nil
 }
 
 func parseTagUpdate(rvt reflect.Type, value string, dbName string) (string, error) {
-    errFunc := func(errString string) (string, error) {
-        return "", fmt.Errorf(
-            "[%s] %s: parse error in '%s': %s",
-            ModelNameEntityMetaUpdate,
-            rvt.String(),
-            value,
-            errString,
-        )
-    }
+	errFunc := func(errString string) (string, error) {
+		return "", fmt.Errorf(
+			"[%s] %s: parse error in '%s': %s",
+			ModelNameEntityMetaUpdate,
+			rvt.String(),
+			value,
+			errString,
+		)
+	}
 
-    if value == "+" {
-        if dbName == "" {
-            return errFunc("tag 'db' is empty")
-        }
+	if value == "+" {
+		if dbName == "" {
+			return errFunc("tag 'db' is empty")
+		}
 
-        if !regexpDbName.MatchString(dbName) {
-            return errFunc(fmt.Sprintf("value '%s' from 'db' is incorrect", dbName))
-        }
-    } else if dbName == "" {
-        if !regexpDbName.MatchString(value) {
-            return errFunc("value is incorrect")
-        }
+		if !regexpDbName.MatchString(dbName) {
+			return errFunc(fmt.Sprintf("value '%s' from 'db' is incorrect", dbName))
+		}
+	} else if dbName == "" {
+		if !regexpDbName.MatchString(value) {
+			return errFunc("value is incorrect")
+		}
 
-        dbName = value
-    }
+		dbName = value
+	}
 
-    return dbName, nil
+	return dbName, nil
 }
 
 func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) {
-    rv := reflect.ValueOf(entity)
+	rv := reflect.ValueOf(entity)
 
-    for rv.Kind() == reflect.Pointer {
-        rv = rv.Elem()
-    }
+	for rv.Kind() == reflect.Pointer {
+		rv = rv.Elem()
+	}
 
-    if rv.Type().String() != m.structName {
-        return nil, nil, mrcore.FactoryErrInternalInvalidType.New(rv.Type().String(), m.structName)
-    }
+	if rv.Type().String() != m.structName {
+		return nil, nil, mrcore.FactoryErrInternalInvalidType.New(rv.Type().String(), m.structName)
+	}
 
-    if !rv.IsValid() {
-        return nil, nil, mrcore.FactoryErrInternalInvalidData.New(rv)
-    }
+	if !rv.IsValid() {
+		return nil, nil, mrcore.FactoryErrInternalInvalidData.New(rv)
+	}
 
-    var fields []string
-    var args []any
+	var fields []string
+	var args []any
 
-    for i, info := range m.fieldsInfo {
-        field := rv.Field(i)
+	for i, info := range m.fieldsInfo {
+		field := rv.Field(i)
 
-        if !field.IsValid() {
-            continue
-        }
+		if !field.IsValid() {
+			continue
+		}
 
-        switch info.kind {
-        case reflect.String:
-            if field.String() == "" {
-                continue
-            }
+		switch info.kind {
+		case reflect.String:
+			if field.String() == "" {
+				continue
+			}
 
-        case reflect.Int32, reflect.Int64:
-            if field.Int() == 0 {
-                continue
-            }
+		case reflect.Int32, reflect.Int64:
+			if field.Int() == 0 {
+				continue
+			}
 
-        case reflect.Struct:
-            v := field.Interface()
-            value, ok := v.(time.Time)
+		case reflect.Struct:
+			v := field.Interface()
+			value, ok := v.(time.Time)
 
-            if ok && value.IsZero() {
-                continue
-            }
+			if ok && value.IsZero() {
+				continue
+			}
 
-        default:
-            continue
-        }
+		default:
+			continue
+		}
 
-        fields = append(fields, info.dbName)
-        args = append(args, field.Interface())
-    }
+		fields = append(fields, info.dbName)
+		args = append(args, field.Interface())
+	}
 
-    return fields, args, nil
+	return fields, args, nil
 }
 

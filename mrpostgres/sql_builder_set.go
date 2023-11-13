@@ -1,55 +1,55 @@
 package mrpostgres
 
 import (
-    "fmt"
-    "strings"
+	"fmt"
+	"strings"
 
-    "github.com/mondegor/go-storage/mrstorage"
+	"github.com/mondegor/go-storage/mrstorage"
 )
 
 type (
-    SqlBuilderSet struct {
-    }
+	SqlBuilderSet struct {
+	}
 )
 
 func NewSqlBuilderSet() *SqlBuilderSet {
-    return &SqlBuilderSet{}
+	return &SqlBuilderSet{}
 }
 
 func (b *SqlBuilderSet) Join(fields ...mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPartFunc {
-    fields = mrstorage.SqlBuilderPartFuncRemoveNil(fields)
+	fields = mrstorage.SqlBuilderPartFuncRemoveNil(fields)
 
-    if len(fields) == 0 {
-        return nil
-    }
+	if len(fields) == 0 {
+		return nil
+	}
 
-    return func(paramNumber int) (string, []any) {
-        var prepared []string
+	return func(paramNumber int) (string, []any) {
+		var prepared []string
 
-        for i := range fields {
-            item, _ := fields[i](0)
-            prepared = append(prepared, item)
-        }
+		for i := range fields {
+			item, _ := fields[i](0)
+			prepared = append(prepared, item)
+		}
 
-        return fmt.Sprintf("%s", strings.Join(prepared, ", ")), []any{}
-    }
+		return fmt.Sprintf("%s", strings.Join(prepared, ", ")), []any{}
+	}
 }
 
 func (b *SqlBuilderSet) Field(name string, value any) mrstorage.SqlBuilderPartFunc {
-    return func (paramNumber int) (string, []any) {
-        return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value}
-    }
+	return func (paramNumber int) (string, []any) {
+		return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value}
+	}
 }
 
 func (b *SqlBuilderSet) Fields(names []string, args []any) mrstorage.SqlBuilderPartFunc {
-    return func (paramNumber int) (string, []any) {
-        set := make([]string, len(names))
+	return func (paramNumber int) (string, []any) {
+		set := make([]string, len(names))
 
-        for i := range names {
-            set[i] = fmt.Sprintf("%s = $%d", names[i], paramNumber)
-            paramNumber++
-        }
+		for i := range names {
+			set[i] = fmt.Sprintf("%s = $%d", names[i], paramNumber)
+			paramNumber++
+		}
 
-        return fmt.Sprintf("%s", strings.Join(set, ", ")), args
-    }
+		return fmt.Sprintf("%s", strings.Join(set, ", ")), args
+	}
 }

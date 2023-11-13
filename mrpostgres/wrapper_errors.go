@@ -1,35 +1,35 @@
 package mrpostgres
 
 import (
-    "context"
-    "errors"
-    "strings"
+	"context"
+	"errors"
+	"strings"
 
-    "github.com/jackc/pgx/v5"
-    "github.com/jackc/pgx/v5/pgconn"
-    "github.com/mondegor/go-webcore/mrcore"
-    "github.com/mondegor/go-webcore/mrctx"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/mondegor/go-webcore/mrcore"
+	"github.com/mondegor/go-webcore/mrctx"
 )
 
 const (
-    skipThisMethod = 1
+	skipThisMethod = 1
 )
 
 func wrapError(err error, skip int) error {
-    _, ok := err.(*pgconn.PgError)
+	_, ok := err.(*pgconn.PgError)
 
-    if ok {
-        // Severity: ERROR; Code: 42601; Message syntax error at or near "item_status"
-        return mrcore.FactoryErrStorageQueryFailed.Caller(skip + 1).Wrap(err)
-    }
+	if ok {
+		// Severity: ERROR; Code: 42601; Message syntax error at or near "item_status"
+		return mrcore.FactoryErrStorageQueryFailed.Caller(skip + 1).Wrap(err)
+	}
 
-    if errors.Is(err, pgx.ErrNoRows) {
-        return mrcore.FactoryErrStorageNoRowFound.Caller(skip + 1).Wrap(err)
-    }
+	if errors.Is(err, pgx.ErrNoRows) {
+		return mrcore.FactoryErrStorageNoRowFound.Caller(skip + 1).Wrap(err)
+	}
 
-    return mrcore.FactoryErrInternal.Caller(skip + 1).Wrap(err)
+	return mrcore.FactoryErrInternal.Caller(skip + 1).Wrap(err)
 }
 
 func debugQuery(ctx context.Context, sql string) {
-    mrctx.Logger(ctx).Debug("SQL Query: %s", strings.Join(strings.Fields(sql), " "))
+	mrctx.Logger(ctx).Debug("SQL Query: %s", strings.Join(strings.Fields(sql), " "))
 }
