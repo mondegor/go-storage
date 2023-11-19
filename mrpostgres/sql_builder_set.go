@@ -1,7 +1,7 @@
 package mrpostgres
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/mondegor/go-storage/mrstorage"
@@ -31,13 +31,13 @@ func (b *SqlBuilderSet) Join(fields ...mrstorage.SqlBuilderPartFunc) mrstorage.S
 			prepared = append(prepared, item)
 		}
 
-		return fmt.Sprintf("%s", strings.Join(prepared, ", ")), []any{}
+		return strings.Join(prepared, ", "), []any{}
 	}
 }
 
 func (b *SqlBuilderSet) Field(name string, value any) mrstorage.SqlBuilderPartFunc {
 	return func(paramNumber int) (string, []any) {
-		return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value}
+		return name + " = $" + strconv.Itoa(paramNumber), []any{value}
 	}
 }
 
@@ -46,10 +46,10 @@ func (b *SqlBuilderSet) Fields(names []string, args []any) mrstorage.SqlBuilderP
 		set := make([]string, len(names))
 
 		for i := range names {
-			set[i] = fmt.Sprintf("%s = $%d", names[i], paramNumber)
+			set[i] = names[i] + " = $" + strconv.Itoa(paramNumber)
 			paramNumber++
 		}
 
-		return fmt.Sprintf("%s", strings.Join(set, ", ")), args
+		return strings.Join(set, ", "), args
 	}
 }

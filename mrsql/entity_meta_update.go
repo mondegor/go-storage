@@ -85,11 +85,11 @@ func parseTagUpdate(rvt reflect.Type, value string, dbName string) (string, erro
 
 	if value == "+" {
 		if dbName == "" {
-			return errFunc("tag 'db' is empty")
+			return errFunc(fmt.Sprintf("tag '%s' is empty", fieldTagDBFieldName))
 		}
 
 		if !regexpDbName.MatchString(dbName) {
-			return errFunc(fmt.Sprintf("value '%s' from 'db' is incorrect", dbName))
+			return errFunc(fmt.Sprintf("value '%s' from '%s' is incorrect", dbName, fieldTagDBFieldName))
 		}
 	} else if dbName == "" {
 		if !regexpDbName.MatchString(value) {

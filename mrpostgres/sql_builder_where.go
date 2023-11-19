@@ -3,6 +3,7 @@ package mrpostgres
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/lib/pq"
@@ -40,25 +41,26 @@ func (b *SqlBuilderWhere) Expr(expr string) mrstorage.SqlBuilderPartFunc {
 	}
 }
 
+// ExprWithValue - sample: "UPPER(field_name) = %s"
 func (b *SqlBuilderWhere) ExprWithValue(expr string, value any) mrstorage.SqlBuilderPartFunc {
 	if expr == "" {
 		return nil
 	}
 
 	return func(paramNumber int) (string, []any) {
-		return fmt.Sprintf(expr, paramNumber), []any{value}
+		return fmt.Sprintf(expr, "$"+strconv.Itoa(paramNumber)), []any{value}
 	}
 }
 
 func (b *SqlBuilderWhere) Equal(name string, value any) mrstorage.SqlBuilderPartFunc {
 	return func(paramNumber int) (string, []any) {
-		return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value}
+		return name + " = $" + strconv.Itoa(paramNumber), []any{value}
 	}
 }
 
 func (b *SqlBuilderWhere) NotEqual(name string, value any) mrstorage.SqlBuilderPartFunc {
 	return func(paramNumber int) (string, []any) {
-		return fmt.Sprintf("%s <> $%d", name, paramNumber), []any{value}
+		return name + " <> $" + strconv.Itoa(paramNumber), []any{value}
 	}
 }
 
@@ -68,7 +70,7 @@ func (b *SqlBuilderWhere) FilterEqualString(name, value string) mrstorage.SqlBui
 	}
 
 	return func(paramNumber int) (string, []any) {
-		return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value}
+		return name + " = $" + strconv.Itoa(paramNumber), []any{value}
 	}
 }
 
@@ -78,7 +80,7 @@ func (b *SqlBuilderWhere) FilterEqualInt64(name string, value, empty int64) mrst
 	}
 
 	return func(paramNumber int) (string, []any) {
-		return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value}
+		return name + " = $" + strconv.Itoa(paramNumber), []any{value}
 	}
 }
 
@@ -88,7 +90,7 @@ func (b *SqlBuilderWhere) FilterEqualBool(name string, value mrtype.NullableBool
 	}
 
 	return func(paramNumber int) (string, []any) {
-		return fmt.Sprintf("%s = $%d", name, paramNumber), []any{value.Val()}
+		return name + " = $" + strconv.Itoa(paramNumber), []any{value.Val()}
 	}
 }
 
@@ -105,10 +107,10 @@ func (b *SqlBuilderWhere) FilterLikeFields(names []string, value string) mrstora
 		var conds []string
 
 		for i := range names {
-			conds = append(conds, fmt.Sprintf("%s LIKE '%%' || $%d || '%%'", names[i], paramNumber))
+			conds = append(conds, names[i]+" LIKE '%%' || $"+strconv.Itoa(paramNumber)+" || '%%'")
 		}
 
-		return fmt.Sprintf("(%s)", strings.Join(conds, " OR ")), []any{value}
+		return "(" + strings.Join(conds, " OR ") + ")", []any{value}
 	}
 }
 
@@ -120,16 +122,16 @@ func (b *SqlBuilderWhere) FilterRangeInt64(name string, value mrtype.RangeInt64,
 			}
 
 			return func(paramNumber int) (string, []any) {
-				return fmt.Sprintf("(%s BETWEEN $%d AND $%d)", name, paramNumber, paramNumber+1), []any{value.Min, value.Max}
+				return "(" + name + " BETWEEN $" + strconv.Itoa(paramNumber) + " AND $" + strconv.Itoa(paramNumber+1) + ")", []any{value.Min, value.Max}
 			}
 		} else {
 			return func(paramNumber int) (string, []any) {
-				return fmt.Sprintf("%s >= $%d", name, paramNumber), []any{value.Min}
+				return name + " >= $" + strconv.Itoa(paramNumber), []any{value.Min}
 			}
 		}
 	} else if value.Max != empty {
 		return func(paramNumber int) (string, []any) {
-			return fmt.Sprintf("%s <= $%d", name, paramNumber), []any{value.Max}
+			return name + " <= $" + strconv.Itoa(paramNumber), []any{value.Max}
 		}
 	}
 
@@ -144,7 +146,7 @@ func (b *SqlBuilderWhere) FilterAnyOf(name string, values any) mrstorage.SqlBuil
 	}
 
 	return func(paramNumber int) (string, []any) {
-		return fmt.Sprintf("%s = ANY($%d)", name, paramNumber), []any{pq.Array(values)}
+		return name + " = ANY($" + strconv.Itoa(paramNumber) + ")", []any{pq.Array(values)}
 	}
 }
 
@@ -165,6 +167,6 @@ func (b *SqlBuilderWhere) join(separator string, conds []mrstorage.SqlBuilderPar
 			args = mrsql.MergeArgs(args, itemArgs)
 		}
 
-		return fmt.Sprintf("(%s)", strings.Join(prepared, separator)), args
+		return "(" + strings.Join(prepared, separator) + ")", args
 	}
 }

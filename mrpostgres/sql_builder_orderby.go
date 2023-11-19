@@ -1,7 +1,6 @@
 package mrpostgres
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/mondegor/go-storage/mrstorage"
@@ -20,7 +19,7 @@ func NewSqlBuilderOrderBy(defaultField string, defaultDirection mrenum.SortDirec
 	var defaultOrderBy string
 
 	if defaultField != "" {
-		defaultOrderBy = fmt.Sprintf("%s %s", defaultField, defaultDirection.String())
+		defaultOrderBy = defaultField + " " + defaultDirection.String()
 	} else {
 		mrcore.LogWarning("default sorting is not set")
 	}
@@ -66,7 +65,7 @@ func (b *SqlBuilderOrderBy) Join(fields ...mrstorage.SqlBuilderPartFunc) mrstora
 			prepared = append(prepared, item)
 		}
 
-		return fmt.Sprintf("%s", strings.Join(prepared, ", ")), []any{}
+		return strings.Join(prepared, ", "), []any{}
 	}
 }
 
@@ -76,6 +75,6 @@ func (b *SqlBuilderOrderBy) Field(name string, direction mrenum.SortDirection) m
 	}
 
 	return func(paramNumber int) (string, []any) {
-		return fmt.Sprintf("%s %s", name, direction.String()), []any{}
+		return name + " " + direction.String(), []any{}
 	}
 }

@@ -1,8 +1,6 @@
 package mrsql
 
 import (
-	"fmt"
-
 	"github.com/mondegor/go-storage/mrstorage"
 )
 
@@ -58,5 +56,5 @@ func (b *BuilderPart) toSql() (string, []any) {
 
 	body, args := b.bodyFunc(b.paramNumber)
 
-	return fmt.Sprintf("%s%s", b.prefix, body), args
+	return b.prefix + body, args
 }
