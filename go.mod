@@ -7,8 +7,8 @@ require (
 	github.com/go-redsync/redsync/v4 v4.11.0
 	github.com/jackc/pgx/v5 v5.5.0
 	github.com/lib/pq v1.10.9
-	github.com/minio/minio-go/v7 v7.0.63
-	github.com/mondegor/go-webcore v0.8.0
+	github.com/minio/minio-go/v7 v7.0.64
+	github.com/mondegor/go-webcore v0.8.1
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/redis/go-redis/v9 v9.3.0
 )
