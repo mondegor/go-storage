@@ -53,15 +53,27 @@ func (b *SqlBuilderWhere) ExprWithValue(expr string, value any) mrstorage.SqlBui
 }
 
 func (b *SqlBuilderWhere) Equal(name string, value any) mrstorage.SqlBuilderPartFunc {
-	return func(paramNumber int) (string, []any) {
-		return name + " = $" + strconv.Itoa(paramNumber), []any{value}
-	}
+	return b.compare(name, value, "=")
 }
 
 func (b *SqlBuilderWhere) NotEqual(name string, value any) mrstorage.SqlBuilderPartFunc {
-	return func(paramNumber int) (string, []any) {
-		return name + " <> $" + strconv.Itoa(paramNumber), []any{value}
-	}
+	return b.compare(name, value, "<>")
+}
+
+func (b *SqlBuilderWhere) Less(name string, value any) mrstorage.SqlBuilderPartFunc {
+	return b.compare(name, value, "<")
+}
+
+func (b *SqlBuilderWhere) LessOrEqual(name string, value any) mrstorage.SqlBuilderPartFunc {
+	return b.compare(name, value, "<=")
+}
+
+func (b *SqlBuilderWhere) Greater(name string, value any) mrstorage.SqlBuilderPartFunc {
+	return b.compare(name, value, ">")
+}
+
+func (b *SqlBuilderWhere) GreaterOrEqual(name string, value any) mrstorage.SqlBuilderPartFunc {
+	return b.compare(name, value, ">=")
 }
 
 func (b *SqlBuilderWhere) FilterEqualString(name, value string) mrstorage.SqlBuilderPartFunc {
@@ -69,9 +81,7 @@ func (b *SqlBuilderWhere) FilterEqualString(name, value string) mrstorage.SqlBui
 		return nil
 	}
 
-	return func(paramNumber int) (string, []any) {
-		return name + " = $" + strconv.Itoa(paramNumber), []any{value}
-	}
+	return b.compare(name, value, "=")
 }
 
 func (b *SqlBuilderWhere) FilterEqualInt64(name string, value, empty int64) mrstorage.SqlBuilderPartFunc {
@@ -79,9 +89,7 @@ func (b *SqlBuilderWhere) FilterEqualInt64(name string, value, empty int64) mrst
 		return nil
 	}
 
-	return func(paramNumber int) (string, []any) {
-		return name + " = $" + strconv.Itoa(paramNumber), []any{value}
-	}
+	return b.compare(name, value, "=")
 }
 
 func (b *SqlBuilderWhere) FilterEqualBool(name string, value mrtype.NullableBool) mrstorage.SqlBuilderPartFunc {
@@ -89,9 +97,7 @@ func (b *SqlBuilderWhere) FilterEqualBool(name string, value mrtype.NullableBool
 		return nil
 	}
 
-	return func(paramNumber int) (string, []any) {
-		return name + " = $" + strconv.Itoa(paramNumber), []any{value.Val()}
-	}
+	return b.compare(name, value.Val(), "=")
 }
 
 func (b *SqlBuilderWhere) FilterLike(name, value string) mrstorage.SqlBuilderPartFunc {
@@ -125,14 +131,10 @@ func (b *SqlBuilderWhere) FilterRangeInt64(name string, value mrtype.RangeInt64,
 				return "(" + name + " BETWEEN $" + strconv.Itoa(paramNumber) + " AND $" + strconv.Itoa(paramNumber+1) + ")", []any{value.Min, value.Max}
 			}
 		} else {
-			return func(paramNumber int) (string, []any) {
-				return name + " >= $" + strconv.Itoa(paramNumber), []any{value.Min}
-			}
+			return b.compare(name, value.Min, ">=")
 		}
 	} else if value.Max != empty {
-		return func(paramNumber int) (string, []any) {
-			return name + " <= $" + strconv.Itoa(paramNumber), []any{value.Max}
-		}
+		return b.compare(name, value.Max, "<=")
 	}
 
 	return nil
@@ -168,5 +170,11 @@ func (b *SqlBuilderWhere) join(separator string, conds []mrstorage.SqlBuilderPar
 		}
 
 		return "(" + strings.Join(prepared, separator) + ")", args
+	}
+}
+
+func (b *SqlBuilderWhere) compare(name string, value any, sign string) mrstorage.SqlBuilderPartFunc {
+	return func(paramNumber int) (string, []any) {
+		return name + " " + sign + " $" + strconv.Itoa(paramNumber), []any{value}
 	}
 }

@@ -1,6 +1,10 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2023-11-26
+### Added
+- В `SqlBuilderWhere` добавлены новые методы: `Less`, `LessOrEqual`, `Greater`, `GreaterOrEqual`;
+
 ## 2023-11-23
 ### Changed
 - Обновлены зависимости библиотеки;

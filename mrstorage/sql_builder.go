@@ -19,6 +19,10 @@ type (
 		ExprWithValue(expr string, value any) SqlBuilderPartFunc
 		Equal(name string, value any) SqlBuilderPartFunc
 		NotEqual(name string, value any) SqlBuilderPartFunc
+		Less(name string, value any) SqlBuilderPartFunc
+		LessOrEqual(name string, value any) SqlBuilderPartFunc
+		Greater(name string, value any) SqlBuilderPartFunc
+		GreaterOrEqual(name string, value any) SqlBuilderPartFunc
 		FilterEqualString(name, value string) SqlBuilderPartFunc
 		FilterEqualInt64(name string, value, empty int64) SqlBuilderPartFunc
 		FilterEqualBool(name string, value mrtype.NullableBool) SqlBuilderPartFunc

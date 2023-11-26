@@ -22,12 +22,16 @@ func main() {
 			w.NotEqual("not_equal_field2-2", "2-2"),
 			w.FilterLike("like_field2-3", "2-3"),
 			w.FilterEqualBool("bool_field2-4", mrtype.NullableBoolTrue),
+			w.Less("equal_field2-5", "2-5"),
+			w.LessOrEqual("equal_field2-6", "2-6"),
 		),
 		w.JoinAnd(
 			w.JoinOr(
 				w.Equal("equal_field3-1-1", "3-1-1"),
 				w.NotEqual("not_equal_field3-1-2", "3-1-2"),
 				w.FilterLikeFields([]string{"like_field3-1-3#1", "like_field3-1-3#2"}, "3-1-3"),
+				w.Greater("equal_field3-1-4", "3-1-4"),
+				w.GreaterOrEqual("equal_field3-1-5", "3-1-5"),
 			),
 			w.JoinOr(
 				w.Equal("equal_field3-2-1", "3-2-1"),

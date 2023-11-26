@@ -67,8 +67,8 @@ github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9G
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
 github.com/mondegor/go-sysmess v0.4.0 h1:CrlM9+4KzLWn2APygQLQDABNKAEmPEIQyqrhusHl7+4=
 github.com/mondegor/go-sysmess v0.4.0/go.mod h1:4v8Li0pp/UagETtBF8zu/QV8AUdYhLCn2i5oGsbUC6g=
-github.com/mondegor/go-webcore v0.8.1 h1:9z9H53nseLGFbLeLsr+T3cXBLgIinn1MpZZ+uBDbiMs=
-github.com/mondegor/go-webcore v0.8.1/go.mod h1:AjI8pWxpQFZVW3LPl/ZAHQqWAF88H7dNbZbb2JO8nc4=
+github.com/mondegor/go-webcore v0.8.2 h1:ponqrsZPYwVPLzRglLMLkbOT1lnxVYRcbNkqkCt3X5o=
+github.com/mondegor/go-webcore v0.8.2/go.mod h1:AjI8pWxpQFZVW3LPl/ZAHQqWAF88H7dNbZbb2JO8nc4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rabbitmq/amqp091-go v1.9.0 h1:qrQtyzB4H8BQgEuJwhmVQqVHB9O4+MNDJCCAcpc3Aoo=
