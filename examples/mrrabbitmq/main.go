@@ -7,7 +7,9 @@ import (
 )
 
 func main() {
-	logger := mrcore.Log().With("mrrabbitmq")
+	logger := mrcore.DefaultLogger().With("mrrabbitmq")
+	mrcore.SetDefaultLogger(logger)
+
 	logger.Info("Create rabbitmq connection")
 
 	appHelper := mrtool.NewAppHelper(logger)

@@ -9,7 +9,9 @@ import (
 )
 
 func main() {
-	logger := mrcore.Log().With("mrminio")
+	logger := mrcore.DefaultLogger().With("mrminio")
+	mrcore.SetDefaultLogger(logger)
+
 	logger.Info("Create minio S3 connection")
 
 	appHelper := mrtool.NewAppHelper(logger)
