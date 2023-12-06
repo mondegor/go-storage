@@ -1,6 +1,13 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2023-12-06
+### Changed
+- Теперь ошибка `mrcore.FactoryErrStorageRowsNotAffected` выдаётся и для запросов типа insert и delete;
+
+### Fixed
+- В методе SqlBuilderSet.Fields если параметр names пустой, то возвращается nil;
+
 ## 2023-12-04
 ### Added
 - Обновлены зависимости библиотеки;

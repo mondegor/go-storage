@@ -50,8 +50,10 @@ func (e *dbExecHelper) exec(conn pgxQuery, skip int, ctx context.Context, sql st
 		return wrapError(err, skip+1)
 	}
 
-	if commandTag.Update() && commandTag.RowsAffected() < 1 {
-		return mrcore.FactoryErrStorageRowsNotAffected.Caller(skip + 1).New()
+	if commandTag.RowsAffected() < 1 {
+		if commandTag.Insert() || commandTag.Update() || commandTag.Delete() {
+			return mrcore.FactoryErrStorageRowsNotAffected.Caller(skip + 1).New()
+		}
 	}
 
 	return nil

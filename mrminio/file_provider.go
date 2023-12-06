@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/minio/minio-go/v7"
+	"github.com/mondegor/go-webcore/mrcore"
 	"github.com/mondegor/go-webcore/mrlib"
 	"github.com/mondegor/go-webcore/mrtype"
 )
@@ -50,7 +51,7 @@ func (fp *fileProvider) Download(ctx context.Context, path string) (*mrtype.File
 	)
 
 	if err != nil {
-		return nil, err
+		return nil, mrcore.FactoryErrInternal.Wrap(err) // :TODO: обернуть ошибку объект не найден
 	}
 
 	info, err := object.Stat()

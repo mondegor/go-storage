@@ -42,6 +42,10 @@ func (b *SqlBuilderSet) Field(name string, value any) mrstorage.SqlBuilderPartFu
 }
 
 func (b *SqlBuilderSet) Fields(names []string, args []any) mrstorage.SqlBuilderPartFunc {
+	if len(names) == 0 {
+		return nil
+	}
+
 	return func(paramNumber int) (string, []any) {
 		set := make([]string, len(names))
 
