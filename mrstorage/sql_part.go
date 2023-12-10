@@ -4,9 +4,9 @@ import "fmt"
 
 type (
 	SqlBuilderPart interface {
-		Empty() bool
-		Param(number int) SqlBuilderPart
 		WithPrefix(value string) SqlBuilderPart
+		Param(number int) SqlBuilderPart
+		Empty() bool
 		ToSql() (string, []any)
 		fmt.Stringer
 	}

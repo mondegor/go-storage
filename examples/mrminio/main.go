@@ -24,7 +24,7 @@ func main() {
 		Password: "12345678",
 	}
 
-	minioAdapter := mrminio.New()
+	minioAdapter := mrminio.New(true)
 	err := minioAdapter.Connect(opt)
 
 	appHelper.ExitOnError(err)
@@ -36,7 +36,7 @@ func main() {
 
 	bucketName := "test-bucket"
 
-	created, err := minioAdapter.InitBucket(context.Background(), bucketName, true)
+	created, err := minioAdapter.InitBucket(context.Background(), bucketName)
 	appHelper.ExitOnError(err)
 
 	if created {

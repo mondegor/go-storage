@@ -19,24 +19,30 @@ func NewBuilderPart(body mrstorage.SqlBuilderPartFunc) *BuilderPart {
 	}
 }
 
-func (b *BuilderPart) Empty() bool {
-	return b.bodyFunc == nil
+func (b *BuilderPart) Param(number int) mrstorage.SqlBuilderPart {
+	if b.paramNumber == number {
+		return b
+	}
+
+	c := *b
+	c.paramNumber = number
+
+	return &c
 }
 
 func (b *BuilderPart) WithPrefix(value string) mrstorage.SqlBuilderPart {
-	return &BuilderPart{
-		paramNumber: b.paramNumber,
-		prefix:      value,
-		bodyFunc:    b.bodyFunc,
+	if b.prefix == value {
+		return b
 	}
+
+	c := *b
+	c.prefix = value
+
+	return &c
 }
 
-func (b *BuilderPart) Param(number int) mrstorage.SqlBuilderPart {
-	return &BuilderPart{
-		paramNumber: number,
-		prefix:      b.prefix,
-		bodyFunc:    b.bodyFunc,
-	}
+func (b *BuilderPart) Empty() bool {
+	return b.bodyFunc == nil
 }
 
 func (b *BuilderPart) ToSql() (string, []any) {

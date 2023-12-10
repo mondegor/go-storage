@@ -19,7 +19,8 @@ const (
 
 type (
 	ConnAdapter struct {
-		conn *minio.Client
+		conn          *minio.Client
+		createBuckets bool // if not exists
 	}
 
 	Options struct {
@@ -31,8 +32,10 @@ type (
 	}
 )
 
-func New() *ConnAdapter {
-	return &ConnAdapter{}
+func New(createBuckets bool) *ConnAdapter {
+	return &ConnAdapter{
+		createBuckets: createBuckets,
+	}
 }
 
 func (c *ConnAdapter) Connect(opt Options) error {
@@ -71,7 +74,7 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string, createIfNotExists bool) (bool, error) {
+func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string) (bool, error) {
 	exists, err := c.conn.BucketExists(ctx, bucketName)
 
 	if err != nil {
@@ -82,7 +85,7 @@ func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string, createI
 		return false, nil
 	}
 
-	if !createIfNotExists {
+	if !c.createBuckets {
 		return false, fmt.Errorf("bucket with name '%s' not exists", bucketName)
 	}
 

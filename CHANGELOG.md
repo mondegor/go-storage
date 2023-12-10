@@ -1,12 +1,25 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2023-12-09
+### Added
+- Добавлен интерфейс `ExtFileProviderAPI`, в котором метод `WithBaseDir` позволяет задать
+  постоянный префикс ко всем именам файлов используемых в интерфейсе `FileProviderAPI`.
+  `ExtFileProviderAPI` интерфейс следует использовать только при инициализации системы;
+
+### Changed
+- Доработана логика копирования объектов в `BuilderPart.WithPrefix`, `BuilderPart.Param`;
+- В `mrminio.ConnAdapter` добавлен флаг `createBuckets`, а из `mrminio.ConnAdapter.InitBucket` этот флаг удалён;
+- Переработан пакет `mrfilestorage`, добавлена абстракция `FileSystem`, которая инициализирует базовые директории
+  для хранения файлов в рамках файловой системы. Добавлено обёртывание ошибок, поддержка `ExtFileProviderAPI`;
+- Доработан пакет `mrminio`, добавлено обёртывание ошибок, поддержка `ExtFileProviderAPI`;
+
 ## 2023-12-06
 ### Changed
-- Теперь ошибка `mrcore.FactoryErrStorageRowsNotAffected` выдаётся и для запросов типа insert и delete;
+- Теперь ошибка `mrcore.FactoryErrStorageRowsNotAffected` формируется для запросов типа INSERT, UPDATE и DELETE;
 
 ### Fixed
-- В методе SqlBuilderSet.Fields если параметр names пустой, то возвращается nil;
+- В методе `SqlBuilderSet.Fields` если параметр names пустой, то возвращается nil;
 
 ## 2023-12-04
 ### Added
