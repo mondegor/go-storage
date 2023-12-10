@@ -6,6 +6,7 @@
 - Добавлен интерфейс `ExtFileProviderAPI`, в котором метод `WithBaseDir` позволяет задать
   постоянный префикс ко всем именам файлов используемых в интерфейсе `FileProviderAPI`.
   `ExtFileProviderAPI` интерфейс следует использовать только при инициализации системы;
+- Добавлено отладочное логирование вызовов команд в `mrfilestorage` и `mrminio`;
 
 ### Changed
 - Доработана логика копирования объектов в `BuilderPart.WithPrefix`, `BuilderPart.Param`;

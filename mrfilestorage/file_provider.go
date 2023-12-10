@@ -12,11 +12,16 @@ import (
 	"github.com/mondegor/go-webcore/mrtype"
 )
 
+const (
+	providerName = "FileStorage"
+)
+
 type (
 	FileProvider struct {
 		fs      *FileSystem
 		rootDir string
 		baseDir string
+		fullDir string
 	}
 )
 
@@ -26,7 +31,7 @@ func NewFileProvider(fs *FileSystem, rootDir string) *FileProvider {
 	return &FileProvider{
 		fs:      fs,
 		rootDir: path,
-		baseDir: path,
+		fullDir: path,
 	}
 }
 
@@ -44,23 +49,28 @@ func (fp *FileProvider) WithBaseDir(value string) (mrstorage.ExtFileProviderAPI,
 	}
 
 	c := *fp
-	c.baseDir = fp.rootDir + value
+	c.baseDir = value
+	c.fullDir = fp.rootDir + value
 
 	return &c, nil
 }
 
 func (fp *FileProvider) Info(ctx context.Context, fileName string) (mrtype.FileInfo, error) {
-	return fp.getFileInfo(fp.baseDir + fileName)
+	fp.debugCmd(ctx, "Info", fileName)
+
+	return fp.getFileInfo(fp.fullDir + fileName)
 }
 
 func (fp *FileProvider) Download(ctx context.Context, fileName string) (*mrtype.File, error) {
-	fileInfo, err := fp.getFileInfo(fp.baseDir + fileName)
+	fp.debugCmd(ctx, "Download", fileName)
+
+	fileInfo, err := fp.getFileInfo(fp.fullDir + fileName)
 
 	if err != nil {
 		return nil, err
 	}
 
-	fd, err := os.Open(fp.baseDir + fileName)
+	fd, err := os.Open(fp.fullDir + fileName)
 
 	if err != nil {
 		return nil, fp.wrapError(err, 0)
@@ -74,7 +84,9 @@ func (fp *FileProvider) Download(ctx context.Context, fileName string) (*mrtype.
 }
 
 func (fp *FileProvider) Upload(ctx context.Context, file *mrtype.File) error {
-	dst, err := os.Create(fp.baseDir + file.Path)
+	fp.debugCmd(ctx, "Upload", file.Path)
+
+	dst, err := os.Create(fp.fullDir + file.Path)
 
 	if err != nil {
 		return fp.wrapError(err, 0)
@@ -90,7 +102,9 @@ func (fp *FileProvider) Upload(ctx context.Context, file *mrtype.File) error {
 }
 
 func (fp *FileProvider) Remove(ctx context.Context, fileName string) error {
-	return os.Remove(fp.baseDir + fileName)
+	fp.debugCmd(ctx, "Remove", fileName)
+
+	return os.Remove(fp.fullDir + fileName)
 }
 
 func (fp *FileProvider) getFileInfo(filePath string) (mrtype.FileInfo, error) {

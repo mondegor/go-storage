@@ -13,7 +13,7 @@ import (
 // go get -u github.com/jackc/pgx/v5
 
 const (
-	connectionName = "postgres"
+	connectionName = "Postgres"
 )
 
 type (

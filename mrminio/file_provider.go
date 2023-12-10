@@ -14,6 +14,10 @@ import (
 
 // https://min.io/docs/minio/linux/developers/go/API.html
 
+const (
+	providerName = "Minio"
+)
+
 type (
 	FileProvider struct {
 		*ConnAdapter
@@ -49,6 +53,8 @@ func (fp *FileProvider) WithBaseDir(value string) (mrstorage.ExtFileProviderAPI,
 }
 
 func (fp *FileProvider) Info(ctx context.Context, fileName string) (mrtype.FileInfo, error) {
+	fp.debugCmd(ctx, "Info", fileName)
+
 	info, err := fp.conn.StatObject(
 		ctx,
 		fp.bucketName,
@@ -64,6 +70,8 @@ func (fp *FileProvider) Info(ctx context.Context, fileName string) (mrtype.FileI
 }
 
 func (fp *FileProvider) Download(ctx context.Context, fileName string) (*mrtype.File, error) {
+	fp.debugCmd(ctx, "Download", fileName)
+
 	object, err := fp.conn.GetObject(
 		ctx,
 		fp.bucketName,
@@ -89,6 +97,8 @@ func (fp *FileProvider) Download(ctx context.Context, fileName string) (*mrtype.
 }
 
 func (fp *FileProvider) Upload(ctx context.Context, file *mrtype.File) error {
+	fp.debugCmd(ctx, "Upload", file.Path)
+
 	_, err := fp.conn.PutObject(
 		ctx,
 		fp.bucketName,
@@ -109,6 +119,8 @@ func (fp *FileProvider) Upload(ctx context.Context, file *mrtype.File) error {
 }
 
 func (fp *FileProvider) Remove(ctx context.Context, fileName string) error {
+	fp.debugCmd(ctx, "Remove", fileName)
+
 	err := fp.conn.RemoveObject(
 		ctx,
 		fp.bucketName,

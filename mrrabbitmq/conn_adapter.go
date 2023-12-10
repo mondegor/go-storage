@@ -10,7 +10,7 @@ import (
 // go get github.com/rabbitmq/amqp091-go@v1.8.1
 
 const (
-	connectionName = "rabbitmq"
+	connectionName = "Rabbitmq"
 )
 
 type (

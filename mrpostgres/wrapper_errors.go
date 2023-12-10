@@ -31,5 +31,7 @@ func wrapError(err error, skip int) error {
 }
 
 func debugQuery(ctx context.Context, sql string) {
-	mrctx.Logger(ctx).Debug("SQL Query: %s", strings.Join(strings.Fields(sql), " "))
+	mrctx.Logger(ctx).Debug(
+		connectionName + " SQL: " + strings.Join(strings.Fields(sql), " "),
+	)
 }

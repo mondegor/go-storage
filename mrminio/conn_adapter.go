@@ -14,7 +14,7 @@ import (
 // https://min.io/docs/minio/linux/developers/go/API.html
 
 const (
-	connectionName = "minio"
+	connectionName = "Minio"
 )
 
 type (

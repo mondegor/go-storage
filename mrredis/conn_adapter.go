@@ -12,7 +12,7 @@ import (
 // go get -u github.com/redis/go-redis/v9
 
 const (
-	connectionName = "redis"
+	connectionName = "Redis"
 )
 
 type (
