@@ -13,6 +13,10 @@ import (
 
 // go get -u github.com/go-redsync/redsync/v4
 
+const (
+	lockerName = "RedSync"
+)
+
 type (
 	lockerAdapter struct {
 		lock *redsync.Redsync
@@ -37,6 +41,8 @@ func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
 		expiry = mrcore.LockerDefaultExpiry
 	}
 
+	l.debugCmd(ctx, "Lock:" + expiry.String(), key)
+
 	options := []redsync.Option{
 		redsync.WithExpiry(expiry),
 	}
@@ -44,18 +50,19 @@ func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
 	mutex := l.lock.NewMutex(key, options...)
 
 	if err := mutex.LockContext(ctx); err != nil {
-		return nil, mrcore.FactoryErrInternal.Wrap(err)
+		return nil, l.wrapError(err)
 	}
 
 	return func() {
-		_, err := mutex.UnlockContext(ctx)
-
-		if err != nil {
+		if _, err := mutex.UnlockContext(ctx); err != nil {
 			mrctx.Logger(ctx).Error(
-				"mrredis.lockerAdapter::MutexUnlock=%s; err: %s",
+				"%s: cmd=unlock, key=%s, err={%s}",
+				lockerName,
 				key,
 				err,
 			)
 		}
+
+		l.debugCmd(ctx, "Unlock", key)
 	}, nil
 }

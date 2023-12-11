@@ -15,6 +15,10 @@ import (
 
 // go get -u github.com/bsm/redislock
 
+const (
+	lockerName = "RedisLock"
+)
+
 type (
 	lockerAdapter struct {
 		lock *redislock.Client
@@ -37,19 +41,24 @@ func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
 		expiry = mrcore.LockerDefaultExpiry
 	}
 
+	l.debugCmd(ctx, "Lock:" + expiry.String(), key)
+
 	mutex, err := l.lock.Obtain(ctx, key, expiry, nil)
 
 	if err != nil {
-		return nil, mrcore.FactoryErrInternal.Wrap(err)
+		return nil, l.wrapError(err)
 	}
 
 	return func() {
 		if err := mutex.Release(ctx); err != nil {
 			mrctx.Logger(ctx).Error(
-				"mrredislock.lockerAdapter::MutexUnlock=%s; err: %s",
+				"%s: cmd=unlock, key=%s, err={%s}",
+				lockerName,
 				key,
 				err,
 			)
 		}
+
+		l.debugCmd(ctx, "Unlock", key)
 	}, nil
 }
