@@ -41,7 +41,7 @@ func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
 		expiry = mrcore.LockerDefaultExpiry
 	}
 
-	l.debugCmd(ctx, "Lock:" + expiry.String(), key)
+	l.debugCmd(ctx, "Lock:"+expiry.String(), key)
 
 	mutex, err := l.lock.Obtain(ctx, key, expiry, nil)
 
