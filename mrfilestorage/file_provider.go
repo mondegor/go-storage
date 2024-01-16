@@ -4,10 +4,9 @@ import (
 	"context"
 	"io"
 	"os"
-	"path/filepath"
+	"path"
 	"strings"
 
-	"github.com/mondegor/go-storage/mrstorage"
 	"github.com/mondegor/go-webcore/mrlib"
 	"github.com/mondegor/go-webcore/mrtype"
 )
@@ -20,73 +19,65 @@ type (
 	FileProvider struct {
 		fs      *FileSystem
 		rootDir string
-		baseDir string
-		fullDir string
 	}
 )
 
 func NewFileProvider(fs *FileSystem, rootDir string) *FileProvider {
-	path := strings.TrimRight(rootDir, "/") + "/"
-
 	return &FileProvider{
 		fs:      fs,
-		rootDir: path,
-		fullDir: path,
+		rootDir: strings.TrimRight(rootDir, "/") + "/",
 	}
 }
 
-func (fp *FileProvider) WithBaseDir(value string) (mrstorage.ExtFileProviderAPI, error) {
-	if value != "" {
-		value = strings.Trim(value, "/")
+func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileInfo, error) {
+	fp.debugCmd(ctx, "Info", filePath)
 
-		if value != "" {
-			value += "/"
-		}
+	if err := fp.checkFilePath(filePath); err != nil {
+		return mrtype.FileInfo{}, err
 	}
 
-	if err := fp.fs.CreateDirIfNotExists(fp.rootDir, value); err != nil {
-		return nil, err
+	return fp.getFileInfo(filePath)
+}
+
+func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.File, error) {
+	fp.debugCmd(ctx, "Download", filePath)
+
+	if err := fp.checkFilePath(filePath); err != nil {
+		return mrtype.File{}, err
 	}
 
-	c := *fp
-	c.baseDir = value
-	c.fullDir = fp.rootDir + value
-
-	return &c, nil
-}
-
-func (fp *FileProvider) Info(ctx context.Context, fileName string) (mrtype.FileInfo, error) {
-	fp.debugCmd(ctx, "Info", fileName)
-
-	return fp.getFileInfo(fp.fullDir + fileName)
-}
-
-func (fp *FileProvider) Download(ctx context.Context, fileName string) (*mrtype.File, error) {
-	fp.debugCmd(ctx, "Download", fileName)
-
-	fileInfo, err := fp.getFileInfo(fp.fullDir + fileName)
+	fileInfo, err := fp.getFileInfo(filePath)
 
 	if err != nil {
-		return nil, err
+		return mrtype.File{}, err
 	}
 
-	fd, err := os.Open(fp.fullDir + fileName)
+	fd, err := os.Open(fp.rootDir + filePath)
 
 	if err != nil {
-		return nil, fp.wrapError(err, 0)
+		return mrtype.File{}, fp.wrapError(err, 0)
 	}
 
-	return &mrtype.File{
+	return mrtype.File{
 		FileInfo: fileInfo,
-		Path:     fileName,
 		Body:     fd,
 	}, nil
 }
 
-func (fp *FileProvider) Upload(ctx context.Context, file *mrtype.File) error {
+func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 	fp.debugCmd(ctx, "Upload", file.Path)
 
-	dst, err := os.Create(fp.fullDir + file.Path)
+	if err := fp.checkFilePath(file.Path); err != nil {
+		return err
+	}
+
+	if dirPath := path.Dir(file.Path); dirPath != "" {
+		if err := fp.fs.CreateDirIfNotExists(fp.rootDir, dirPath); err != nil {
+			return fp.wrapError(err, 0)
+		}
+	}
+
+	dst, err := os.Create(fp.rootDir + file.Path)
 
 	if err != nil {
 		return fp.wrapError(err, 0)
@@ -101,23 +92,44 @@ func (fp *FileProvider) Upload(ctx context.Context, file *mrtype.File) error {
 	return nil
 }
 
-func (fp *FileProvider) Remove(ctx context.Context, fileName string) error {
-	fp.debugCmd(ctx, "Remove", fileName)
+func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
+	fp.debugCmd(ctx, "Remove", filePath)
 
-	return os.Remove(fp.fullDir + fileName)
+	if err := fp.checkFilePath(filePath); err != nil {
+		return err
+	}
+
+	return os.Remove(fp.rootDir + filePath)
 }
 
 func (fp *FileProvider) getFileInfo(filePath string) (mrtype.FileInfo, error) {
-	fi, err := os.Stat(filePath)
+	fi, err := os.Stat(fp.rootDir + filePath)
 
 	if err != nil {
 		return mrtype.FileInfo{}, fp.wrapError(err, 1)
 	}
 
 	return mrtype.FileInfo{
-		ContentType:  mrlib.MimeTypeByExt(filepath.Ext(filePath)),
-		Name:         filepath.Base(filePath),
-		LastModified: fi.ModTime(),
-		Size:         fi.Size(),
+		ContentType: mrlib.MimeTypeByFile(filePath),
+		Name:        path.Base(filePath),
+		Path:        filePath,
+		Size:        fi.Size(),
+		ModifiedAt:  mrtype.TimePointer(fi.ModTime()),
 	}, nil
+}
+
+func (fp *FileProvider) checkFilePath(filePath string) error {
+	length := len(filePath)
+
+	if length < 3 {
+		return FactoryErrInvalidPath.New(filePath)
+	}
+
+	for i := 1; i < length; i++ {
+		if filePath[i-1] == '.' && filePath[i] == '.' {
+			return FactoryErrInvalidPath.New(filePath)
+		}
+	}
+
+	return nil
 }

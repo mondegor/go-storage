@@ -25,7 +25,7 @@ type (
 		GreaterOrEqual(name string, value any) SqlBuilderPartFunc
 		FilterEqualString(name, value string) SqlBuilderPartFunc
 		FilterEqualInt64(name string, value, empty int64) SqlBuilderPartFunc
-		FilterEqualBool(name string, value mrtype.NullableBool) SqlBuilderPartFunc
+		FilterEqualBool(name string, value *bool) SqlBuilderPartFunc
 		FilterLike(name, value string) SqlBuilderPartFunc
 		FilterLikeFields(names []string, value string) SqlBuilderPartFunc
 		FilterRangeInt64(name string, value mrtype.RangeInt64, empty int64) SqlBuilderPartFunc

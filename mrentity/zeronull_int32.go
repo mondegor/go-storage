@@ -10,15 +10,6 @@ type (
 	ZeronullInt32 int32
 )
 
-// Value implements the driver Valuer interface.
-func (n ZeronullInt32) Value() (driver.Value, error) {
-	if n == 0 {
-		return nil, nil
-	}
-
-	return int64(n), nil
-}
-
 // Scan implements the Scanner interface.
 func (n *ZeronullInt32) Scan(value any) error {
 	if value == nil {
@@ -37,4 +28,13 @@ func (n *ZeronullInt32) Scan(value any) error {
 	}
 
 	return mrcore.FactoryErrInternalTypeAssertion.New("ZeronullInt32", value)
+}
+
+// Value implements the driver Valuer interface.
+func (n ZeronullInt32) Value() (driver.Value, error) {
+	if n == 0 {
+		return nil, nil
+	}
+
+	return int64(n), nil
 }

@@ -92,12 +92,12 @@ func (b *SqlBuilderWhere) FilterEqualInt64(name string, value, empty int64) mrst
 	return b.compare(name, value, "=")
 }
 
-func (b *SqlBuilderWhere) FilterEqualBool(name string, value mrtype.NullableBool) mrstorage.SqlBuilderPartFunc {
-	if value.IsNull() {
+func (b *SqlBuilderWhere) FilterEqualBool(name string, value *bool) mrstorage.SqlBuilderPartFunc {
+	if value == nil {
 		return nil
 	}
 
-	return b.compare(name, value.Val(), "=")
+	return b.compare(name, *value, "=")
 }
 
 func (b *SqlBuilderWhere) FilterLike(name, value string) mrstorage.SqlBuilderPartFunc {

@@ -21,7 +21,7 @@ func main() {
 			w.Equal("equal_field2-1", "2-1"),
 			w.NotEqual("not_equal_field2-2", "2-2"),
 			w.FilterLike("like_field2-3", "2-3"),
-			w.FilterEqualBool("bool_field2-4", mrtype.NullableBoolTrue),
+			w.FilterEqualBool("bool_field2-4", mrtype.BoolPointer(true)),
 			w.Less("equal_field2-5", "2-5"),
 			w.LessOrEqual("equal_field2-6", "2-6"),
 		),

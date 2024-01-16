@@ -1,9 +1,32 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-01-16
+### Added
+- Добавлена ошибка `mrfilestorage.FactoryErrInvalidPath`;
+- Добавлены `mrentity.FileMeta` и `mrentity.ImageMeta` для хранения их в БД в виде json.
+  Также добавлены функции `ConvertFileMetaToInfo` и `ConvertImageMetaToInfo` для преобразования
+  данных в формат для пользователя;
+
+### Changed
+- Тип `mrtype.NullableBool` заменён на `*bool`;
+- Обновлены зависимости библиотеки;
+- Устранена путаница с пакетами `path` и `path/filepath`, теперь используется
+  только один из них в рамках одного файла;
+
+### Removed
+- Удалён интерфейс `mrstorage.ExtFileProviderAPI` и метод у файловых провайдеров `WithBaseDir`;
+- Удалён `mrentity.ZeronullTime`;
+
+## 2023-12-13
+### Changed
+- В `mrredislock` и `mrredsync` логирование вызова методов теперь происходив в самом начале;
+
 ## 2023-12-11
 ### Added
 - В пакетах `mrredislock` и `mrredsync`, добавлено обёртывание ошибок и логирование исполнения команд;
+
+### Changed
 - Обновлены зависимости библиотеки;
 
 ## 2023-12-10

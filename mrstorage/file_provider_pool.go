@@ -9,7 +9,7 @@ type (
 		providers providerMap
 	}
 
-	providerMap map[string]ExtFileProviderAPI
+	providerMap map[string]FileProviderAPI
 )
 
 func NewFileProviderPool() *FileProviderPool {
@@ -18,7 +18,7 @@ func NewFileProviderPool() *FileProviderPool {
 	}
 }
 
-func (p *FileProviderPool) Register(name string, provider ExtFileProviderAPI) error {
+func (p *FileProviderPool) Register(name string, provider FileProviderAPI) error {
 	if _, ok := p.providers[name]; ok {
 		return fmt.Errorf("file provider '%s' is already registered", name)
 	}
@@ -28,7 +28,7 @@ func (p *FileProviderPool) Register(name string, provider ExtFileProviderAPI) er
 	return nil
 }
 
-func (p *FileProviderPool) Provider(name string) (ExtFileProviderAPI, error) {
+func (p *FileProviderPool) Provider(name string) (FileProviderAPI, error) {
 	if provider, ok := p.providers[name]; ok {
 		return provider, nil
 	}

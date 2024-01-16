@@ -50,6 +50,8 @@ func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
 	}
 
 	return func() {
+		l.debugCmd(ctx, "Unlock", key)
+
 		if err := mutex.Release(ctx); err != nil {
 			mrctx.Logger(ctx).Error(
 				"%s: cmd=unlock, key=%s, err={%s}",
@@ -58,7 +60,5 @@ func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
 				err,
 			)
 		}
-
-		l.debugCmd(ctx, "Unlock", key)
 	}, nil
 }

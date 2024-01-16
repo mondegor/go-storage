@@ -3,11 +3,9 @@ package mrminio
 import (
 	"context"
 	"fmt"
-	"path/filepath"
-	"strings"
+	"path"
 
 	"github.com/minio/minio-go/v7"
-	"github.com/mondegor/go-storage/mrstorage"
 	"github.com/mondegor/go-webcore/mrlib"
 	"github.com/mondegor/go-webcore/mrtype"
 )
@@ -22,7 +20,6 @@ type (
 	FileProvider struct {
 		*ConnAdapter
 		bucketName string
-		baseDir    string
 	}
 )
 
@@ -33,32 +30,13 @@ func NewFileProvider(conn *ConnAdapter, bucketName string) *FileProvider {
 	}
 }
 
-func (fp *FileProvider) WithBaseDir(value string) (mrstorage.ExtFileProviderAPI, error) {
-	if value != "" {
-		value = strings.Trim(value, "/")
-
-		if value != "" {
-			value += "/"
-		}
-	}
-
-	if fp.baseDir == value {
-		return fp, nil
-	}
-
-	c := *fp
-	c.baseDir = value
-
-	return &c, nil
-}
-
-func (fp *FileProvider) Info(ctx context.Context, fileName string) (mrtype.FileInfo, error) {
-	fp.debugCmd(ctx, "Info", fileName)
+func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileInfo, error) {
+	fp.debugCmd(ctx, "Info", filePath)
 
 	info, err := fp.conn.StatObject(
 		ctx,
 		fp.bucketName,
-		fp.baseDir+fileName,
+		filePath,
 		minio.StatObjectOptions{},
 	)
 
@@ -66,47 +44,47 @@ func (fp *FileProvider) Info(ctx context.Context, fileName string) (mrtype.FileI
 		return mrtype.FileInfo{}, fp.wrapError(err)
 	}
 
-	return fp.getFileInfo(&info, fileName), nil
+	return fp.getFileInfo(&info), nil
 }
 
-func (fp *FileProvider) Download(ctx context.Context, fileName string) (*mrtype.File, error) {
-	fp.debugCmd(ctx, "Download", fileName)
+func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.File, error) {
+	fp.debugCmd(ctx, "Download", filePath)
 
 	object, err := fp.conn.GetObject(
 		ctx,
 		fp.bucketName,
-		fp.baseDir+fileName,
+		filePath,
 		minio.GetObjectOptions{},
 	)
 
 	if err != nil {
-		return nil, fp.wrapError(err)
+		return mrtype.File{}, fp.wrapError(err)
 	}
 
 	info, err := object.Stat()
 
 	if err != nil {
 		object.Close()
-		return nil, fp.wrapError(err)
+		return mrtype.File{}, fp.wrapError(err)
 	}
 
-	return &mrtype.File{
-		FileInfo: fp.getFileInfo(&info, fileName),
+	return mrtype.File{
+		FileInfo: fp.getFileInfo(&info),
 		Body:     object,
 	}, nil
 }
 
-func (fp *FileProvider) Upload(ctx context.Context, file *mrtype.File) error {
+func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 	fp.debugCmd(ctx, "Upload", file.Path)
 
 	_, err := fp.conn.PutObject(
 		ctx,
 		fp.bucketName,
-		fp.baseDir+file.Path,
+		file.Path,
 		file.Body,
 		file.Size, // -1 - calculating size
 		minio.PutObjectOptions{
-			ContentType:        fp.getContentType(file.ContentType, file.Path),
+			ContentType:        mrlib.MimeType(file.ContentType, file.Path),
 			ContentDisposition: fp.getContentDisposition(file.OriginalName),
 		},
 	)
@@ -118,13 +96,13 @@ func (fp *FileProvider) Upload(ctx context.Context, file *mrtype.File) error {
 	return nil
 }
 
-func (fp *FileProvider) Remove(ctx context.Context, fileName string) error {
-	fp.debugCmd(ctx, "Remove", fileName)
+func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
+	fp.debugCmd(ctx, "Remove", filePath)
 
 	err := fp.conn.RemoveObject(
 		ctx,
 		fp.bucketName,
-		fp.baseDir+fileName,
+		filePath,
 		minio.RemoveObjectOptions{},
 	)
 
@@ -135,22 +113,15 @@ func (fp *FileProvider) Remove(ctx context.Context, fileName string) error {
 	return nil
 }
 
-func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo, fileName string) mrtype.FileInfo {
+func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) mrtype.FileInfo {
 	return mrtype.FileInfo{
-		ContentType:  fp.getContentType(info.ContentType, fileName),
-		OriginalName: fp.getOriginalName(info.Metadata.Get("Content-Disposition")),
-		Name:         info.Key,
-		LastModified: info.LastModified,
+		ContentType:  mrlib.MimeType(info.ContentType, info.Key),
+		OriginalName: fp.parseOriginalName(info.Metadata.Get("Content-Disposition")),
+		Name:         path.Base(info.Key),
+		Path:         info.Key,
 		Size:         info.Size,
+		ModifiedAt:   mrtype.TimePointer(info.LastModified),
 	}
-}
-
-func (fp *FileProvider) getContentType(value, fileName string) string {
-	if value != "" {
-		return value
-	}
-
-	return mrlib.MimeTypeByExt(filepath.Ext(fileName))
 }
 
 func (fp *FileProvider) getContentDisposition(value string) string {
@@ -161,7 +132,7 @@ func (fp *FileProvider) getContentDisposition(value string) string {
 	return fmt.Sprintf("attachment; filename=\"%s\"", value) // :TODO: escape value
 }
 
-func (fp *FileProvider) getOriginalName(contentDisposition string) string {
+func (fp *FileProvider) parseOriginalName(contentDisposition string) string {
 	const prefix = "attachment; filename=\""
 	const minLength = 23 // len of prefix + '"'
 

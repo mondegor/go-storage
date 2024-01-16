@@ -7,11 +7,11 @@ import (
 )
 
 func (c *ConnAdapter) GetStruct(ctx context.Context, key string, data any) error {
+	c.debugCmd(ctx, "get-struct", key, data)
+
 	if err := c.conn.Get(ctx, key).Scan(data); err != nil {
 		return c.wrapError(err)
 	}
-
-	c.debugCmd(ctx, "get-struct", key, data)
 
 	return nil
 }

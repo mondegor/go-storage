@@ -22,11 +22,11 @@ func (fp *FileProvider) wrapError(err error, skip int) error {
 	return mrcore.FactoryErrInternal.Caller(skip + 1).Wrap(err)
 }
 
-func (fp *FileProvider) debugCmd(ctx context.Context, command, fileName string) {
+func (fp *FileProvider) debugCmd(ctx context.Context, command, filePath string) {
 	mrctx.Logger(ctx).Debug(
 		"%s: cmd=%s, file=%s",
 		providerName,
 		command,
-		fp.baseDir+fileName,
+		fp.rootDir+filePath,
 	)
 }

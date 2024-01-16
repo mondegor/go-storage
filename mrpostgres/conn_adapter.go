@@ -28,8 +28,8 @@ type (
 		Database         string
 		Username         string
 		Password         string
-		MaxPoolSize      int32
-		ConnAttempts     int32
+		MaxPoolSize      int
+		ConnAttempts     int
 		ConnTimeout      time.Duration
 		AfterConnectFunc func() any
 	}
@@ -52,7 +52,7 @@ func (c *ConnAdapter) Connect(opt Options) error {
 		return err
 	}
 
-	cnf.MaxConns = opt.MaxPoolSize
+	cnf.MaxConns = int32(opt.MaxPoolSize)
 	cnf.ConnConfig.ConnectTimeout = opt.ConnTimeout
 	cnf.MaxConnLifetime = opt.ConnTimeout
 

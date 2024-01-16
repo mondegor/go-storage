@@ -10,15 +10,6 @@ type (
 	EmptynullString string
 )
 
-// Value implements the driver Valuer interface.
-func (n EmptynullString) Value() (driver.Value, error) {
-	if n == "" {
-		return nil, nil
-	}
-
-	return string(n), nil
-}
-
 // Scan implements the Scanner interface.
 func (n *EmptynullString) Scan(value any) error {
 	if value == nil {
@@ -32,4 +23,13 @@ func (n *EmptynullString) Scan(value any) error {
 	}
 
 	return mrcore.FactoryErrInternalTypeAssertion.New("EmptynullString", value)
+}
+
+// Value implements the driver Valuer interface.
+func (n EmptynullString) Value() (driver.Value, error) {
+	if n == "" {
+		return nil, nil
+	}
+
+	return string(n), nil
 }
