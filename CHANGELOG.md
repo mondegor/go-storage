@@ -1,6 +1,11 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-01-18
+### Changed
+- Переработан метод `SqlBuilderWhere.FilterAnyOf` для того, чтобы избавиться от зависимости `github.com/lib/pq`;
+- Теперь сборка условий в `SqlBuilderWhere` происходит с использованием `strings.Builder`;
+
 ## 2024-01-16
 ### Added
 - Добавлена ошибка `mrfilestorage.FactoryErrInvalidPath`;

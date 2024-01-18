@@ -6,13 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lib/pq"
 	"github.com/mondegor/go-storage/mrsql"
 	"github.com/mondegor/go-storage/mrstorage"
 	"github.com/mondegor/go-webcore/mrtype"
 )
-
-// go get -u github.com/lib/pq
 
 type (
 	SqlBuilderWhere struct {
@@ -109,14 +106,26 @@ func (b *SqlBuilderWhere) FilterLikeFields(names []string, value string) mrstora
 		return nil
 	}
 
+	// sample: (field_name LIKE '%%' || $1 || '%%' OR ...)
 	return func(paramNumber int) (string, []any) {
-		var conds []string
+		var buf strings.Builder
+
+		buf.WriteByte('(')
 
 		for i := range names {
-			conds = append(conds, names[i]+" LIKE '%%' || $"+strconv.Itoa(paramNumber)+" || '%%'")
+			if i > 0 {
+				buf.WriteString(" OR ")
+			}
+
+			buf.WriteString(names[i])
+			buf.WriteString(" LIKE '%%' || $")
+			buf.WriteString(strconv.Itoa(paramNumber))
+			buf.WriteString(" || '%%'")
 		}
 
-		return "(" + strings.Join(conds, " OR ") + ")", []any{value}
+		buf.WriteByte(')')
+
+		return buf.String(), []any{value}
 	}
 }
 
@@ -140,15 +149,39 @@ func (b *SqlBuilderWhere) FilterRangeInt64(name string, value mrtype.RangeInt64,
 	return nil
 }
 
+// FilterAnyOf - 'values' support only slices else the func returns nil
 func (b *SqlBuilderWhere) FilterAnyOf(name string, values any) mrstorage.SqlBuilderPartFunc {
-	val := reflect.ValueOf(values)
+	s := reflect.ValueOf(values)
 
-	if val.Kind() != reflect.Slice || val.Len() == 0 {
+	if s.Kind() != reflect.Slice || s.Len() < 1 {
 		return nil
 	}
 
+	args := make([]any, s.Len())
+
+	for i := range args {
+		args[i] = s.Index(i).Interface()
+	}
+
+	// sample: field_name = IN($1, $2, ...)
 	return func(paramNumber int) (string, []any) {
-		return name + " = ANY($" + strconv.Itoa(paramNumber) + ")", []any{pq.Array(values)}
+		var buf strings.Builder
+
+		buf.WriteString(name)
+		buf.WriteString(" IN(")
+
+		for i := range args {
+			if i > 0 {
+				buf.WriteByte(',')
+			}
+
+			buf.WriteByte('$')
+			buf.WriteString(strconv.Itoa(paramNumber + i))
+		}
+
+		buf.WriteByte(')')
+
+		return buf.String(), args
 	}
 }
 
@@ -159,17 +192,26 @@ func (b *SqlBuilderWhere) join(separator string, conds []mrstorage.SqlBuilderPar
 		return nil
 	}
 
+	// sample: (cond1 AND cond2 AND ...)
 	return func(paramNumber int) (string, []any) {
-		var prepared []string
+		var buf strings.Builder
 		var args []any
 
+		buf.WriteByte('(')
+
 		for i := range conds {
+			if i > 0 {
+				buf.WriteString(separator)
+			}
+
 			item, itemArgs := conds[i](paramNumber + len(args))
-			prepared = append(prepared, item)
+			buf.WriteString(item)
 			args = mrsql.MergeArgs(args, itemArgs)
 		}
 
-		return "(" + strings.Join(prepared, separator) + ")", args
+		buf.WriteByte(')')
+
+		return buf.String(), args
 	}
 }
 

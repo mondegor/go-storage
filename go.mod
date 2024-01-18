@@ -6,7 +6,6 @@ require (
 	github.com/bsm/redislock v0.9.4
 	github.com/go-redsync/redsync/v4 v4.11.0
 	github.com/jackc/pgx/v5 v5.5.2
-	github.com/lib/pq v1.10.9
 	github.com/minio/minio-go/v7 v7.0.66
 	github.com/mondegor/go-sysmess v0.6.0
 	github.com/mondegor/go-webcore v0.9.6
