@@ -110,6 +110,7 @@ func (b *SqlBuilderWhere) FilterLikeFields(names []string, value string) mrstora
 	return func(paramNumber int) (string, []any) {
 		var buf strings.Builder
 
+		buf.Grow(30 * len(names))
 		buf.WriteByte('(')
 
 		for i := range names {
@@ -163,10 +164,11 @@ func (b *SqlBuilderWhere) FilterAnyOf(name string, values any) mrstorage.SqlBuil
 		args[i] = s.Index(i).Interface()
 	}
 
-	// sample: field_name = IN($1, $2, ...)
+	// sample: field_name IN($1, $2, ...)
 	return func(paramNumber int) (string, []any) {
 		var buf strings.Builder
 
+		buf.Grow(len(name) + 4 + 3*len(args)) // len(name) + " IN(" + "$N," * len(args) - 1
 		buf.WriteString(name)
 		buf.WriteString(" IN(")
 

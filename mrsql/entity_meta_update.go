@@ -114,7 +114,7 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 	}
 
 	if !rv.IsValid() {
-		return nil, nil, mrcore.FactoryErrInternalWithData.New("reflect.entity", rv)
+		return nil, nil, mrcore.FactoryErrInternal.WithAttr("reflect.entity", rv).New()
 	}
 
 	var fields []string

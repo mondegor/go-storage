@@ -1,4 +1,4 @@
-# Описание GoStorage v0.6.16
+# Описание GoStorage v0.6.17
 Этот репозиторий содержит описание библиотеки GoStorage.
 
 ## Статус библиотеки
@@ -7,11 +7,11 @@
 ## Описание библиотеки
 Библиотека для работы с хранилищами данных.
 На данный момент реализованы адаптеры для следующих клиентов:
-- postgres (pgx/v5);
-- rabbitmq (amqp-go/v1);
-- redis (go-redis/v9 + redsync/v4 + redislock/v0.9);
-- S3 minio + FileProvider;
-- Native File System + FileProvider;
+- postgres (`pgx/v5`);
+- rabbitmq (`amqp-go/v1`);
+- redis (`go-redis/v9` + `redsync/v4` + `redislock/v0.9`);
+- `S3 minio` + `FileProvider`;
+- `Native File System` + `FileProvider`;
 
 ## Подключение библиотеки
-go get github.com/mondegor/go-storage
+`go get github.com/mondegor/go-storage`

@@ -1,9 +1,11 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
-## 2024-01-19
+## 2024-01-22
 ### Changed
 - Обновлены зависимости библиотеки;
+- `FactoryErrInternalWithData` было заменено на `FactoryErrInternal.WithAttr(...)`;
+- В `NewSqlBuilderWhere` добавлено выделение памяти с помощью `buf.Grow` при формировании некоторых условий;
 
 ## 2024-01-18
 ### Changed
