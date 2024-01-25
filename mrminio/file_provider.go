@@ -3,6 +3,7 @@ package mrminio
 import (
 	"context"
 	"fmt"
+	"io"
 	"path"
 
 	"github.com/minio/minio-go/v7"
@@ -50,12 +51,7 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileI
 func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.File, error) {
 	fp.debugCmd(ctx, "Download", filePath)
 
-	object, err := fp.conn.GetObject(
-		ctx,
-		fp.bucketName,
-		filePath,
-		minio.GetObjectOptions{},
-	)
+	object, err := fp.openObject(ctx, filePath)
 
 	if err != nil {
 		return mrtype.File{}, fp.wrapError(err)
@@ -72,6 +68,18 @@ func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.F
 		FileInfo: fp.getFileInfo(&info),
 		Body:     object,
 	}, nil
+}
+
+func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.ReadCloser, error) {
+	fp.debugCmd(ctx, "DownloadFile", filePath)
+
+	object, err := fp.openObject(ctx, filePath)
+
+	if err != nil {
+		return nil, fp.wrapError(err)
+	}
+
+	return object, nil
 }
 
 func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
@@ -111,6 +119,15 @@ func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
 	}
 
 	return nil
+}
+
+func (fp *FileProvider) openObject(ctx context.Context, filePath string) (*minio.Object, error) {
+	return fp.conn.GetObject(
+		ctx,
+		fp.bucketName,
+		filePath,
+		minio.GetObjectOptions{},
+	)
 }
 
 func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) mrtype.FileInfo {

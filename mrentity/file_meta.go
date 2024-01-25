@@ -15,9 +15,9 @@ type (
 		Path         string     `json:"path,omitempty"`
 		ContentType  string     `json:"type,omitempty"`
 		OriginalName string     `json:"origin,omitempty"`
-		Size         int64      `json:"s,omitempty"`
-		CreatedAt    *time.Time `json:"crt,omitempty"`
-		UpdatedAt    *time.Time `json:"upd,omitempty"`
+		Size         int64      `json:"size,omitempty"`
+		CreatedAt    *time.Time `json:"created,omitempty"`
+		UpdatedAt    *time.Time `json:"updated,omitempty"`
 	}
 )
 
@@ -53,18 +53,24 @@ func (n FileMeta) Value() (driver.Value, error) {
 	return json.Marshal(n)
 }
 
-func ConvertFileMetaToInfo(meta *FileMeta) *mrtype.FileInfo {
-	if meta == nil {
-		return nil
-	}
-
-	return &mrtype.FileInfo{
+func FileMetaToInfo(meta FileMeta) mrtype.FileInfo {
+	return mrtype.FileInfo{
 		ContentType:  meta.ContentType,
 		OriginalName: meta.OriginalName,
 		Name:         path.Base(meta.Path),
 		Path:         meta.Path,
 		Size:         meta.Size,
-		CreatedAt:    meta.CreatedAt,
-		ModifiedAt:   meta.UpdatedAt,
+		CreatedAt:    mrtype.TimePointerCopy(meta.CreatedAt),
+		ModifiedAt:   mrtype.TimePointerCopy(meta.UpdatedAt),
 	}
+}
+
+func FileMetaToInfoPointer(meta *FileMeta) *mrtype.FileInfo {
+	if meta == nil {
+		return nil
+	}
+
+	c := FileMetaToInfo(*meta)
+
+	return &c
 }

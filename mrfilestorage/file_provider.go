@@ -36,32 +36,46 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileI
 		return mrtype.FileInfo{}, err
 	}
 
-	return fp.getFileInfo(filePath)
+	fi, err := os.Stat(fp.rootDir + filePath)
+
+	if err != nil {
+		return mrtype.FileInfo{}, fp.wrapError(err)
+	}
+
+	return fp.getFileInfo(filePath, fi), nil
 }
 
 func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.File, error) {
 	fp.debugCmd(ctx, "Download", filePath)
 
-	if err := fp.checkFilePath(filePath); err != nil {
-		return mrtype.File{}, err
-	}
-
-	fileInfo, err := fp.getFileInfo(filePath)
+	fd, err := fp.openFile(ctx, filePath)
 
 	if err != nil {
-		return mrtype.File{}, err
+		return mrtype.File{}, fp.wrapError(err)
 	}
 
-	fd, err := os.Open(fp.rootDir + filePath)
+	fi, err := fd.Stat()
 
 	if err != nil {
-		return mrtype.File{}, fp.wrapError(err, 0)
+		return mrtype.File{}, fp.wrapError(err)
 	}
 
 	return mrtype.File{
-		FileInfo: fileInfo,
+		FileInfo: fp.getFileInfo(filePath, fi),
 		Body:     fd,
 	}, nil
+}
+
+func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.ReadCloser, error) {
+	fp.debugCmd(ctx, "DownloadContent", filePath)
+
+	fd, err := fp.openFile(ctx, filePath)
+
+	if err != nil {
+		return nil, fp.wrapError(err)
+	}
+
+	return fd, nil
 }
 
 func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
@@ -73,20 +87,20 @@ func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 
 	if dirPath := path.Dir(file.Path); dirPath != "" {
 		if err := fp.fs.CreateDirIfNotExists(fp.rootDir, dirPath); err != nil {
-			return fp.wrapError(err, 0)
+			return fp.wrapError(err)
 		}
 	}
 
 	dst, err := os.Create(fp.rootDir + file.Path)
 
 	if err != nil {
-		return fp.wrapError(err, 0)
+		return fp.wrapError(err)
 	}
 
 	defer dst.Close()
 
 	if _, err = io.Copy(dst, file.Body); err != nil {
-		return fp.wrapError(err, 0)
+		return fp.wrapError(err)
 	}
 
 	return nil
@@ -102,20 +116,22 @@ func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
 	return os.Remove(fp.rootDir + filePath)
 }
 
-func (fp *FileProvider) getFileInfo(filePath string) (mrtype.FileInfo, error) {
-	fi, err := os.Stat(fp.rootDir + filePath)
-
-	if err != nil {
-		return mrtype.FileInfo{}, fp.wrapError(err, 1)
+func (fp *FileProvider) openFile(ctx context.Context, filePath string) (*os.File, error) {
+	if err := fp.checkFilePath(filePath); err != nil {
+		return nil, err
 	}
 
+	return os.Open(fp.rootDir + filePath)
+}
+
+func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) mrtype.FileInfo {
 	return mrtype.FileInfo{
 		ContentType: mrlib.MimeTypeByFile(filePath),
-		Name:        path.Base(filePath),
+		Name:        fileInfo.Name(),
 		Path:        filePath,
-		Size:        fi.Size(),
-		ModifiedAt:  mrtype.TimePointer(fi.ModTime()),
-	}, nil
+		Size:        fileInfo.Size(),
+		ModifiedAt:  mrtype.TimePointer(fileInfo.ModTime()),
+	}
 }
 
 func (fp *FileProvider) checkFilePath(filePath string) error {

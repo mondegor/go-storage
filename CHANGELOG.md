@@ -1,6 +1,20 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-01-25
+### Added
+- Добавлен новый метод `DownloadFile()` для интерфейса `mrstorage.FileProviderAPI`.
+  Также добавлена его реализация для провайдеров `mrfilestorage` и `mrminio`;
+- Добавлены следующие вспомогательные функции `mrentity.FileMetaToInfo()` и `mrentity.ImageMetaToInfo()`;
+
+### Changed
+- Переименовано:
+  - ConvertFileMetaToInfo -> FileMetaToInfoPointer
+  - ConvertImageMetaToInfo -> ImageMetaToInfoPointer;
+
+### Removed
+- Удалён адаптер `mrredsync` т.к. один из его компонентов использует `MPL-2.0 license`;
+
 ## 2024-01-22
 ### Changed
 - Обновлены зависимости библиотеки;
