@@ -1,18 +1,22 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"time"
 
 	"github.com/mondegor/go-storage/mrpostgres"
 	"github.com/mondegor/go-storage/mrsql"
 	"github.com/mondegor/go-webcore/mrenum"
+	"github.com/mondegor/go-webcore/mrlog"
 )
 
 func main() {
-	fmt.Println("SAMPLE1:")
+	logger := mrlog.New(mrlog.TraceLevel)
+	ctx := mrlog.WithContext(context.Background(), logger)
 
-	o := mrpostgres.NewSqlBuilderOrderBy("id", mrenum.SortDirectionASC)
+	logger.Info().Msg("SAMPLE1:")
+
+	o := mrpostgres.NewSqlBuilderOrderBy(ctx, "id", mrenum.SortDirectionASC)
 
 	orderBy := o.Join(
 		o.Field("caption", mrenum.SortDirectionDESC),
@@ -20,19 +24,19 @@ func main() {
 	)
 
 	cc, _ := orderBy(0)
-	fmt.Printf("%v\n\n", cc)
+	logger.Info().Msgf("%v", cc)
 
-	fmt.Println("SAMPLE2:")
-	o = mrpostgres.NewSqlBuilderOrderBy("id", mrenum.SortDirectionDESC)
+	logger.Info().Msg("SAMPLE2:")
+	o = mrpostgres.NewSqlBuilderOrderBy(ctx, "id", mrenum.SortDirectionDESC)
 
 	orderBy = o.WrapWithDefault(
 		o.Field("", mrenum.SortDirectionASC),
 	)
 
 	cc, _ = orderBy(0)
-	fmt.Printf("%v\n\n", cc)
+	logger.Info().Msgf("%v", cc)
 
-	fmt.Println("SAMPLE3:")
+	logger.Info().Msg("SAMPLE3:")
 
 	type OrderedStruct struct {
 		ID        string    `sort:"id"`
@@ -42,16 +46,16 @@ func main() {
 		IsRemoved bool `sort:"isRemoved"`
 	}
 
-	meta, _ := mrsql.NewEntityMetaOrderBy(OrderedStruct{})
-	fmt.Printf("caption is registered? %v\n", meta.CheckField("caption"))
-	fmt.Printf("NotSorted is registered? %v\n", meta.CheckField("NotSorted"))
+	meta, _ := mrsql.NewEntityMetaOrderBy(ctx, OrderedStruct{})
+	logger.Info().Msgf("caption is registered? %v", meta.CheckField("caption"))
+	logger.Info().Msgf("NotSorted is registered? %v", meta.CheckField("NotSorted"))
 
-	o = mrpostgres.NewSqlBuilderOrderByWithDefaultSort(meta.DefaultSort())
+	o = mrpostgres.NewSqlBuilderOrderByWithDefaultSort(ctx, meta.DefaultSort())
 
 	orderBy = o.WrapWithDefault(
 		o.Field("", mrenum.SortDirectionASC),
 	)
 
 	cc, _ = orderBy(0)
-	fmt.Printf("%v\n\n", cc)
+	logger.Info().Msgf("%v", cc)
 }

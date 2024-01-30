@@ -38,16 +38,16 @@ func New(createBuckets bool) *ConnAdapter {
 	}
 }
 
-func (c *ConnAdapter) Connect(opt Options) error {
+func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	if c.conn != nil {
 		return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
 	}
 
 	conn, err := minio.New(
-		getURL(&opt),
+		fmt.Sprintf("%s:%s", opts.Host, opts.Port),
 		&minio.Options{
-			Creds:  credentials.NewStaticV4(opt.User, opt.Password, ""),
-			Secure: opt.UseSSL,
+			Creds:  credentials.NewStaticV4(opts.User, opts.Password, ""),
+			Secure: opts.UseSSL,
 		},
 	)
 
@@ -65,10 +65,11 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 		return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
-	_, err := c.conn.BucketExists(ctx, "bucket-ping") // :TODO: возможно есть способ пинга лучше
-
-	if err != nil && strings.Contains(err.Error(), "connection") {
-		return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+	// :TODO: возможно есть способ пинга лучше
+	if _, err := c.conn.BucketExists(ctx, "bucket-ping"); err != nil {
+		if strings.Contains(err.Error(), "connection") {
+			return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+		}
 	}
 
 	return nil
@@ -114,8 +115,4 @@ func (c *ConnAdapter) Close() error {
 	c.conn = nil
 
 	return nil
-}
-
-func getURL(o *Options) string {
-	return fmt.Sprintf("%s:%s", o.Host, o.Port)
 }

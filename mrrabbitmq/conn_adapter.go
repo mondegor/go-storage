@@ -1,6 +1,7 @@
 package mrrabbitmq
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/mondegor/go-webcore/mrcore"
@@ -30,12 +31,20 @@ func New() *ConnAdapter {
 	return &ConnAdapter{}
 }
 
-func (c *ConnAdapter) Connect(opt Options) error {
+func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	if c.conn != nil {
 		return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
 	}
 
-	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", opt.User, opt.Password, opt.Host, opt.Port))
+	conn, err := amqp.Dial(
+		fmt.Sprintf(
+			"amqp://%s:%s@%s:%s/",
+			opts.User,
+			opts.Password,
+			opts.Host,
+			opts.Port,
+		),
+	)
 
 	if err != nil {
 		return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)

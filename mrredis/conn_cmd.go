@@ -7,7 +7,7 @@ import (
 )
 
 func (c *ConnAdapter) GetStruct(ctx context.Context, key string, data any) error {
-	c.debugCmd(ctx, "get-struct", key, data)
+	c.traceCmd(ctx, "get-struct", key, data)
 
 	if err := c.conn.Get(ctx, key).Scan(data); err != nil {
 		return c.wrapError(err)
@@ -17,7 +17,7 @@ func (c *ConnAdapter) GetStruct(ctx context.Context, key string, data any) error
 }
 
 func (c *ConnAdapter) SetStruct(ctx context.Context, key string, data any, expiration time.Duration) error {
-	c.debugCmd(ctx, "set-struct", key, data)
+	c.traceCmd(ctx, "set-struct", key, data)
 
 	if err := c.conn.Set(ctx, key, data, expiration).Err(); err != nil {
 		return c.wrapError(err)
@@ -27,7 +27,7 @@ func (c *ConnAdapter) SetStruct(ctx context.Context, key string, data any, expir
 }
 
 func (c *ConnAdapter) Delete(ctx context.Context, key ...string) error {
-	c.debugCmd(ctx, "delete-row", strings.Join(key, ", "), nil)
+	c.traceCmd(ctx, "delete-row", strings.Join(key, ", "), nil)
 
 	if err := c.conn.Del(ctx, key...).Err(); err != nil {
 		return c.wrapError(err)

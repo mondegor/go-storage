@@ -5,19 +5,16 @@ import (
 	"time"
 
 	"github.com/mondegor/go-storage/mrredis"
-	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrtool"
+	"github.com/mondegor/go-webcore/mrlog"
 )
 
 func main() {
-	logger := mrcore.DefaultLogger().With("mrredis")
-	mrcore.SetDefaultLogger(logger)
+	logger := mrlog.New(mrlog.TraceLevel)
+	ctx := mrlog.WithContext(context.Background(), logger)
 
-	logger.Info("Create redis connection")
+	logger.Info().Msg("Create redis connection")
 
-	appHelper := mrtool.NewAppHelper(logger)
-
-	opt := mrredis.Options{
+	opts := mrredis.Options{
 		Host:        "127.0.0.1",
 		Port:        "6379",
 		Password:    "123456",
@@ -25,14 +22,16 @@ func main() {
 	}
 
 	redisAdapter := mrredis.New()
-	err := redisAdapter.Connect(opt)
 
-	appHelper.ExitOnError(err)
-	defer appHelper.Close(redisAdapter)
+	if err := redisAdapter.Connect(ctx, opts); err != nil {
+		logger.Fatal().Err(err).Msg("redisAdapter.Connect() error")
+	}
+
+	defer redisAdapter.Close()
 
 	key := "my-test-key"
-	redisAdapter.Cli().Set(context.Background(), key, "my-test-value", 1*time.Second)
-	value := redisAdapter.Cli().Get(context.Background(), key).Val()
+	redisAdapter.Cli().Set(ctx, key, "my-test-value", 1*time.Second)
+	value := redisAdapter.Cli().Get(ctx, key).Val()
 
-	logger.Info("value from redis by key '%s': %s", key, value)
+	logger.Info().Msgf("value from redis by key '%s': %s", key, value)
 }

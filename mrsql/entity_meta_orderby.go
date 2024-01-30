@@ -1,12 +1,14 @@
 package mrsql
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/mondegor/go-webcore/mrcore"
 	"github.com/mondegor/go-webcore/mrenum"
+	"github.com/mondegor/go-webcore/mrlog"
 	"github.com/mondegor/go-webcore/mrtype"
 )
 
@@ -22,8 +24,9 @@ type (
 )
 
 // NewEntityMetaOrderBy - WARNING: use only when starting the main process
-func NewEntityMetaOrderBy(entity any) (*EntityMetaOrderBy, error) {
+func NewEntityMetaOrderBy(ctx context.Context, entity any) (*EntityMetaOrderBy, error) {
 	rvt := reflect.TypeOf(entity)
+	logger := mrlog.Ctx(ctx).With().Str("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaOrderBy, rvt.String())).Logger()
 
 	for rvt.Kind() == reflect.Pointer {
 		rvt = rvt.Elem()
@@ -33,7 +36,7 @@ func NewEntityMetaOrderBy(entity any) (*EntityMetaOrderBy, error) {
 		return nil, mrcore.FactoryErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
 	}
 
-	debugInfo := fmt.Sprintf("[%s] %s:", ModelNameEntityMetaOrderBy, rvt.String())
+	debugInfo := ""
 
 	meta := EntityMetaOrderBy{
 		fieldMap: make(map[string]bool, 0),
@@ -50,7 +53,7 @@ func NewEntityMetaOrderBy(entity any) (*EntityMetaOrderBy, error) {
 		sortName, isDefault, sortDirection, err := parseTagSort(rvt, sort, meta.defaultSort.FieldName == "")
 
 		if err != nil {
-			mrcore.LogWarn(err)
+			logger.Warn().Err(err).Msg("parse tag sort warning")
 			continue
 		}
 
@@ -63,18 +66,21 @@ func NewEntityMetaOrderBy(entity any) (*EntityMetaOrderBy, error) {
 		}
 
 		meta.fieldMap[sortName] = true
-		debugInfo = fmt.Sprintf(
-			"%s\n- %s(%d) -> %s %s%s;",
-			debugInfo,
-			rvt.Field(i).Name,
-			i,
-			sortName,
-			sortDirection.String(),
-			extMessage,
-		)
+
+		if logger.Level() <= mrlog.DebugLevel {
+			debugInfo = fmt.Sprintf(
+				"%s\n- %s(%d) -> %s %s%s;",
+				debugInfo,
+				rvt.Field(i).Name,
+				i,
+				sortName,
+				sortDirection.String(),
+				extMessage,
+			)
+		}
 	}
 
-	mrcore.LogDebug(debugInfo)
+	logger.Debug().Msg(debugInfo)
 
 	return &meta, nil
 }

@@ -4,19 +4,16 @@ import (
 	"context"
 
 	"github.com/mondegor/go-storage/mrminio"
-	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrtool"
+	"github.com/mondegor/go-webcore/mrlog"
 )
 
 func main() {
-	logger := mrcore.DefaultLogger().With("mrminio")
-	mrcore.SetDefaultLogger(logger)
+	logger := mrlog.New(mrlog.TraceLevel)
+	ctx := mrlog.WithContext(context.Background(), logger)
 
-	logger.Info("Create minio S3 connection")
+	logger.Info().Msg("Create minio S3 connection")
 
-	appHelper := mrtool.NewAppHelper(logger)
-
-	opt := mrminio.Options{
+	opts := mrminio.Options{
 		Host:     "127.0.0.1",
 		Port:     "9000",
 		UseSSL:   false,
@@ -25,28 +22,33 @@ func main() {
 	}
 
 	minioAdapter := mrminio.New(true)
-	err := minioAdapter.Connect(opt)
 
-	appHelper.ExitOnError(err)
-	defer appHelper.Close(minioAdapter)
-
-	appHelper.ExitOnError(minioAdapter.Ping(context.Background()))
-
-	logger.Info("Create test bucket")
-
-	bucketName := "test-bucket"
-
-	created, err := minioAdapter.InitBucket(context.Background(), bucketName)
-	appHelper.ExitOnError(err)
-
-	if created {
-		mrcore.LogInfo("Bucket '%s' created", bucketName)
-	} else {
-		mrcore.LogInfo("Bucket '%s' exists, OK", bucketName)
+	if err := minioAdapter.Connect(ctx, opts); err != nil {
+		logger.Fatal().Err(err).Msg("minioAdapter.Connect() error")
 	}
 
-	err = minioAdapter.Cli().RemoveBucket(context.Background(), bucketName)
-	appHelper.ExitOnError(err)
+	defer minioAdapter.Close()
 
-	logger.Info("Test bucket removed")
+	if err := minioAdapter.Ping(ctx); err != nil {
+		logger.Fatal().Err(err).Msg("minioAdapter.Ping() error")
+	}
+
+	logger.Info().Msg("Create test bucket")
+	bucketName := "test-bucket"
+
+	if created, err := minioAdapter.InitBucket(ctx, bucketName); err != nil {
+		logger.Fatal().Err(err).Msg("minioAdapter.InitBucket() error")
+	} else {
+		if created {
+			logger.Info().Msgf("Bucket '%s' created", bucketName)
+		} else {
+			logger.Info().Msgf("Bucket '%s' exists, OK", bucketName)
+		}
+	}
+
+	if err := minioAdapter.Cli().RemoveBucket(ctx, bucketName); err != nil {
+		logger.Fatal().Err(err).Msg("minioAdapter.Cli().RemoveBucket() error")
+	} else {
+		logger.Info().Msg("Test bucket removed")
+	}
 }

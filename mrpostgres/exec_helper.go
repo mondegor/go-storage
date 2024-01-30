@@ -20,7 +20,7 @@ type (
 )
 
 func (e *dbExecHelper) query(conn pgxQuery, skip int, ctx context.Context, sql string, args ...any) (*queryRows, error) {
-	debugQuery(ctx, sql)
+	traceQuery(ctx, sql)
 
 	rows, err := conn.Query(ctx, sql, args...)
 
@@ -34,7 +34,7 @@ func (e *dbExecHelper) query(conn pgxQuery, skip int, ctx context.Context, sql s
 }
 
 func (e *dbExecHelper) queryRow(conn pgxQuery, skip int, ctx context.Context, sql string, args ...any) *queryRow {
-	debugQuery(ctx, sql)
+	traceQuery(ctx, sql)
 
 	return &queryRow{
 		row: conn.QueryRow(ctx, sql, args...),
@@ -42,7 +42,7 @@ func (e *dbExecHelper) queryRow(conn pgxQuery, skip int, ctx context.Context, sq
 }
 
 func (e *dbExecHelper) exec(conn pgxQuery, skip int, ctx context.Context, sql string, args ...any) error {
-	debugQuery(ctx, sql)
+	traceQuery(ctx, sql)
 
 	commandTag, err := conn.Exec(ctx, sql, args...)
 

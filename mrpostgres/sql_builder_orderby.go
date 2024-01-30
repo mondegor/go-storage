@@ -1,11 +1,12 @@
 package mrpostgres
 
 import (
+	"context"
 	"strings"
 
 	"github.com/mondegor/go-storage/mrstorage"
-	"github.com/mondegor/go-webcore/mrcore"
 	"github.com/mondegor/go-webcore/mrenum"
+	"github.com/mondegor/go-webcore/mrlog"
 	"github.com/mondegor/go-webcore/mrtype"
 )
 
@@ -15,13 +16,13 @@ type (
 	}
 )
 
-func NewSqlBuilderOrderBy(defaultField string, defaultDirection mrenum.SortDirection) *SqlBuilderOrderBy {
+func NewSqlBuilderOrderBy(ctx context.Context, defaultField string, defaultDirection mrenum.SortDirection) *SqlBuilderOrderBy {
 	var defaultOrderBy string
 
 	if defaultField != "" {
 		defaultOrderBy = defaultField + " " + defaultDirection.String()
 	} else {
-		mrcore.LogWarning("default sorting is not set")
+		mrlog.Ctx(ctx).Warn().Msg("default sorting is not set")
 	}
 
 	return &SqlBuilderOrderBy{
@@ -29,8 +30,9 @@ func NewSqlBuilderOrderBy(defaultField string, defaultDirection mrenum.SortDirec
 	}
 }
 
-func NewSqlBuilderOrderByWithDefaultSort(defaultSort mrtype.SortParams) *SqlBuilderOrderBy {
+func NewSqlBuilderOrderByWithDefaultSort(ctx context.Context, defaultSort mrtype.SortParams) *SqlBuilderOrderBy {
 	return NewSqlBuilderOrderBy(
+		ctx,
 		defaultSort.FieldName,
 		defaultSort.Direction,
 	)

@@ -32,12 +32,17 @@ func New() *ConnAdapter {
 	return &ConnAdapter{}
 }
 
-func (c *ConnAdapter) Connect(opt Options) error {
+func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	if c.conn != nil {
 		return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
 	}
 
-	c.conn = redis.NewClient(getOptions(&opt))
+	c.conn = redis.NewClient(
+		&redis.Options{
+			Addr:     fmt.Sprintf("%s:%s", opts.Host, opts.Port),
+			Password: opts.Password,
+		},
+	)
 
 	return nil
 }
@@ -47,9 +52,7 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 		return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
-	_, err := c.conn.Ping(ctx).Result()
-
-	if err != nil {
+	if _, err := c.conn.Ping(ctx).Result(); err != nil {
 		return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
 	}
 
@@ -72,11 +75,4 @@ func (c *ConnAdapter) Close() error {
 	c.conn = nil
 
 	return nil
-}
-
-func getOptions(o *Options) *redis.Options {
-	return &redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", o.Host, o.Port),
-		Password: o.Password,
-	}
 }

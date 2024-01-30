@@ -6,8 +6,8 @@ require (
 	github.com/bsm/redislock v0.9.4
 	github.com/jackc/pgx/v5 v5.5.2
 	github.com/minio/minio-go/v7 v7.0.66
-	github.com/mondegor/go-sysmess v0.7.0
-	github.com/mondegor/go-webcore v0.12.0
+	github.com/mondegor/go-sysmess v0.7.1
+	github.com/mondegor/go-webcore v0.13.0
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/redis/go-redis/v9 v9.4.0
 )
@@ -21,7 +21,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.17.4 // indirect
+	github.com/klauspost/compress v1.17.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
@@ -36,5 +36,4 @@ require (
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

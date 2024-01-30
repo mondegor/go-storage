@@ -32,7 +32,7 @@ func NewFileProvider(conn *ConnAdapter, bucketName string) *FileProvider {
 }
 
 func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileInfo, error) {
-	fp.debugCmd(ctx, "Info", filePath)
+	fp.traceCmd(ctx, "Info", filePath)
 
 	info, err := fp.conn.StatObject(
 		ctx,
@@ -49,7 +49,7 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileI
 }
 
 func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.File, error) {
-	fp.debugCmd(ctx, "Download", filePath)
+	fp.traceCmd(ctx, "Download", filePath)
 
 	object, err := fp.openObject(ctx, filePath)
 
@@ -71,7 +71,7 @@ func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.F
 }
 
 func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.ReadCloser, error) {
-	fp.debugCmd(ctx, "DownloadFile", filePath)
+	fp.traceCmd(ctx, "DownloadFile", filePath)
 
 	object, err := fp.openObject(ctx, filePath)
 
@@ -83,7 +83,7 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 }
 
 func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
-	fp.debugCmd(ctx, "Upload", file.Path)
+	fp.traceCmd(ctx, "Upload", file.Path)
 
 	_, err := fp.conn.PutObject(
 		ctx,
@@ -105,7 +105,7 @@ func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 }
 
 func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
-	fp.debugCmd(ctx, "Remove", filePath)
+	fp.traceCmd(ctx, "Remove", filePath)
 
 	err := fp.conn.RemoveObject(
 		ctx,

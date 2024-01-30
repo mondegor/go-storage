@@ -1,20 +1,19 @@
 package main
 
 import (
+	"context"
+
 	"github.com/mondegor/go-storage/mrrabbitmq"
-	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrtool"
+	"github.com/mondegor/go-webcore/mrlog"
 )
 
 func main() {
-	logger := mrcore.DefaultLogger().With("mrrabbitmq")
-	mrcore.SetDefaultLogger(logger)
+	logger := mrlog.New(mrlog.TraceLevel)
+	ctx := mrlog.WithContext(context.Background(), logger)
 
-	logger.Info("Create rabbitmq connection")
+	logger.Info().Msg("Create rabbitmq connection")
 
-	appHelper := mrtool.NewAppHelper(logger)
-
-	opt := mrrabbitmq.Options{
+	opts := mrrabbitmq.Options{
 		Host:     "127.0.0.1",
 		Port:     "5672",
 		User:     "admin",
@@ -22,15 +21,22 @@ func main() {
 	}
 
 	rabbitAdapter := mrrabbitmq.New()
-	err := rabbitAdapter.Connect(opt)
 
-	appHelper.ExitOnError(err)
-	defer appHelper.Close(rabbitAdapter)
+	if err := rabbitAdapter.Connect(ctx, opts); err != nil {
+		logger.Fatal().Err(err).Msg("rabbitAdapter.Connect() error")
+	}
 
-	logger.Info("Create rabbitmq channel")
+	defer rabbitAdapter.Close()
+
+	logger.Info().Msg("Create rabbitmq channel")
 
 	rabbitChannel, err := rabbitAdapter.Cli().Channel()
-	appHelper.ExitOnError(err)
+
+	if err != nil {
+		logger.Fatal().Err(err).Msg("rabbitAdapter.Cli().Channel() error")
+	}
+
+	defer rabbitChannel.Close()
 
 	_, err = rabbitChannel.QueueDeclare(
 		"my.test.queue", // name
@@ -41,5 +47,7 @@ func main() {
 		nil,             // args
 	)
 
-	appHelper.ExitOnError(err)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("rabbitChannel.QueueDeclare() error")
+	}
 }

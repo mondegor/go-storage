@@ -1,48 +1,48 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/mondegor/go-storage/mrpostgres"
+	"github.com/mondegor/go-webcore/mrlog"
 	"github.com/mondegor/go-webcore/mrtype"
 )
 
 func main() {
-	w := mrpostgres.NewSqlBuilderWhere()
+	logger := mrlog.New(mrlog.TraceLevel)
+	bw := mrpostgres.NewSqlBuilderWhere()
 
-	where := w.JoinOr(
-		w.JoinAnd(
-			w.Equal("equal_field1-1", "1-1"),
-			w.NotEqual("not_equal_field1-2", "1-2"),
-			w.FilterLike("like_field1-3", "1-3"),
-			w.FilterEqualInt64("equalInt_field1-4", 10000, 0),
+	where := bw.JoinOr(
+		bw.JoinAnd(
+			bw.Equal("equal_field1-1", "1-1"),
+			bw.NotEqual("not_equal_field1-2", "1-2"),
+			bw.FilterLike("like_field1-3", "1-3"),
+			bw.FilterEqualInt64("equalInt_field1-4", 10000, 0),
 		),
-		w.JoinAnd(
-			w.Equal("equal_field2-1", "2-1"),
-			w.NotEqual("not_equal_field2-2", "2-2"),
-			w.FilterLike("like_field2-3", "2-3"),
-			w.FilterEqualBool("bool_field2-4", mrtype.BoolPointer(true)),
-			w.Less("equal_field2-5", "2-5"),
-			w.LessOrEqual("equal_field2-6", "2-6"),
+		bw.JoinAnd(
+			bw.Equal("equal_field2-1", "2-1"),
+			bw.NotEqual("not_equal_field2-2", "2-2"),
+			bw.FilterLike("like_field2-3", "2-3"),
+			bw.FilterEqualBool("bool_field2-4", mrtype.BoolPointer(true)),
+			bw.Less("equal_field2-5", "2-5"),
+			bw.LessOrEqual("equal_field2-6", "2-6"),
 		),
-		w.JoinAnd(
-			w.JoinOr(
-				w.Equal("equal_field3-1-1", "3-1-1"),
-				w.NotEqual("not_equal_field3-1-2", "3-1-2"),
-				w.FilterLikeFields([]string{"like_field3-1-3#1", "like_field3-1-3#2"}, "3-1-3"),
-				w.Greater("equal_field3-1-4", "3-1-4"),
-				w.GreaterOrEqual("equal_field3-1-5", "3-1-5"),
+		bw.JoinAnd(
+			bw.JoinOr(
+				bw.Equal("equal_field3-1-1", "3-1-1"),
+				bw.NotEqual("not_equal_field3-1-2", "3-1-2"),
+				bw.FilterLikeFields([]string{"like_field3-1-3#1", "like_field3-1-3#2"}, "3-1-3"),
+				bw.Greater("equal_field3-1-4", "3-1-4"),
+				bw.GreaterOrEqual("equal_field3-1-5", "3-1-5"),
 			),
-			w.JoinOr(
-				w.Equal("equal_field3-2-1", "3-2-1"),
-				w.NotEqual("not_equal_field3-2-2", "3-2-2"),
-				w.FilterLike("like_field3-2-3", "3-2-3"),
+			bw.JoinOr(
+				bw.Equal("equal_field3-2-1", "3-2-1"),
+				bw.NotEqual("not_equal_field3-2-2", "3-2-2"),
+				bw.FilterLike("like_field3-2-3", "3-2-3"),
 			),
 		),
 	)
 
 	cc, vv := where(5)
 
-	fmt.Printf("%v\n", cc)
-	fmt.Printf("%v\n", vv)
+	logger.Info().Msgf("%v", cc)
+	logger.Info().Msgf("%v", vv)
 }

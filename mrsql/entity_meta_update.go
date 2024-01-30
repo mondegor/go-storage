@@ -1,11 +1,13 @@
 package mrsql
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/mondegor/go-webcore/mrcore"
+	"github.com/mondegor/go-webcore/mrlog"
 )
 
 const (
@@ -25,8 +27,9 @@ type (
 )
 
 // NewEntityMetaUpdate - WARNING: use only when starting the main process
-func NewEntityMetaUpdate(entity any) (*EntityMetaUpdate, error) {
+func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, error) {
 	rvt := reflect.TypeOf(entity)
+	logger := mrlog.Ctx(ctx).With().Str("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaUpdate, rvt.String())).Logger()
 
 	for rvt.Kind() == reflect.Pointer {
 		rvt = rvt.Elem()
@@ -36,7 +39,7 @@ func NewEntityMetaUpdate(entity any) (*EntityMetaUpdate, error) {
 		return nil, mrcore.FactoryErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
 	}
 
-	debugInfo := fmt.Sprintf("[%s] %s:", ModelNameEntityMetaUpdate, rvt.String())
+	debugInfo := ""
 
 	meta := EntityMetaUpdate{
 		structName: rvt.String(),
@@ -55,7 +58,7 @@ func NewEntityMetaUpdate(entity any) (*EntityMetaUpdate, error) {
 		dbName, err := parseTagUpdate(rvt, update, dbName)
 
 		if err != nil {
-			mrcore.LogWarn(err)
+			logger.Warn().Err(err).Msg("parse tag update warning")
 			continue
 		}
 
@@ -64,10 +67,12 @@ func NewEntityMetaUpdate(entity any) (*EntityMetaUpdate, error) {
 			dbName: dbName,
 		}
 
-		debugInfo = fmt.Sprintf("%s\n- %s(%d) -> %s;", debugInfo, rvt.Field(i).Name, i, dbName)
+		if logger.Level() <= mrlog.DebugLevel {
+			debugInfo = fmt.Sprintf("%s\n- %s(%d) -> %s;", debugInfo, rvt.Field(i).Name, i, dbName)
+		}
 	}
 
-	mrcore.LogDebug(debugInfo)
+	logger.Debug().Msg(debugInfo)
 
 	return &meta, nil
 }

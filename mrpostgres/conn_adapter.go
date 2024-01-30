@@ -41,32 +41,41 @@ func New() *ConnAdapter {
 	return &ConnAdapter{}
 }
 
-func (c *ConnAdapter) Connect(opt Options) error {
+func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	if c.pool != nil {
 		return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
 	}
 
-	cnf, err := pgxpool.ParseConfig(getConnString(&opt))
+	cfg, err := pgxpool.ParseConfig(
+		fmt.Sprintf(
+			"postgres://%s:%s@%s:%s/%s",
+			opts.Username,
+			opts.Password,
+			opts.Host,
+			opts.Port,
+			opts.Database,
+		),
+	)
 
 	if err != nil {
 		return err
 	}
 
-	cnf.MaxConns = int32(opt.MaxPoolSize)
-	cnf.ConnConfig.ConnectTimeout = opt.ConnTimeout
-	cnf.MaxConnLifetime = opt.ConnTimeout
+	cfg.MaxConns = int32(opts.MaxPoolSize)
+	cfg.ConnConfig.ConnectTimeout = opts.ConnTimeout
+	cfg.MaxConnLifetime = opts.ConnTimeout
 
-	if opt.AfterConnectFunc != nil {
-		pgxFunc, ok := opt.AfterConnectFunc().(pgxConnectFunc)
+	if opts.AfterConnectFunc != nil {
+		pgxFunc, ok := opts.AfterConnectFunc().(pgxConnectFunc)
 
 		if !ok {
-			return mrcore.FactoryErrInternalTypeAssertion.New("pgxConnectFunc", opt.AfterConnectFunc())
+			return mrcore.FactoryErrInternalTypeAssertion.New("pgxConnectFunc", opts.AfterConnectFunc())
 		}
 
-		cnf.AfterConnect = pgxFunc
+		cfg.AfterConnect = pgxFunc
 	}
 
-	pool, err := pgxpool.NewWithConfig(context.Background(), cnf)
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 
 	if err != nil {
 		return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
@@ -98,13 +107,4 @@ func (c *ConnAdapter) Close() error {
 	c.pool = nil
 
 	return nil
-}
-
-func getConnString(o *Options) string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
-		o.Username,
-		o.Password,
-		o.Host,
-		o.Port,
-		o.Database)
 }

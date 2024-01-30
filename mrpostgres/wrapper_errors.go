@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrctx"
+	"github.com/mondegor/go-webcore/mrlog"
 )
 
 const (
@@ -30,8 +30,10 @@ func wrapError(err error, skip int) error {
 	return mrcore.FactoryErrInternal.Caller(skip + 1).Wrap(err)
 }
 
-func debugQuery(ctx context.Context, sql string) {
-	mrctx.Logger(ctx).Debug(
-		connectionName + " SQL: " + strings.Join(strings.Fields(sql), " "),
-	)
+func traceQuery(ctx context.Context, sql string) {
+	mrlog.Ctx(ctx).
+		Trace().
+		Str("source", connectionName).
+		Str("SQL", strings.Join(strings.Fields(sql), " ")).
+		Send()
 }

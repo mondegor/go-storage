@@ -5,7 +5,7 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrctx"
+	"github.com/mondegor/go-webcore/mrlog"
 )
 
 func (fp *FileProvider) wrapError(err error) error {
@@ -23,12 +23,12 @@ func (fp *FileProvider) wrapError(err error) error {
 	return mrcore.FactoryErrInternal.Caller(1).Wrap(err)
 }
 
-func (fp *FileProvider) debugCmd(ctx context.Context, command, filePath string) {
-	mrctx.Logger(ctx).Debug(
-		"%s: cmd=%s, bucket=%s, file=%s",
-		providerName,
-		command,
-		fp.bucketName,
-		filePath,
-	)
+func (fp *FileProvider) traceCmd(ctx context.Context, command, filePath string) {
+	mrlog.Ctx(ctx).
+		Trace().
+		Str("source", providerName).
+		Str("cmd", command).
+		Str("bucket", fp.bucketName).
+		Str("file", filePath).
+		Send()
 }

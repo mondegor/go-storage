@@ -30,7 +30,7 @@ func NewFileProvider(fs *FileSystem, rootDir string) *FileProvider {
 }
 
 func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileInfo, error) {
-	fp.debugCmd(ctx, "Info", filePath)
+	fp.traceCmd(ctx, "Info", filePath)
 
 	if err := fp.checkFilePath(filePath); err != nil {
 		return mrtype.FileInfo{}, err
@@ -46,7 +46,7 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileI
 }
 
 func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.File, error) {
-	fp.debugCmd(ctx, "Download", filePath)
+	fp.traceCmd(ctx, "Download", filePath)
 
 	fd, err := fp.openFile(ctx, filePath)
 
@@ -67,7 +67,7 @@ func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.F
 }
 
 func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.ReadCloser, error) {
-	fp.debugCmd(ctx, "DownloadContent", filePath)
+	fp.traceCmd(ctx, "DownloadContent", filePath)
 
 	fd, err := fp.openFile(ctx, filePath)
 
@@ -79,7 +79,7 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 }
 
 func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
-	fp.debugCmd(ctx, "Upload", file.Path)
+	fp.traceCmd(ctx, "Upload", file.Path)
 
 	if err := fp.checkFilePath(file.Path); err != nil {
 		return err
@@ -107,7 +107,7 @@ func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 }
 
 func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
-	fp.debugCmd(ctx, "Remove", filePath)
+	fp.traceCmd(ctx, "Remove", filePath)
 
 	if err := fp.checkFilePath(filePath); err != nil {
 		return err

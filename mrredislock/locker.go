@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/bsm/redislock"
-	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrctx"
+	"github.com/mondegor/go-webcore/mrlock"
+	"github.com/mondegor/go-webcore/mrlog"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -31,17 +31,17 @@ func NewLockerAdapter(conn redis.UniversalClient) *lockerAdapter {
 	}
 }
 
-func (l *lockerAdapter) Lock(ctx context.Context, key string) (mrcore.UnlockFunc, error) {
+func (l *lockerAdapter) Lock(ctx context.Context, key string) (mrlock.UnlockFunc, error) {
 	return l.LockWithExpiry(ctx, key, 0)
 }
 
 // LockWithExpiry - if expiry = 0 then set expiry by default
-func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry time.Duration) (mrcore.UnlockFunc, error) {
+func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry time.Duration) (mrlock.UnlockFunc, error) {
 	if expiry == 0 {
-		expiry = mrcore.LockerDefaultExpiry
+		expiry = mrlock.DefaultExpiry
 	}
 
-	l.debugCmd(ctx, "Lock:"+expiry.String(), key)
+	l.traceCmd(ctx, "Lock:"+expiry.String(), key)
 
 	mutex, err := l.lock.Obtain(ctx, key, expiry, nil)
 
@@ -50,10 +50,10 @@ func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
 	}
 
 	return func() {
-		l.debugCmd(ctx, "Unlock", key)
+		l.traceCmd(ctx, "Unlock", key)
 
 		if err := mutex.Release(ctx); err != nil {
-			mrctx.Logger(ctx).Error(
+			mrlog.Ctx(ctx).Error().Msgf(
 				"%s: cmd=unlock, key=%s, err={%s}",
 				lockerName,
 				key,
