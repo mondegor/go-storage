@@ -53,7 +53,7 @@ func NewEntityMetaOrderBy(ctx context.Context, entity any) (*EntityMetaOrderBy, 
 		sortName, isDefault, sortDirection, err := parseTagSort(rvt, sort, meta.defaultSort.FieldName == "")
 
 		if err != nil {
-			logger.Warn().Err(err).Msg("parse tag sort warning")
+			logger.Warn().Caller(1).Err(err).Msg("parse tag sort warning")
 			continue
 		}
 

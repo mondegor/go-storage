@@ -53,12 +53,13 @@ func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
 		l.traceCmd(ctx, "Unlock", key)
 
 		if err := mutex.Release(ctx); err != nil {
-			mrlog.Ctx(ctx).Error().Msgf(
-				"%s: cmd=unlock, key=%s, err={%s}",
-				lockerName,
-				key,
-				err,
-			)
+			mrlog.Ctx(ctx).
+				Debug().
+				Str("source", lockerName).
+				Str("cmd", "unlock").
+				Str("key", key).
+				Err(err).
+				Send()
 		}
 	}, nil
 }

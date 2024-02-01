@@ -22,7 +22,7 @@ func NewSqlBuilderOrderBy(ctx context.Context, defaultField string, defaultDirec
 	if defaultField != "" {
 		defaultOrderBy = defaultField + " " + defaultDirection.String()
 	} else {
-		mrlog.Ctx(ctx).Warn().Msg("default sorting is not set")
+		mrlog.Ctx(ctx).Warn().Caller(1).Msg("default sorting is not set")
 	}
 
 	return &SqlBuilderOrderBy{

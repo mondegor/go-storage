@@ -58,7 +58,7 @@ func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, er
 		dbName, err := parseTagUpdate(rvt, update, dbName)
 
 		if err != nil {
-			logger.Warn().Err(err).Msg("parse tag update warning")
+			logger.Warn().Caller(1).Err(err).Msg("parse tag update warning")
 			continue
 		}
 
