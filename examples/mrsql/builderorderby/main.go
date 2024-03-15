@@ -8,6 +8,7 @@ import (
 	"github.com/mondegor/go-storage/mrsql"
 	"github.com/mondegor/go-webcore/mrenum"
 	"github.com/mondegor/go-webcore/mrlog"
+	"github.com/mondegor/go-webcore/mrtype"
 )
 
 func main() {
@@ -15,11 +16,16 @@ func main() {
 	ctx := mrlog.WithContext(context.Background(), logger)
 
 	logger.Info().Msg("SAMPLE1:")
-
-	o := mrpostgres.NewSqlBuilderOrderBy(ctx, "id", mrenum.SortDirectionASC)
+	o := mrpostgres.NewSqlBuilderOrderBy(
+		ctx,
+		mrtype.SortParams{
+			FieldName: "id",
+			Direction: mrenum.SortDirectionDESC,
+		},
+	)
 
 	orderBy := o.Join(
-		o.Field("caption", mrenum.SortDirectionDESC),
+		o.Field("caption", mrenum.SortDirectionASC),
 		o.Field("createdAt", mrenum.SortDirectionDESC),
 	)
 
@@ -27,17 +33,20 @@ func main() {
 	logger.Info().Msgf("%v", cc)
 
 	logger.Info().Msg("SAMPLE2:")
-	o = mrpostgres.NewSqlBuilderOrderBy(ctx, "id", mrenum.SortDirectionDESC)
-
-	orderBy = o.WrapWithDefault(
-		o.Field("", mrenum.SortDirectionASC),
+	o = mrpostgres.NewSqlBuilderOrderBy(
+		ctx,
+		mrtype.SortParams{
+			FieldName: "id",
+			Direction: mrenum.SortDirectionDESC,
+		},
 	)
+
+	orderBy = o.DefaultField()
 
 	cc, _ = orderBy(0)
 	logger.Info().Msgf("%v", cc)
 
 	logger.Info().Msg("SAMPLE3:")
-
 	type OrderedStruct struct {
 		ID        string    `sort:"id"`
 		Caption   string    `sort:"caption"`
@@ -50,11 +59,9 @@ func main() {
 	logger.Info().Msgf("caption is registered? %v", meta.CheckField("caption"))
 	logger.Info().Msgf("NotSorted is registered? %v", meta.CheckField("NotSorted"))
 
-	o = mrpostgres.NewSqlBuilderOrderByWithDefaultSort(ctx, meta.DefaultSort())
+	o = mrpostgres.NewSqlBuilderOrderBy(ctx, meta.DefaultSort())
 
-	orderBy = o.WrapWithDefault(
-		o.Field("", mrenum.SortDirectionASC),
-	)
+	orderBy = o.DefaultField()
 
 	cc, _ = orderBy(0)
 	logger.Info().Msgf("%v", cc)

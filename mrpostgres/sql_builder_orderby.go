@@ -16,11 +16,11 @@ type (
 	}
 )
 
-func NewSqlBuilderOrderBy(ctx context.Context, defaultField string, defaultDirection mrenum.SortDirection) *SqlBuilderOrderBy {
+func NewSqlBuilderOrderBy(ctx context.Context, defaultSort mrtype.SortParams) *SqlBuilderOrderBy {
 	var defaultOrderBy string
 
-	if defaultField != "" {
-		defaultOrderBy = defaultField + " " + defaultDirection.String()
+	if defaultSort.FieldName != "" {
+		defaultOrderBy = defaultSort.FieldName + " " + defaultSort.Direction.String()
 	} else {
 		mrlog.Ctx(ctx).Warn().Caller(1).Msg("default sorting is not set")
 	}
@@ -30,19 +30,7 @@ func NewSqlBuilderOrderBy(ctx context.Context, defaultField string, defaultDirec
 	}
 }
 
-func NewSqlBuilderOrderByWithDefaultSort(ctx context.Context, defaultSort mrtype.SortParams) *SqlBuilderOrderBy {
-	return NewSqlBuilderOrderBy(
-		ctx,
-		defaultSort.FieldName,
-		defaultSort.Direction,
-	)
-}
-
-func (b *SqlBuilderOrderBy) WrapWithDefault(field mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPartFunc {
-	if field != nil {
-		return field
-	}
-
+func (b *SqlBuilderOrderBy) DefaultField() mrstorage.SqlBuilderPartFunc {
 	if b.defaultOrderBy == "" {
 		return nil
 	}

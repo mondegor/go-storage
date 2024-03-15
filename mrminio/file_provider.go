@@ -75,7 +75,13 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 
 	object, err := fp.openObject(ctx, filePath)
 
+	// :TODO: ошибки нет даже если filePath не найден
 	if err != nil {
+		return nil, fp.wrapError(err)
+	}
+
+	if _, err = object.Stat(); err != nil {
+		object.Close()
 		return nil, fp.wrapError(err)
 	}
 
@@ -137,7 +143,7 @@ func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) mrtype.FileInfo {
 		Name:         path.Base(info.Key),
 		Path:         info.Key,
 		Size:         info.Size,
-		ModifiedAt:   mrtype.TimePointer(info.LastModified),
+		UpdatedAt:    mrtype.TimePointer(info.LastModified),
 	}
 }
 

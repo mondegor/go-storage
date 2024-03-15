@@ -3,10 +3,10 @@ package mrentity
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"path"
 	"time"
 
 	"github.com/mondegor/go-webcore/mrcore"
+	"github.com/mondegor/go-webcore/mrlib"
 	"github.com/mondegor/go-webcore/mrtype"
 )
 
@@ -55,13 +55,13 @@ func (n FileMeta) Value() (driver.Value, error) {
 
 func FileMetaToInfo(meta FileMeta) mrtype.FileInfo {
 	return mrtype.FileInfo{
-		ContentType:  meta.ContentType,
-		OriginalName: meta.OriginalName,
-		Name:         path.Base(meta.Path),
-		Path:         meta.Path,
-		Size:         meta.Size,
-		CreatedAt:    mrtype.TimePointerCopy(meta.CreatedAt),
-		ModifiedAt:   mrtype.TimePointerCopy(meta.UpdatedAt),
+		ContentType: mrlib.MimeType(meta.ContentType, meta.Path),
+		// OriginalName: meta.OriginalName,
+		// Name:         path.Base(meta.Path),
+		Path:      meta.Path,
+		Size:      meta.Size,
+		CreatedAt: mrtype.TimePointerCopy(meta.CreatedAt),
+		UpdatedAt: mrtype.TimePointerCopy(meta.UpdatedAt),
 	}
 }
 

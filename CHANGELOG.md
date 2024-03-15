@@ -1,6 +1,19 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-03-14
+### Changed
+- Переименовано `ModifiedAt` -> `UpdatedAt`;
+- Из `SqlBuilderSelect` выделен интерфейс `SqlBuilderCondition`;
+- Метод `SqlBuilderOrderBy.WrapWithDefault()` преобразован в `SqlBuilderOrderBy.DefaultField()`;
+- Доработан пример формирования порядка следования;
+- Перенесена и доработана следующая логика:
+  - `mrsql.BuilderSelect` -> `mrpostgres.SqlBuilderSelect`;
+  - `mrsql.BuilderUpdate` -> `mrpostgres.SqlBuilderUpdate`;
+
+### Fixed
+- Добавлена дополнительная проверка в `mrminio.DownloadFile` на случай если файл не существует;
+
 ## 2024-02-01
 ### Fixed
 - добавлен вызов `Caller(1)` при записи ошибок в лог в некоторых методах;

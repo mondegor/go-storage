@@ -34,7 +34,6 @@ type (
 	}
 
 	SqlBuilderOrderBy interface {
-		WrapWithDefault(field SqlBuilderPartFunc) SqlBuilderPartFunc
 		Join(fields ...SqlBuilderPartFunc) SqlBuilderPartFunc
 		Field(name string, direction mrenum.SortDirection) SqlBuilderPartFunc
 	}
@@ -43,21 +42,26 @@ type (
 		OffsetLimit(index, size uint64) SqlBuilderPartFunc
 	}
 
-	SqlBuilderSelect interface {
+	SqlBuilderCondition interface {
 		Where(f func(w SqlBuilderWhere) SqlBuilderPartFunc) SqlBuilderPart
-		OrderBy(f func(o SqlBuilderOrderBy) SqlBuilderPartFunc) SqlBuilderPart
-		Pager(f func(p SqlBuilderPager) SqlBuilderPartFunc) SqlBuilderPart
 	}
 
-	SqlSelectParams struct {
-		Where   SqlBuilderPart
-		OrderBy SqlBuilderPart
-		Pager   SqlBuilderPart
+	SqlBuilderSelect interface {
+		SqlBuilderCondition
+		OrderBy(f func(o SqlBuilderOrderBy) SqlBuilderPartFunc) SqlBuilderPart
+		Pager(f func(p SqlBuilderPager) SqlBuilderPartFunc) SqlBuilderPart
 	}
 
 	SqlBuilderUpdate interface {
 		Set(f func(s SqlBuilderSet) SqlBuilderPartFunc) SqlBuilderPart
 		SetFromEntity(entity any) (SqlBuilderPart, error)
 		SetFromEntityWith(entity any, extFields func(s SqlBuilderSet) SqlBuilderPartFunc) (SqlBuilderPart, error)
+		SqlBuilderCondition
+	}
+
+	SqlSelectParams struct {
+		Where   SqlBuilderPart
+		OrderBy SqlBuilderPart
+		Pager   SqlBuilderPart
 	}
 )
