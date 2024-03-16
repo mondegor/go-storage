@@ -133,13 +133,18 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 		}
 
 		switch info.kind {
-		case reflect.String:
-			if field.String() == "" {
+		case reflect.String, reflect.Slice:
+			if field.Len() == 0 {
 				continue
 			}
 
-		case reflect.Int32, reflect.Int64:
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			if field.Int() == 0 {
+				continue
+			}
+
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			if field.Uint() == 0 {
 				continue
 			}
 

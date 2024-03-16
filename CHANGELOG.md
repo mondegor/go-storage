@@ -1,6 +1,11 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-03-16
+### Changed
+- Доработан `mrsql.FieldsForUpdate`, добавлены новые поддерживаемые типы:
+  - Slice, Int, Int8, Int16, Uint, Uint8, Uint16, Uint32, Uint64;
+
 ## 2024-03-14
 ### Changed
 - Переименовано `ModifiedAt` -> `UpdatedAt`;

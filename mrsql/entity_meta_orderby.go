@@ -132,7 +132,7 @@ func parseTagSort(rvt reflect.Type, value string, canBeDefault bool) (string, bo
 	}
 
 	if !canBeDefault && isDefault {
-		return errFunc("default field already exist")
+		return errFunc("default field already exists")
 	}
 
 	sortDirection := mrenum.SortDirectionASC
