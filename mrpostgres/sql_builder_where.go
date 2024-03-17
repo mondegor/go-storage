@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/mondegor/go-storage/mrsql"
 	"github.com/mondegor/go-storage/mrstorage"
 	"github.com/mondegor/go-webcore/mrtype"
@@ -83,6 +84,14 @@ func (b *SqlBuilderWhere) FilterEqualString(name, value string) mrstorage.SqlBui
 
 func (b *SqlBuilderWhere) FilterEqualInt64(name string, value, empty int64) mrstorage.SqlBuilderPartFunc {
 	if value == empty {
+		return nil
+	}
+
+	return b.compare(name, value, "=")
+}
+
+func (b *SqlBuilderWhere) FilterEqualUUID(name string, value uuid.UUID) mrstorage.SqlBuilderPartFunc {
+	if value == uuid.Nil {
 		return nil
 	}
 

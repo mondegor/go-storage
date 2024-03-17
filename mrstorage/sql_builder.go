@@ -1,6 +1,7 @@
 package mrstorage
 
 import (
+	"github.com/google/uuid"
 	"github.com/mondegor/go-webcore/mrenum"
 	"github.com/mondegor/go-webcore/mrtype"
 )
@@ -15,16 +16,20 @@ type (
 	SqlBuilderWhere interface {
 		JoinAnd(conds ...SqlBuilderPartFunc) SqlBuilderPartFunc
 		JoinOr(conds ...SqlBuilderPartFunc) SqlBuilderPartFunc
+
 		Expr(expr string) SqlBuilderPartFunc
 		ExprWithValue(expr string, value any) SqlBuilderPartFunc
+
 		Equal(name string, value any) SqlBuilderPartFunc
 		NotEqual(name string, value any) SqlBuilderPartFunc
 		Less(name string, value any) SqlBuilderPartFunc
 		LessOrEqual(name string, value any) SqlBuilderPartFunc
 		Greater(name string, value any) SqlBuilderPartFunc
 		GreaterOrEqual(name string, value any) SqlBuilderPartFunc
+
 		FilterEqualString(name, value string) SqlBuilderPartFunc
 		FilterEqualInt64(name string, value, empty int64) SqlBuilderPartFunc
+		FilterEqualUUID(name string, value uuid.UUID) SqlBuilderPartFunc
 		FilterEqualBool(name string, value *bool) SqlBuilderPartFunc
 		FilterLike(name, value string) SqlBuilderPartFunc
 		FilterLikeFields(names []string, value string) SqlBuilderPartFunc

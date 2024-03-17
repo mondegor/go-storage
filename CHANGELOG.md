@@ -1,6 +1,11 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-03-17
+### Added
+- Добавлен новый метод `FilterEqualUUID` для интерфейса `mrstorage.SqlBuilderWhere`,
+  а также его реализация для `postgres`;
+
 ## 2024-03-16
 ### Changed
 - Доработан `mrsql.FieldsForUpdate`, добавлены новые поддерживаемые типы:
