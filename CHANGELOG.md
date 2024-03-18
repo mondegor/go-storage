@@ -1,6 +1,14 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-03-18
+### Changed
+- Внедрена новая версия библиотеки `go-sysmess`, в связи с этим:
+    - конструктор ошибки с типом `ErrorKindInternal` заменён на `NewFactoryWithCaller()`;
+    - заменены `.Caller() -> .WithCaller()`;
+- В некоторых методах переименованы `skip` на `skipFrame`;
+- Добавлен пример с UUID в `SqlBuilderWhere`;
+
 ## 2024-03-17
 ### Added
 - Добавлен новый метод `FilterEqualUUID` для интерфейса `mrstorage.SqlBuilderWhere`,

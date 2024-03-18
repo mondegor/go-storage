@@ -23,13 +23,13 @@ func (t *Transaction) Rollback(ctx context.Context) error {
 }
 
 func (t *Transaction) Query(ctx context.Context, sql string, args ...any) (mrstorage.DBQueryRows, error) {
-	return t.query(t.tx, skipThisMethod, ctx, sql, args...)
+	return t.query(t.tx, skipThisMethodFrame, ctx, sql, args...)
 }
 
 func (t *Transaction) QueryRow(ctx context.Context, sql string, args ...any) mrstorage.DBQueryRow {
-	return t.queryRow(t.tx, skipThisMethod, ctx, sql, args...)
+	return t.queryRow(t.tx, skipThisMethodFrame, ctx, sql, args...)
 }
 
 func (t *Transaction) Exec(ctx context.Context, sql string, args ...any) error {
-	return t.exec(t.tx, skipThisMethod, ctx, sql, args...)
+	return t.exec(t.tx, skipThisMethodFrame, ctx, sql, args...)
 }

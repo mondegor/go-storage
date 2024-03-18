@@ -5,6 +5,6 @@ import (
 )
 
 var (
-	FactoryErrInvalidPath = mrerr.NewFactory(
+	FactoryErrInvalidPath = mrerr.NewFactoryWithCaller(
 		"errMrFileStorageInvalidPath", mrerr.ErrorKindInternal, "invalid path '{{ .path }}'")
 )

@@ -17,7 +17,7 @@ func (qr *queryRow) Scan(dest ...any) error {
 	}
 
 	if err := qr.row.Scan(dest...); err != nil {
-		return wrapError(err, skipThisMethod)
+		return wrapError(err, skipThisMethodFrame)
 	}
 
 	return nil

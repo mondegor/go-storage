@@ -8,7 +8,7 @@ import (
 )
 
 func (l *lockerAdapter) wrapError(err error) error {
-	return mrcore.FactoryErrStorageQueryFailed.Caller(1).Wrap(err)
+	return mrcore.FactoryErrStorageQueryFailed.WithCaller(1).Wrap(err)
 }
 
 func (l *lockerAdapter) traceCmd(ctx context.Context, command, key string) {

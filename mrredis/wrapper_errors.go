@@ -10,10 +10,10 @@ import (
 
 func (c *ConnAdapter) wrapError(err error) error {
 	if err == redis.Nil {
-		return mrcore.FactoryErrStorageNoRowFound.Caller(1).Wrap(err)
+		return mrcore.FactoryErrStorageNoRowFound.Wrap(err)
 	}
 
-	return mrcore.FactoryErrStorageQueryFailed.Caller(1).Wrap(err)
+	return mrcore.FactoryErrStorageQueryFailed.WithCaller(1).Wrap(err)
 }
 
 func (c *ConnAdapter) traceCmd(ctx context.Context, command, key string, data any) {

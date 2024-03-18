@@ -14,13 +14,13 @@ func (fp *FileProvider) wrapError(err error) error {
 	if ok {
 		// The specified key does not exist.
 		if minioErr.Code == "NoSuchKey" {
-			return mrcore.FactoryErrStorageNoRowFound.Caller(1).Wrap(err)
+			return mrcore.FactoryErrStorageNoRowFound.Wrap(err)
 		}
 
-		return mrcore.FactoryErrStorageQueryFailed.Caller(1).Wrap(err)
+		return mrcore.FactoryErrStorageQueryFailed.WithCaller(1).Wrap(err)
 	}
 
-	return mrcore.FactoryErrInternal.Caller(1).Wrap(err)
+	return mrcore.FactoryErrInternal.WithCaller(1).Wrap(err)
 }
 
 func (fp *FileProvider) traceCmd(ctx context.Context, command, filePath string) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/google/uuid"
 	"github.com/mondegor/go-storage/mrpostgres"
 	"github.com/mondegor/go-webcore/mrlog"
 	"github.com/mondegor/go-webcore/mrtype"
@@ -38,6 +39,7 @@ func main() {
 				bw.NotEqual("not_equal_field3-2-2", "3-2-2"),
 				bw.FilterLike("like_field3-2-3", "3-2-3"),
 			),
+			bw.FilterEqualUUID("like_field3-2-4", uuid.New()),
 		),
 	)
 
