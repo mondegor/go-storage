@@ -69,10 +69,11 @@ func NewEntityMetaOrderBy(ctx context.Context, entity any) (*EntityMetaOrderBy, 
 
 		if logger.Level() <= mrlog.DebugLevel {
 			debugInfo = fmt.Sprintf(
-				"%s\n- %s(%d) -> %s %s%s;",
+				"%s\n- %s(%d, %s) -> %s %s%s;",
 				debugInfo,
 				rvt.Field(i).Name,
 				i,
+				rvt.Field(i).Type,
 				sortName,
 				sortDirection.String(),
 				extMessage,

@@ -21,8 +21,9 @@ type (
 	}
 
 	fieldInfo struct {
-		kind   reflect.Kind
-		dbName string
+		kind      reflect.Kind
+		isPointer bool
+		dbName    string
 	}
 )
 
@@ -47,9 +48,9 @@ func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, er
 	}
 
 	for i, cnt := 0, rvt.NumField(); i < cnt; i++ {
-		fieldType := rvt.Field(i)
-		update := fieldType.Tag.Get(fieldTagFieldUpdate)
-		dbName := fieldType.Tag.Get(fieldTagDBFieldName)
+		field := rvt.Field(i)
+		update := field.Tag.Get(fieldTagFieldUpdate)
+		dbName := field.Tag.Get(fieldTagDBFieldName)
 
 		if update == "" {
 			continue
@@ -58,17 +59,31 @@ func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, er
 		dbName, err := parseTagUpdate(rvt, update, dbName)
 
 		if err != nil {
-			logger.Warn().Caller(1).Err(err).Msg("parse tag update warning")
+			logger.Warn().Caller(1).Err(err).Msg("parse tag update warning, skipped")
+			continue
+		}
+
+		fieldType := field.Type
+		isPointer := false
+
+		if fieldType.Kind() == reflect.Pointer {
+			fieldType = fieldType.Elem()
+			isPointer = true
+		}
+
+		if !checkEntityMetaUpdateFieldType(fieldType) {
+			logger.Warn().Caller(1).Msgf("field %s of type %s is not supported, skipped", rvt.Field(i).Name, fieldType.Kind())
 			continue
 		}
 
 		meta.fieldsInfo[i] = fieldInfo{
-			kind:   fieldType.Type.Kind(),
-			dbName: dbName,
+			kind:      fieldType.Kind(),
+			isPointer: isPointer,
+			dbName:    dbName,
 		}
 
 		if logger.Level() <= mrlog.DebugLevel {
-			debugInfo = fmt.Sprintf("%s\n- %s(%d) -> %s;", debugInfo, rvt.Field(i).Name, i, dbName)
+			debugInfo = fmt.Sprintf("%s\n- %s(%d, %s) -> %s;", debugInfo, rvt.Field(i).Name, i, rvt.Field(i).Type, dbName)
 		}
 	}
 
@@ -129,7 +144,15 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 		field := rv.Field(i)
 
 		if !field.IsValid() {
-			continue
+			return nil, nil, mrcore.FactoryErrInternal.WithAttr("reflect.field", field).New()
+		}
+
+		if info.isPointer {
+			if field.IsNil() {
+				continue
+			}
+
+			field = rv.Field(i).Elem()
 		}
 
 		switch info.kind {
@@ -150,14 +173,20 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 
 		case reflect.Struct:
 			v := field.Interface()
-			value, ok := v.(time.Time)
 
-			if ok && value.IsZero() {
-				continue
+			if value, ok := v.(time.Time); ok {
+				if value.IsZero() {
+					continue
+				}
+			} else {
+				return nil, nil, mrcore.FactoryErrInternal.WithAttr("reflect.field.struct", field).New()
 			}
 
+		case reflect.Bool:
+			// ok
+
 		default:
-			continue
+			return nil, nil, mrcore.FactoryErrInternal.WithAttr("reflect.field.undefined", field).New()
 		}
 
 		fields = append(fields, info.dbName)
@@ -165,4 +194,22 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 	}
 
 	return fields, args, nil
+}
+
+func checkEntityMetaUpdateFieldType(fieldType reflect.Type) bool {
+	switch fieldType.Kind() {
+	case reflect.String,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Bool:
+		return true
+
+	case reflect.Slice:
+		return fieldType.Elem().Name() == "uint8" // byte
+
+	case reflect.Struct:
+		return fieldType.String() == "time.Time"
+	}
+
+	return false
 }

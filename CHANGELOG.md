@@ -1,6 +1,13 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-03-19
+### Changed
+- Доработаны функции `NewEntityMetaUpdate` и `FieldsForUpdate`, теперь
+  поддерживаются ссылочные типы, тип `reflect.Bool`, а также введены
+  ограничения по используемым типам.
+- Поправлено форматирование документации;
+
 ## 2024-03-18
 ### Changed
 - Внедрена новая версия библиотеки `go-sysmess`, в связи с этим:
@@ -17,17 +24,17 @@
 ## 2024-03-16
 ### Changed
 - Доработан `mrsql.FieldsForUpdate`, добавлены новые поддерживаемые типы:
-  - Slice, Int, Int8, Int16, Uint, Uint8, Uint16, Uint32, Uint64;
+    - Slice, Int, Int8, Int16, Uint, Uint8, Uint16, Uint32, Uint64;
 
 ## 2024-03-14
 ### Changed
-- Переименовано `ModifiedAt` -> `UpdatedAt`;
+- Переименовано `ModifiedAt -> UpdatedAt`;
 - Из `SqlBuilderSelect` выделен интерфейс `SqlBuilderCondition`;
 - Метод `SqlBuilderOrderBy.WrapWithDefault()` преобразован в `SqlBuilderOrderBy.DefaultField()`;
 - Доработан пример формирования порядка следования;
 - Перенесена и доработана следующая логика:
-  - `mrsql.BuilderSelect` -> `mrpostgres.SqlBuilderSelect`;
-  - `mrsql.BuilderUpdate` -> `mrpostgres.SqlBuilderUpdate`;
+    - `mrsql.BuilderSelect -> mrpostgres.SqlBuilderSelect`;
+    - `mrsql.BuilderUpdate -> mrpostgres.SqlBuilderUpdate`;
 
 ### Fixed
 - Добавлена дополнительная проверка в `mrminio.DownloadFile` на случай если файл не существует;
@@ -49,8 +56,8 @@
 
 ### Changed
 - Переименовано:
-  - ConvertFileMetaToInfo -> FileMetaToInfoPointer
-  - ConvertImageMetaToInfo -> ImageMetaToInfoPointer;
+    - `ConvertFileMetaToInfo -> FileMetaToInfoPointer`;
+    - `ConvertImageMetaToInfo -> ImageMetaToInfoPointer`;
 
 ### Removed
 - Удалён адаптер `mrredsync` т.к. один из его компонентов использует `MPL-2.0 license`;
@@ -167,7 +174,7 @@
 
 ### Changed
 - Обновлены зависимости библиотеки;
-- Переименована сущность `mrstorage.File` -> `mrentity.File`;
+- Переименована сущность `mrstorage.File -> mrentity.File`;
 - Переработана `FilledFieldsToUpdate` и перенос кода в `NewEntityMetaUpdate`;
 
 ### Removed
@@ -206,7 +213,7 @@
 ## 2023-09-13
 ### Changed
 - Обновлены зависимости библиотеки;
-- Переименованы `Connection` -> `ConnAdapter`;
+- Переименованы `Connection -> ConnAdapter`;
 - Добавлен интерфейс `mrstorage.Sqlizer`, для того чтобы снять зависимость от `squirrel`;
 
 ## 2023-09-12
