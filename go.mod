@@ -8,7 +8,7 @@ require (
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/minio/minio-go/v7 v7.0.69
 	github.com/mondegor/go-sysmess v0.8.2
-	github.com/mondegor/go-webcore v0.15.2
+	github.com/mondegor/go-webcore v0.15.3
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/redis/go-redis/v9 v9.5.1
 )

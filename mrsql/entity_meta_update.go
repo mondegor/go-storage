@@ -137,8 +137,8 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 		return nil, nil, mrcore.FactoryErrInternal.WithAttr("reflect.entity", rv).New()
 	}
 
-	var fields []string
-	var args []any
+	fields := make([]string, 0, len(m.fieldsInfo))
+	args := make([]any, 0, cap(fields))
 
 	for i, info := range m.fieldsInfo {
 		field := rv.Field(i)
@@ -156,18 +156,15 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 		}
 
 		switch info.kind {
-		case reflect.String, reflect.Slice:
-			if field.Len() == 0 {
+		case reflect.String, reflect.Slice: // empty slice === nil
+			if !info.isPointer && field.Len() == 0 {
 				continue
 			}
 
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			if field.Int() == 0 {
-				continue
-			}
-
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			if field.Uint() == 0 {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+			reflect.Bool, reflect.Array:
+			if !info.isPointer && field.IsZero() {
 				continue
 			}
 
@@ -175,15 +172,12 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 			v := field.Interface()
 
 			if value, ok := v.(time.Time); ok {
-				if value.IsZero() {
+				if !info.isPointer && value.IsZero() {
 					continue
 				}
 			} else {
 				return nil, nil, mrcore.FactoryErrInternal.WithAttr("reflect.field.struct", field).New()
 			}
-
-		case reflect.Bool:
-			// ok
 
 		default:
 			return nil, nil, mrcore.FactoryErrInternal.WithAttr("reflect.field.undefined", field).New()
@@ -203,6 +197,9 @@ func checkEntityMetaUpdateFieldType(fieldType reflect.Type) bool {
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 		reflect.Bool:
 		return true
+
+	case reflect.Array:
+		return fieldType.String() == "uuid.UUID"
 
 	case reflect.Slice:
 		return fieldType.Elem().Name() == "uint8" // byte

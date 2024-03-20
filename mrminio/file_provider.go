@@ -143,7 +143,7 @@ func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) mrtype.FileInfo {
 		Name:         path.Base(info.Key),
 		Path:         info.Key,
 		Size:         info.Size,
-		UpdatedAt:    mrtype.TimePointer(info.LastModified),
+		UpdatedAt:    mrtype.TimeToPointer(info.LastModified),
 	}
 }
 
