@@ -9,11 +9,13 @@ import (
 )
 
 func (c *ConnAdapter) wrapError(err error) error {
+	const skipFrame = 1
+
 	if err == redis.Nil {
-		return mrcore.FactoryErrStorageNoRowFound.Wrap(err)
+		return mrcore.FactoryErrStorageNoRowFound.WithSkipFrame(skipFrame).Wrap(err)
 	}
 
-	return mrcore.FactoryErrStorageQueryFailed.WithCaller(1).Wrap(err)
+	return mrcore.FactoryErrStorageQueryFailed.WithSkipFrame(skipFrame).Wrap(err)
 }
 
 func (c *ConnAdapter) traceCmd(ctx context.Context, command, key string, data any) {

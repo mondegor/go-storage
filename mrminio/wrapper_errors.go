@@ -9,18 +9,19 @@ import (
 )
 
 func (fp *FileProvider) wrapError(err error) error {
-	minioErr, ok := err.(minio.ErrorResponse)
+	const skipFrame = 1
 
+	minioErr, ok := err.(minio.ErrorResponse)
 	if ok {
 		// The specified key does not exist.
 		if minioErr.Code == "NoSuchKey" {
-			return mrcore.FactoryErrStorageNoRowFound.Wrap(err)
+			return mrcore.FactoryErrStorageNoRowFound.WithSkipFrame(skipFrame).Wrap(err)
 		}
 
-		return mrcore.FactoryErrStorageQueryFailed.WithCaller(1).Wrap(err)
+		return mrcore.FactoryErrStorageQueryFailed.WithSkipFrame(skipFrame).Wrap(err)
 	}
 
-	return mrcore.FactoryErrInternal.WithCaller(1).Wrap(err)
+	return mrcore.FactoryErrInternal.WithSkipFrame(skipFrame).Wrap(err)
 }
 
 func (fp *FileProvider) traceCmd(ctx context.Context, command, filePath string) {

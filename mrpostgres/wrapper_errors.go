@@ -16,18 +16,19 @@ const (
 )
 
 func wrapError(err error, skipFrame int) error {
-	_, ok := err.(*pgconn.PgError)
+	skipFrame += skipThisMethodFrame
 
+	_, ok := err.(*pgconn.PgError)
 	if ok {
 		// Severity: ERROR; Code: 42601; Message syntax error at or near "item_status"
-		return mrcore.FactoryErrStorageQueryFailed.WithCaller(skipFrame + 1).Wrap(err)
+		return mrcore.FactoryErrStorageQueryFailed.WithSkipFrame(skipFrame).Wrap(err)
 	}
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return mrcore.FactoryErrStorageNoRowFound.Wrap(err)
+		return mrcore.FactoryErrStorageNoRowFound.WithSkipFrame(skipFrame).Wrap(err)
 	}
 
-	return mrcore.FactoryErrInternal.WithCaller(skipFrame + 1).Wrap(err)
+	return mrcore.FactoryErrInternal.WithSkipFrame(skipFrame).Wrap(err)
 }
 
 func traceQuery(ctx context.Context, sql string) {

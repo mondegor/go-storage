@@ -52,7 +52,7 @@ func (e *dbExecHelper) exec(conn pgxQuery, skipFrame int, ctx context.Context, s
 
 	if commandTag.RowsAffected() < 1 {
 		if commandTag.Insert() || commandTag.Update() || commandTag.Delete() {
-			return mrcore.FactoryErrStorageRowsNotAffected.New()
+			return mrcore.FactoryErrStorageRowsNotAffected.WithSkipFrame(skipFrame + skipThisMethodFrame).New()
 		}
 	}
 
