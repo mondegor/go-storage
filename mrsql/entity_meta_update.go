@@ -57,7 +57,6 @@ func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, er
 		}
 
 		dbName, err := parseTagUpdate(rvt, update, dbName)
-
 		if err != nil {
 			logger.Warn().Caller(1).Err(err).Msg("parse tag update warning, skipped")
 			continue
@@ -92,7 +91,7 @@ func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, er
 	return &meta, nil
 }
 
-func parseTagUpdate(rvt reflect.Type, value string, dbName string) (string, error) {
+func parseTagUpdate(rvt reflect.Type, value, dbName string) (string, error) {
 	errFunc := func(errString string) (string, error) {
 		return "", fmt.Errorf(
 			"[%s] %s: parse error in '%s': %s",

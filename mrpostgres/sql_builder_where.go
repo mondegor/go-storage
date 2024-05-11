@@ -13,8 +13,7 @@ import (
 )
 
 type (
-	SqlBuilderWhere struct {
-	}
+	SqlBuilderWhere struct{}
 )
 
 func NewSqlBuilderWhere() *SqlBuilderWhere {

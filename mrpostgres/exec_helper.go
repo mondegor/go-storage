@@ -15,15 +15,13 @@ type (
 		QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 	}
 
-	dbExecHelper struct {
-	}
+	dbExecHelper struct{}
 )
 
 func (e *dbExecHelper) query(conn pgxQuery, skipFrame int, ctx context.Context, sql string, args ...any) (*queryRows, error) {
 	traceQuery(ctx, sql)
 
 	rows, err := conn.Query(ctx, sql, args...)
-
 	if err != nil {
 		return nil, wrapError(err, skipFrame+skipThisMethodFrame)
 	}
@@ -45,7 +43,6 @@ func (e *dbExecHelper) exec(conn pgxQuery, skipFrame int, ctx context.Context, s
 	traceQuery(ctx, sql)
 
 	commandTag, err := conn.Exec(ctx, sql, args...)
-
 	if err != nil {
 		return wrapError(err, skipFrame+skipThisMethodFrame)
 	}

@@ -50,16 +50,14 @@ func (f *FileSystem) InitRootDir(path string) (bool, error) {
 	return true, nil
 }
 
-func (f *FileSystem) CreateDirIfNotExists(rootDir string, dirPath string) error {
+func (f *FileSystem) CreateDirIfNotExists(rootDir, dirPath string) error {
 	if _, err := os.Stat(rootDir); err != nil {
 		return mrcore.FactoryErrInternal.Wrap(err)
 	}
 
 	dirPath = strings.TrimRight(rootDir, "/") + "/" + strings.Trim(dirPath, "/")
 
-	_, err := os.Stat(dirPath)
-
-	if !errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(dirPath); !errors.Is(err, os.ErrNotExist) {
 		if err != nil {
 			return mrcore.FactoryErrInternal.Wrap(err)
 		}

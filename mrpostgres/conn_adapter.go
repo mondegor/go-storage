@@ -56,7 +56,6 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 			opts.Database,
 		),
 	)
-
 	if err != nil {
 		return err
 	}
@@ -76,7 +75,6 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
-
 	if err != nil {
 		return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
 	}

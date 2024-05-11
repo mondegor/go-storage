@@ -45,7 +45,6 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 			opts.Port,
 		),
 	)
-
 	if err != nil {
 		return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
 	}

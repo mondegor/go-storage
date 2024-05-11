@@ -50,7 +50,6 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 			Secure: opts.UseSSL,
 		},
 	)
-
 	if err != nil {
 		return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
 	}
@@ -77,7 +76,6 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 
 func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string) (bool, error) {
 	exists, err := c.conn.BucketExists(ctx, bucketName)
-
 	if err != nil {
 		return false, err
 	}
@@ -95,7 +93,6 @@ func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string) (bool, 
 		bucketName,
 		minio.MakeBucketOptions{}, // "ru-central1"
 	)
-
 	if err != nil {
 		return false, err
 	}

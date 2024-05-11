@@ -8,8 +8,7 @@ import (
 )
 
 type (
-	SqlBuilderSet struct {
-	}
+	SqlBuilderSet struct{}
 )
 
 func NewSqlBuilderSet() *SqlBuilderSet {

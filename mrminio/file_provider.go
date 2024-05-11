@@ -40,7 +40,6 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileI
 		filePath,
 		minio.StatObjectOptions{},
 	)
-
 	if err != nil {
 		return mrtype.FileInfo{}, fp.wrapError(err)
 	}
@@ -52,13 +51,11 @@ func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.F
 	fp.traceCmd(ctx, "Download", filePath)
 
 	object, err := fp.openObject(ctx, filePath)
-
 	if err != nil {
 		return mrtype.File{}, fp.wrapError(err)
 	}
 
 	info, err := object.Stat()
-
 	if err != nil {
 		object.Close()
 		return mrtype.File{}, fp.wrapError(err)
@@ -74,9 +71,7 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 	fp.traceCmd(ctx, "DownloadFile", filePath)
 
 	object, err := fp.openObject(ctx, filePath)
-
-	// :TODO: ошибки нет даже если filePath не найден
-	if err != nil {
+	if err != nil { // :TODO: ошибки нет даже если filePath не найден
 		return nil, fp.wrapError(err)
 	}
 
@@ -102,7 +97,6 @@ func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 			ContentDisposition: fp.getContentDisposition(file.OriginalName),
 		},
 	)
-
 	if err != nil {
 		return fp.wrapError(err)
 	}
@@ -119,7 +113,6 @@ func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
 		filePath,
 		minio.RemoveObjectOptions{},
 	)
-
 	if err != nil {
 		return fp.wrapError(err)
 	}

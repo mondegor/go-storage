@@ -44,7 +44,6 @@ func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
 	l.traceCmd(ctx, "Lock:"+expiry.String(), key)
 
 	mutex, err := l.lock.Obtain(ctx, key, expiry, nil)
-
 	if err != nil {
 		return nil, l.wrapError(err)
 	}

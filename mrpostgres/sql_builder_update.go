@@ -53,7 +53,6 @@ func (b *SqlBuilderUpdate) SetFromEntityWith(entity any, extFields func(s mrstor
 	}
 
 	dbNames, args, err := b.meta.FieldsForUpdate(entity)
-
 	if err != nil {
 		return nil, err
 	}

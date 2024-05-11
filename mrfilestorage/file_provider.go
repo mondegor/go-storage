@@ -37,7 +37,6 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileI
 	}
 
 	fi, err := os.Stat(fp.rootDir + filePath)
-
 	if err != nil {
 		return mrtype.FileInfo{}, fp.wrapError(err)
 	}
@@ -49,13 +48,11 @@ func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.F
 	fp.traceCmd(ctx, "Download", filePath)
 
 	fd, err := fp.openFile(ctx, filePath)
-
 	if err != nil {
 		return mrtype.File{}, fp.wrapError(err)
 	}
 
 	fi, err := fd.Stat()
-
 	if err != nil {
 		return mrtype.File{}, fp.wrapError(err)
 	}
@@ -70,7 +67,6 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 	fp.traceCmd(ctx, "DownloadContent", filePath)
 
 	fd, err := fp.openFile(ctx, filePath)
-
 	if err != nil {
 		return nil, fp.wrapError(err)
 	}
@@ -92,7 +88,6 @@ func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 	}
 
 	dst, err := os.Create(fp.rootDir + file.Path)
-
 	if err != nil {
 		return fp.wrapError(err)
 	}

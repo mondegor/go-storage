@@ -31,7 +31,6 @@ func main() {
 	logger.Info().Msg("Create rabbitmq channel")
 
 	rabbitChannel, err := rabbitAdapter.Cli().Channel()
-
 	if err != nil {
 		logger.Fatal().Err(err).Msg("rabbitAdapter.Cli().Channel() error")
 	}
@@ -46,7 +45,6 @@ func main() {
 		false,           // noWait
 		nil,             // args
 	)
-
 	if err != nil {
 		logger.Fatal().Err(err).Msg("rabbitChannel.QueueDeclare() error")
 	}
