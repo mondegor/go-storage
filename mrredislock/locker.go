@@ -20,23 +20,23 @@ const (
 )
 
 type (
-	lockerAdapter struct {
+	LockerAdapter struct {
 		lock *redislock.Client
 	}
 )
 
-func NewLockerAdapter(conn redis.UniversalClient) *lockerAdapter {
-	return &lockerAdapter{
+func NewLockerAdapter(conn redis.UniversalClient) *LockerAdapter {
+	return &LockerAdapter{
 		lock: redislock.New(conn),
 	}
 }
 
-func (l *lockerAdapter) Lock(ctx context.Context, key string) (mrlock.UnlockFunc, error) {
+func (l *LockerAdapter) Lock(ctx context.Context, key string) (mrlock.UnlockFunc, error) {
 	return l.LockWithExpiry(ctx, key, 0)
 }
 
 // LockWithExpiry - if expiry = 0 then set expiry by default
-func (l *lockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry time.Duration) (mrlock.UnlockFunc, error) {
+func (l *LockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry time.Duration) (mrlock.UnlockFunc, error) {
 	if expiry == 0 {
 		expiry = mrlock.DefaultExpiry
 	}

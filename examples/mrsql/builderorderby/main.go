@@ -16,7 +16,7 @@ func main() {
 	ctx := mrlog.WithContext(context.Background(), logger)
 
 	logger.Info().Msg("SAMPLE1:")
-	o := mrpostgres.NewSqlBuilderOrderBy(
+	o := mrpostgres.NewSQLBuilderOrderBy(
 		ctx,
 		mrtype.SortParams{
 			FieldName: "id",
@@ -33,7 +33,7 @@ func main() {
 	logger.Info().Msgf("%v", cc)
 
 	logger.Info().Msg("SAMPLE2:")
-	o = mrpostgres.NewSqlBuilderOrderBy(
+	o = mrpostgres.NewSQLBuilderOrderBy(
 		ctx,
 		mrtype.SortParams{
 			FieldName: "id",
@@ -59,7 +59,7 @@ func main() {
 	logger.Info().Msgf("caption is registered? %v", meta.CheckField("caption"))
 	logger.Info().Msgf("NotSorted is registered? %v", meta.CheckField("NotSorted"))
 
-	o = mrpostgres.NewSqlBuilderOrderBy(ctx, meta.DefaultSort())
+	o = mrpostgres.NewSQLBuilderOrderBy(ctx, meta.DefaultSort())
 
 	orderBy = o.DefaultField()
 

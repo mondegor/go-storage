@@ -11,12 +11,12 @@ import (
 )
 
 type (
-	SqlBuilderOrderBy struct {
+	SQLBuilderOrderBy struct {
 		defaultOrderBy string
 	}
 )
 
-func NewSqlBuilderOrderBy(ctx context.Context, defaultSort mrtype.SortParams) *SqlBuilderOrderBy {
+func NewSQLBuilderOrderBy(ctx context.Context, defaultSort mrtype.SortParams) *SQLBuilderOrderBy {
 	var defaultOrderBy string
 
 	if defaultSort.FieldName != "" {
@@ -25,12 +25,12 @@ func NewSqlBuilderOrderBy(ctx context.Context, defaultSort mrtype.SortParams) *S
 		mrlog.Ctx(ctx).Warn().Caller(1).Msg("default sorting is not set")
 	}
 
-	return &SqlBuilderOrderBy{
+	return &SQLBuilderOrderBy{
 		defaultOrderBy: defaultOrderBy,
 	}
 }
 
-func (b *SqlBuilderOrderBy) DefaultField() mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderOrderBy) DefaultField() mrstorage.SQLBuilderPartFunc {
 	if b.defaultOrderBy == "" {
 		return nil
 	}
@@ -40,8 +40,8 @@ func (b *SqlBuilderOrderBy) DefaultField() mrstorage.SqlBuilderPartFunc {
 	}
 }
 
-func (b *SqlBuilderOrderBy) Join(fields ...mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPartFunc {
-	fields = mrstorage.SqlBuilderPartFuncRemoveNil(fields)
+func (b *SQLBuilderOrderBy) Join(fields ...mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPartFunc {
+	fields = mrstorage.SQLBuilderPartFuncRemoveNil(fields)
 
 	if len(fields) == 0 {
 		return nil
@@ -59,7 +59,7 @@ func (b *SqlBuilderOrderBy) Join(fields ...mrstorage.SqlBuilderPartFunc) mrstora
 	}
 }
 
-func (b *SqlBuilderOrderBy) Field(name string, direction mrenum.SortDirection) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderOrderBy) Field(name string, direction mrenum.SortDirection) mrstorage.SQLBuilderPartFunc {
 	if name == "" {
 		return nil
 	}

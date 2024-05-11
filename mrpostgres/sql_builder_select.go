@@ -6,35 +6,35 @@ import (
 )
 
 type (
-	SqlBuilderSelect struct {
-		where   *SqlBuilderWhere
-		orderBy *SqlBuilderOrderBy
-		pager   *SqlBuilderPager
+	SQLBuilderSelect struct {
+		where   *SQLBuilderWhere
+		orderBy *SQLBuilderOrderBy
+		pager   *SQLBuilderPager
 	}
 )
 
-func NewSqlBuilderSelect(
-	where *SqlBuilderWhere,
-	orderBy *SqlBuilderOrderBy,
-	pager *SqlBuilderPager,
-) *SqlBuilderSelect {
-	return &SqlBuilderSelect{
+func NewSQLBuilderSelect(
+	where *SQLBuilderWhere,
+	orderBy *SQLBuilderOrderBy,
+	pager *SQLBuilderPager,
+) *SQLBuilderSelect {
+	return &SQLBuilderSelect{
 		where:   where,
 		orderBy: orderBy,
 		pager:   pager,
 	}
 }
 
-func NewSqlBuilderSelectCondition(
-	where *SqlBuilderWhere,
-) *SqlBuilderSelect {
-	return &SqlBuilderSelect{
+func NewSQLBuilderSelectCondition(
+	where *SQLBuilderWhere,
+) *SQLBuilderSelect {
+	return &SQLBuilderSelect{
 		where: where,
 	}
 }
 
-func (b *SqlBuilderSelect) Where(f func(w mrstorage.SqlBuilderWhere) mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPart {
-	var partFunc mrstorage.SqlBuilderPartFunc
+func (b *SQLBuilderSelect) Where(f func(w mrstorage.SQLBuilderWhere) mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPart {
+	var partFunc mrstorage.SQLBuilderPartFunc
 
 	if b.where != nil {
 		partFunc = f(b.where)
@@ -43,8 +43,8 @@ func (b *SqlBuilderSelect) Where(f func(w mrstorage.SqlBuilderWhere) mrstorage.S
 	return mrsql.NewBuilderPart(partFunc)
 }
 
-func (b *SqlBuilderSelect) OrderBy(f func(o mrstorage.SqlBuilderOrderBy) mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPart {
-	var partFunc mrstorage.SqlBuilderPartFunc
+func (b *SQLBuilderSelect) OrderBy(f func(o mrstorage.SQLBuilderOrderBy) mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPart {
+	var partFunc mrstorage.SQLBuilderPartFunc
 
 	if b.orderBy != nil {
 		partFunc = f(b.orderBy)
@@ -57,8 +57,8 @@ func (b *SqlBuilderSelect) OrderBy(f func(o mrstorage.SqlBuilderOrderBy) mrstora
 	return mrsql.NewBuilderPart(partFunc)
 }
 
-func (b *SqlBuilderSelect) Pager(f func(p mrstorage.SqlBuilderPager) mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPart {
-	var partFunc mrstorage.SqlBuilderPartFunc
+func (b *SQLBuilderSelect) Pager(f func(p mrstorage.SQLBuilderPager) mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPart {
+	var partFunc mrstorage.SQLBuilderPartFunc
 
 	if b.pager != nil {
 		partFunc = f(b.pager)

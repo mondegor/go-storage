@@ -18,7 +18,7 @@ type (
 	dbExecHelper struct{}
 )
 
-func (e *dbExecHelper) query(conn pgxQuery, skipFrame int, ctx context.Context, sql string, args ...any) (*queryRows, error) {
+func (e *dbExecHelper) query(ctx context.Context, conn pgxQuery, skipFrame int, sql string, args ...any) (*queryRows, error) {
 	traceQuery(ctx, sql)
 
 	rows, err := conn.Query(ctx, sql, args...)
@@ -31,7 +31,7 @@ func (e *dbExecHelper) query(conn pgxQuery, skipFrame int, ctx context.Context, 
 	}, nil
 }
 
-func (e *dbExecHelper) queryRow(conn pgxQuery, skipFrame int, ctx context.Context, sql string, args ...any) *queryRow {
+func (e *dbExecHelper) queryRow(ctx context.Context, conn pgxQuery, skipFrame int, sql string, args ...any) *queryRow {
 	traceQuery(ctx, sql)
 
 	return &queryRow{
@@ -39,7 +39,7 @@ func (e *dbExecHelper) queryRow(conn pgxQuery, skipFrame int, ctx context.Contex
 	}
 }
 
-func (e *dbExecHelper) exec(conn pgxQuery, skipFrame int, ctx context.Context, sql string, args ...any) error {
+func (e *dbExecHelper) exec(ctx context.Context, conn pgxQuery, skipFrame int, sql string, args ...any) error {
 	traceQuery(ctx, sql)
 
 	commandTag, err := conn.Exec(ctx, sql, args...)

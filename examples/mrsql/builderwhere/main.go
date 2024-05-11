@@ -9,7 +9,7 @@ import (
 
 func main() {
 	logger := mrlog.New(mrlog.TraceLevel)
-	bw := mrpostgres.NewSqlBuilderWhere()
+	bw := mrpostgres.NewSQLBuilderWhere()
 
 	where := bw.JoinOr(
 		bw.JoinAnd(

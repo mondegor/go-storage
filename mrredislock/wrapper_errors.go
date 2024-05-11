@@ -7,12 +7,12 @@ import (
 	"github.com/mondegor/go-webcore/mrlog"
 )
 
-func (l *lockerAdapter) wrapError(err error) error {
+func (l *LockerAdapter) wrapError(err error) error {
 	const skipFrame = 1
 	return mrcore.FactoryErrStorageQueryFailed.WithSkipFrame(skipFrame).Wrap(err)
 }
 
-func (l *lockerAdapter) traceCmd(ctx context.Context, command, key string) {
+func (l *LockerAdapter) traceCmd(ctx context.Context, command, key string) {
 	mrlog.Ctx(ctx).
 		Trace().
 		Str("source", lockerName).

@@ -7,66 +7,66 @@ import (
 )
 
 type (
-	SqlBuilderSet interface {
-		Join(fields ...SqlBuilderPartFunc) SqlBuilderPartFunc
-		Field(name string, value any) SqlBuilderPartFunc
-		Fields(names []string, args []any) SqlBuilderPartFunc
+	SQLBuilderSet interface {
+		Join(fields ...SQLBuilderPartFunc) SQLBuilderPartFunc
+		Field(name string, value any) SQLBuilderPartFunc
+		Fields(names []string, args []any) SQLBuilderPartFunc
 	}
 
-	SqlBuilderWhere interface {
-		JoinAnd(conds ...SqlBuilderPartFunc) SqlBuilderPartFunc
-		JoinOr(conds ...SqlBuilderPartFunc) SqlBuilderPartFunc
+	SQLBuilderWhere interface {
+		JoinAnd(conds ...SQLBuilderPartFunc) SQLBuilderPartFunc
+		JoinOr(conds ...SQLBuilderPartFunc) SQLBuilderPartFunc
 
-		Expr(expr string) SqlBuilderPartFunc
-		ExprWithValue(expr string, value any) SqlBuilderPartFunc
+		Expr(expr string) SQLBuilderPartFunc
+		ExprWithValue(expr string, value any) SQLBuilderPartFunc
 
-		Equal(name string, value any) SqlBuilderPartFunc
-		NotEqual(name string, value any) SqlBuilderPartFunc
-		Less(name string, value any) SqlBuilderPartFunc
-		LessOrEqual(name string, value any) SqlBuilderPartFunc
-		Greater(name string, value any) SqlBuilderPartFunc
-		GreaterOrEqual(name string, value any) SqlBuilderPartFunc
+		Equal(name string, value any) SQLBuilderPartFunc
+		NotEqual(name string, value any) SQLBuilderPartFunc
+		Less(name string, value any) SQLBuilderPartFunc
+		LessOrEqual(name string, value any) SQLBuilderPartFunc
+		Greater(name string, value any) SQLBuilderPartFunc
+		GreaterOrEqual(name string, value any) SQLBuilderPartFunc
 
-		FilterEqualString(name, value string) SqlBuilderPartFunc
-		FilterEqualInt64(name string, value, empty int64) SqlBuilderPartFunc
-		FilterEqualUUID(name string, value uuid.UUID) SqlBuilderPartFunc
-		FilterEqualBool(name string, value *bool) SqlBuilderPartFunc
-		FilterLike(name, value string) SqlBuilderPartFunc
-		FilterLikeFields(names []string, value string) SqlBuilderPartFunc
-		FilterRangeInt64(name string, value mrtype.RangeInt64, empty int64) SqlBuilderPartFunc
+		FilterEqualString(name, value string) SQLBuilderPartFunc
+		FilterEqualInt64(name string, value, empty int64) SQLBuilderPartFunc
+		FilterEqualUUID(name string, value uuid.UUID) SQLBuilderPartFunc
+		FilterEqualBool(name string, value *bool) SQLBuilderPartFunc
+		FilterLike(name, value string) SQLBuilderPartFunc
+		FilterLikeFields(names []string, value string) SQLBuilderPartFunc
+		FilterRangeInt64(name string, value mrtype.RangeInt64, empty int64) SQLBuilderPartFunc
 		// FilterAnyOf - 'values' support only slices else the func returns nil
-		FilterAnyOf(name string, values any) SqlBuilderPartFunc
+		FilterAnyOf(name string, values any) SQLBuilderPartFunc
 	}
 
-	SqlBuilderOrderBy interface {
-		Join(fields ...SqlBuilderPartFunc) SqlBuilderPartFunc
-		Field(name string, direction mrenum.SortDirection) SqlBuilderPartFunc
+	SQLBuilderOrderBy interface {
+		Join(fields ...SQLBuilderPartFunc) SQLBuilderPartFunc
+		Field(name string, direction mrenum.SortDirection) SQLBuilderPartFunc
 	}
 
-	SqlBuilderPager interface {
-		OffsetLimit(index, size uint64) SqlBuilderPartFunc
+	SQLBuilderPager interface {
+		OffsetLimit(index, size uint64) SQLBuilderPartFunc
 	}
 
-	SqlBuilderCondition interface {
-		Where(f func(w SqlBuilderWhere) SqlBuilderPartFunc) SqlBuilderPart
+	SQLBuilderCondition interface {
+		Where(f func(w SQLBuilderWhere) SQLBuilderPartFunc) SQLBuilderPart
 	}
 
-	SqlBuilderSelect interface {
-		SqlBuilderCondition
-		OrderBy(f func(o SqlBuilderOrderBy) SqlBuilderPartFunc) SqlBuilderPart
-		Pager(f func(p SqlBuilderPager) SqlBuilderPartFunc) SqlBuilderPart
+	SQLBuilderSelect interface {
+		SQLBuilderCondition
+		OrderBy(f func(o SQLBuilderOrderBy) SQLBuilderPartFunc) SQLBuilderPart
+		Pager(f func(p SQLBuilderPager) SQLBuilderPartFunc) SQLBuilderPart
 	}
 
-	SqlBuilderUpdate interface {
-		Set(f func(s SqlBuilderSet) SqlBuilderPartFunc) SqlBuilderPart
-		SetFromEntity(entity any) (SqlBuilderPart, error)
-		SetFromEntityWith(entity any, extFields func(s SqlBuilderSet) SqlBuilderPartFunc) (SqlBuilderPart, error)
-		SqlBuilderCondition
+	SQLBuilderUpdate interface {
+		Set(f func(s SQLBuilderSet) SQLBuilderPartFunc) SQLBuilderPart
+		SetFromEntity(entity any) (SQLBuilderPart, error)
+		SetFromEntityWith(entity any, extFields func(s SQLBuilderSet) SQLBuilderPartFunc) (SQLBuilderPart, error)
+		SQLBuilderCondition
 	}
 
-	SqlSelectParams struct {
-		Where   SqlBuilderPart
-		OrderBy SqlBuilderPart
-		Pager   SqlBuilderPart
+	SQLSelectParams struct {
+		Where   SQLBuilderPart
+		OrderBy SQLBuilderPart
+		Pager   SQLBuilderPart
 	}
 )

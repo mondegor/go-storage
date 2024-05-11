@@ -7,18 +7,18 @@ import (
 )
 
 type (
-	SqlBuilderPager struct {
+	SQLBuilderPager struct {
 		maxSize uint64
 	}
 )
 
-func NewSqlBuilderPager(maxSize uint64) *SqlBuilderPager {
-	return &SqlBuilderPager{
+func NewSQLBuilderPager(maxSize uint64) *SQLBuilderPager {
+	return &SQLBuilderPager{
 		maxSize: maxSize,
 	}
 }
 
-func (b *SqlBuilderPager) OffsetLimit(index, size uint64) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderPager) OffsetLimit(index, size uint64) mrstorage.SQLBuilderPartFunc {
 	if b.maxSize > 0 && (size < 1 || size > b.maxSize) {
 		size = b.maxSize
 	} else if size < 1 {

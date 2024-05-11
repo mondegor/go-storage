@@ -8,18 +8,18 @@ type (
 	BuilderPart struct {
 		paramNumber int
 		prefix      string
-		bodyFunc    mrstorage.SqlBuilderPartFunc
+		bodyFunc    mrstorage.SQLBuilderPartFunc
 	}
 )
 
-func NewBuilderPart(body mrstorage.SqlBuilderPartFunc) *BuilderPart {
+func NewBuilderPart(body mrstorage.SQLBuilderPartFunc) *BuilderPart {
 	return &BuilderPart{
 		paramNumber: 1,
 		bodyFunc:    body,
 	}
 }
 
-func (b *BuilderPart) Param(number int) mrstorage.SqlBuilderPart {
+func (b *BuilderPart) Param(number int) mrstorage.SQLBuilderPart {
 	if b.paramNumber == number {
 		return b
 	}
@@ -30,7 +30,7 @@ func (b *BuilderPart) Param(number int) mrstorage.SqlBuilderPart {
 	return &c
 }
 
-func (b *BuilderPart) WithPrefix(value string) mrstorage.SqlBuilderPart {
+func (b *BuilderPart) WithPrefix(value string) mrstorage.SQLBuilderPart {
 	if b.prefix == value {
 		return b
 	}
@@ -45,17 +45,17 @@ func (b *BuilderPart) Empty() bool {
 	return b.bodyFunc == nil
 }
 
-func (b *BuilderPart) ToSql() (string, []any) {
-	return b.toSql()
+func (b *BuilderPart) ToSQL() (string, []any) {
+	return b.toSQL()
 }
 
 func (b *BuilderPart) String() string {
-	body, _ := b.toSql()
+	body, _ := b.toSQL()
 
 	return body
 }
 
-func (b *BuilderPart) toSql() (string, []any) {
+func (b *BuilderPart) toSQL() (string, []any) {
 	if b.bodyFunc == nil {
 		return "", []any{}
 	}

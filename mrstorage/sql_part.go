@@ -3,18 +3,18 @@ package mrstorage
 import "fmt"
 
 type (
-	SqlBuilderPart interface {
-		WithPrefix(value string) SqlBuilderPart
-		Param(number int) SqlBuilderPart
+	SQLBuilderPart interface {
+		WithPrefix(value string) SQLBuilderPart
+		Param(number int) SQLBuilderPart
 		Empty() bool
-		ToSql() (string, []any)
+		ToSQL() (string, []any)
 		fmt.Stringer
 	}
 
-	SqlBuilderPartFunc func(paramNumber int) (string, []any)
+	SQLBuilderPartFunc func(paramNumber int) (string, []any)
 )
 
-func SqlBuilderPartFuncRemoveNil(parts []SqlBuilderPartFunc) []SqlBuilderPartFunc {
+func SQLBuilderPartFuncRemoveNil(parts []SQLBuilderPartFunc) []SQLBuilderPartFunc {
 	needOffset := false
 	length := 0
 

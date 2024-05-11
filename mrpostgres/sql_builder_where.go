@@ -13,22 +13,22 @@ import (
 )
 
 type (
-	SqlBuilderWhere struct{}
+	SQLBuilderWhere struct{}
 )
 
-func NewSqlBuilderWhere() *SqlBuilderWhere {
-	return &SqlBuilderWhere{}
+func NewSQLBuilderWhere() *SQLBuilderWhere {
+	return &SQLBuilderWhere{}
 }
 
-func (b *SqlBuilderWhere) JoinAnd(conds ...mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) JoinAnd(conds ...mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPartFunc {
 	return b.join(" AND ", conds)
 }
 
-func (b *SqlBuilderWhere) JoinOr(conds ...mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) JoinOr(conds ...mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPartFunc {
 	return b.join(" OR ", conds)
 }
 
-func (b *SqlBuilderWhere) Expr(expr string) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) Expr(expr string) mrstorage.SQLBuilderPartFunc {
 	if expr == "" {
 		return nil
 	}
@@ -39,7 +39,7 @@ func (b *SqlBuilderWhere) Expr(expr string) mrstorage.SqlBuilderPartFunc {
 }
 
 // ExprWithValue - sample: "UPPER(field_name) = %s"
-func (b *SqlBuilderWhere) ExprWithValue(expr string, value any) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) ExprWithValue(expr string, value any) mrstorage.SQLBuilderPartFunc {
 	if expr == "" {
 		return nil
 	}
@@ -49,31 +49,31 @@ func (b *SqlBuilderWhere) ExprWithValue(expr string, value any) mrstorage.SqlBui
 	}
 }
 
-func (b *SqlBuilderWhere) Equal(name string, value any) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) Equal(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return b.compare(name, value, "=")
 }
 
-func (b *SqlBuilderWhere) NotEqual(name string, value any) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) NotEqual(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return b.compare(name, value, "<>")
 }
 
-func (b *SqlBuilderWhere) Less(name string, value any) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) Less(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return b.compare(name, value, "<")
 }
 
-func (b *SqlBuilderWhere) LessOrEqual(name string, value any) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) LessOrEqual(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return b.compare(name, value, "<=")
 }
 
-func (b *SqlBuilderWhere) Greater(name string, value any) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) Greater(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return b.compare(name, value, ">")
 }
 
-func (b *SqlBuilderWhere) GreaterOrEqual(name string, value any) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) GreaterOrEqual(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return b.compare(name, value, ">=")
 }
 
-func (b *SqlBuilderWhere) FilterEqualString(name, value string) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) FilterEqualString(name, value string) mrstorage.SQLBuilderPartFunc {
 	if value == "" {
 		return nil
 	}
@@ -81,7 +81,7 @@ func (b *SqlBuilderWhere) FilterEqualString(name, value string) mrstorage.SqlBui
 	return b.compare(name, value, "=")
 }
 
-func (b *SqlBuilderWhere) FilterEqualInt64(name string, value, empty int64) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) FilterEqualInt64(name string, value, empty int64) mrstorage.SQLBuilderPartFunc {
 	if value == empty {
 		return nil
 	}
@@ -89,7 +89,7 @@ func (b *SqlBuilderWhere) FilterEqualInt64(name string, value, empty int64) mrst
 	return b.compare(name, value, "=")
 }
 
-func (b *SqlBuilderWhere) FilterEqualUUID(name string, value uuid.UUID) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) FilterEqualUUID(name string, value uuid.UUID) mrstorage.SQLBuilderPartFunc {
 	if value == uuid.Nil {
 		return nil
 	}
@@ -97,7 +97,7 @@ func (b *SqlBuilderWhere) FilterEqualUUID(name string, value uuid.UUID) mrstorag
 	return b.compare(name, value, "=")
 }
 
-func (b *SqlBuilderWhere) FilterEqualBool(name string, value *bool) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) FilterEqualBool(name string, value *bool) mrstorage.SQLBuilderPartFunc {
 	if value == nil {
 		return nil
 	}
@@ -105,11 +105,11 @@ func (b *SqlBuilderWhere) FilterEqualBool(name string, value *bool) mrstorage.Sq
 	return b.compare(name, *value, "=")
 }
 
-func (b *SqlBuilderWhere) FilterLike(name, value string) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) FilterLike(name, value string) mrstorage.SQLBuilderPartFunc {
 	return b.FilterLikeFields([]string{name}, value)
 }
 
-func (b *SqlBuilderWhere) FilterLikeFields(names []string, value string) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) FilterLikeFields(names []string, value string) mrstorage.SQLBuilderPartFunc {
 	if value == "" {
 		return nil
 	}
@@ -138,7 +138,7 @@ func (b *SqlBuilderWhere) FilterLikeFields(names []string, value string) mrstora
 	}
 }
 
-func (b *SqlBuilderWhere) FilterRangeInt64(name string, value mrtype.RangeInt64, empty int64) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) FilterRangeInt64(name string, value mrtype.RangeInt64, empty int64) mrstorage.SQLBuilderPartFunc {
 	if value.Min != empty {
 		if value.Max != empty {
 			if value.Min > value.Max {
@@ -148,9 +148,9 @@ func (b *SqlBuilderWhere) FilterRangeInt64(name string, value mrtype.RangeInt64,
 			return func(paramNumber int) (string, []any) {
 				return "(" + name + " BETWEEN $" + strconv.Itoa(paramNumber) + " AND $" + strconv.Itoa(paramNumber+1) + ")", []any{value.Min, value.Max}
 			}
-		} else {
-			return b.compare(name, value.Min, ">=")
 		}
+
+		return b.compare(name, value.Min, ">=")
 	} else if value.Max != empty {
 		return b.compare(name, value.Max, "<=")
 	}
@@ -159,7 +159,7 @@ func (b *SqlBuilderWhere) FilterRangeInt64(name string, value mrtype.RangeInt64,
 }
 
 // FilterAnyOf - 'values' support only slices else the func returns nil
-func (b *SqlBuilderWhere) FilterAnyOf(name string, values any) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) FilterAnyOf(name string, values any) mrstorage.SQLBuilderPartFunc {
 	s := reflect.ValueOf(values)
 
 	if s.Kind() != reflect.Slice || s.Len() < 1 {
@@ -195,8 +195,8 @@ func (b *SqlBuilderWhere) FilterAnyOf(name string, values any) mrstorage.SqlBuil
 	}
 }
 
-func (b *SqlBuilderWhere) join(separator string, conds []mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPartFunc {
-	conds = mrstorage.SqlBuilderPartFuncRemoveNil(conds)
+func (b *SQLBuilderWhere) join(separator string, conds []mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPartFunc {
+	conds = mrstorage.SQLBuilderPartFuncRemoveNil(conds)
 
 	if len(conds) == 0 {
 		return nil
@@ -225,7 +225,7 @@ func (b *SqlBuilderWhere) join(separator string, conds []mrstorage.SqlBuilderPar
 	}
 }
 
-func (b *SqlBuilderWhere) compare(name string, value any, sign string) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderWhere) compare(name string, value any, sign string) mrstorage.SQLBuilderPartFunc {
 	return func(paramNumber int) (string, []any) {
 		return name + " " + sign + " $" + strconv.Itoa(paramNumber), []any{value}
 	}

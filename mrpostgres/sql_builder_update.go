@@ -7,30 +7,30 @@ import (
 )
 
 type (
-	SqlBuilderUpdate struct {
+	SQLBuilderUpdate struct {
 		meta  *mrsql.EntityMetaUpdate
-		set   *SqlBuilderSet
-		where *SqlBuilderWhere
+		set   *SQLBuilderSet
+		where *SQLBuilderWhere
 	}
 )
 
-func NewSqlBuilderUpdate(set *SqlBuilderSet, where *SqlBuilderWhere) *SqlBuilderUpdate {
-	return &SqlBuilderUpdate{
+func NewSQLBuilderUpdate(set *SQLBuilderSet, where *SQLBuilderWhere) *SQLBuilderUpdate {
+	return &SQLBuilderUpdate{
 		set:   set,
 		where: where,
 	}
 }
 
-func NewSqlBuilderUpdateWithMeta(meta *mrsql.EntityMetaUpdate, set *SqlBuilderSet, where *SqlBuilderWhere) *SqlBuilderUpdate {
-	return &SqlBuilderUpdate{
+func NewSQLBuilderUpdateWithMeta(meta *mrsql.EntityMetaUpdate, set *SQLBuilderSet, where *SQLBuilderWhere) *SQLBuilderUpdate {
+	return &SQLBuilderUpdate{
 		meta:  meta,
 		set:   set,
 		where: where,
 	}
 }
 
-func (b *SqlBuilderUpdate) Set(f func(s mrstorage.SqlBuilderSet) mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPart {
-	var partFunc mrstorage.SqlBuilderPartFunc
+func (b *SQLBuilderUpdate) Set(f func(s mrstorage.SQLBuilderSet) mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPart {
+	var partFunc mrstorage.SQLBuilderPartFunc
 
 	if b.set != nil {
 		partFunc = f(b.set)
@@ -39,11 +39,11 @@ func (b *SqlBuilderUpdate) Set(f func(s mrstorage.SqlBuilderSet) mrstorage.SqlBu
 	return mrsql.NewBuilderPart(partFunc)
 }
 
-func (b *SqlBuilderUpdate) SetFromEntity(entity any) (mrstorage.SqlBuilderPart, error) {
+func (b *SQLBuilderUpdate) SetFromEntity(entity any) (mrstorage.SQLBuilderPart, error) {
 	return b.SetFromEntityWith(entity, nil)
 }
 
-func (b *SqlBuilderUpdate) SetFromEntityWith(entity any, extFields func(s mrstorage.SqlBuilderSet) mrstorage.SqlBuilderPartFunc) (mrstorage.SqlBuilderPart, error) {
+func (b *SQLBuilderUpdate) SetFromEntityWith(entity any, extFields func(s mrstorage.SQLBuilderSet) mrstorage.SQLBuilderPartFunc) (mrstorage.SQLBuilderPart, error) {
 	if b.meta == nil {
 		return nil, mrcore.FactoryErrInternalNilPointer.New()
 	}
@@ -69,8 +69,8 @@ func (b *SqlBuilderUpdate) SetFromEntityWith(entity any, extFields func(s mrstor
 	), nil
 }
 
-func (b *SqlBuilderUpdate) Where(f func(w mrstorage.SqlBuilderWhere) mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPart {
-	var partFunc mrstorage.SqlBuilderPartFunc
+func (b *SQLBuilderUpdate) Where(f func(w mrstorage.SQLBuilderWhere) mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPart {
+	var partFunc mrstorage.SQLBuilderPartFunc
 
 	if b.where != nil {
 		partFunc = f(b.where)

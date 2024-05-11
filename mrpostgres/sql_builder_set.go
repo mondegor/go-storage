@@ -8,15 +8,15 @@ import (
 )
 
 type (
-	SqlBuilderSet struct{}
+	SQLBuilderSet struct{}
 )
 
-func NewSqlBuilderSet() *SqlBuilderSet {
-	return &SqlBuilderSet{}
+func NewSQLBuilderSet() *SQLBuilderSet {
+	return &SQLBuilderSet{}
 }
 
-func (b *SqlBuilderSet) Join(fields ...mrstorage.SqlBuilderPartFunc) mrstorage.SqlBuilderPartFunc {
-	fields = mrstorage.SqlBuilderPartFuncRemoveNil(fields)
+func (b *SQLBuilderSet) Join(fields ...mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPartFunc {
+	fields = mrstorage.SQLBuilderPartFuncRemoveNil(fields)
 
 	if len(fields) == 0 {
 		return nil
@@ -34,13 +34,13 @@ func (b *SqlBuilderSet) Join(fields ...mrstorage.SqlBuilderPartFunc) mrstorage.S
 	}
 }
 
-func (b *SqlBuilderSet) Field(name string, value any) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderSet) Field(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return func(paramNumber int) (string, []any) {
 		return name + " = $" + strconv.Itoa(paramNumber), []any{value}
 	}
 }
 
-func (b *SqlBuilderSet) Fields(names []string, args []any) mrstorage.SqlBuilderPartFunc {
+func (b *SQLBuilderSet) Fields(names []string, args []any) mrstorage.SQLBuilderPartFunc {
 	if len(names) == 0 {
 		return nil
 	}
