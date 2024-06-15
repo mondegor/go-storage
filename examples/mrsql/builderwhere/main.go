@@ -2,13 +2,15 @@ package main
 
 import (
 	"github.com/google/uuid"
-	"github.com/mondegor/go-storage/mrpostgres"
 	"github.com/mondegor/go-webcore/mrlog"
+	"github.com/mondegor/go-webcore/mrlog/mrlogbase"
 	"github.com/mondegor/go-webcore/mrtype"
+
+	"github.com/mondegor/go-storage/mrpostgres"
 )
 
 func main() {
-	logger := mrlog.New(mrlog.TraceLevel)
+	logger := mrlogbase.New(mrlog.TraceLevel)
 	bw := mrpostgres.NewSQLBuilderWhere()
 
 	where := bw.JoinOr(

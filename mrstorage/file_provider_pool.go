@@ -5,6 +5,7 @@ import (
 )
 
 type (
+	// FileProviderPool - comment struct.
 	FileProviderPool struct {
 		providers providerMap
 	}
@@ -12,12 +13,14 @@ type (
 	providerMap map[string]FileProviderAPI
 )
 
+// NewFileProviderPool - comment func.
 func NewFileProviderPool() *FileProviderPool {
 	return &FileProviderPool{
 		providers: make(providerMap, 0),
 	}
 }
 
+// Register - comment method.
 func (p *FileProviderPool) Register(name string, provider FileProviderAPI) error {
 	if _, ok := p.providers[name]; ok {
 		return fmt.Errorf("file provider '%s' is already registered", name)
@@ -28,7 +31,8 @@ func (p *FileProviderPool) Register(name string, provider FileProviderAPI) error
 	return nil
 }
 
-func (p *FileProviderPool) Provider(name string) (FileProviderAPI, error) {
+// Provider - comment method.
+func (p *FileProviderPool) Provider(name string) (FileProviderAPI, error) { //nolint:ireturn
 	if provider, ok := p.providers[name]; ok {
 		return provider, nil
 	}

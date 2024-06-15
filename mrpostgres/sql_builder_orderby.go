@@ -2,27 +2,31 @@ package mrpostgres
 
 import (
 	"context"
+	"errors"
 	"strings"
 
-	"github.com/mondegor/go-storage/mrstorage"
 	"github.com/mondegor/go-webcore/mrenum"
 	"github.com/mondegor/go-webcore/mrlog"
 	"github.com/mondegor/go-webcore/mrtype"
+
+	"github.com/mondegor/go-storage/mrstorage"
 )
 
 type (
+	// SQLBuilderOrderBy - comment struct.
 	SQLBuilderOrderBy struct {
 		defaultOrderBy string
 	}
 )
 
+// NewSQLBuilderOrderBy - comment func.
 func NewSQLBuilderOrderBy(ctx context.Context, defaultSort mrtype.SortParams) *SQLBuilderOrderBy {
 	var defaultOrderBy string
 
 	if defaultSort.FieldName != "" {
 		defaultOrderBy = defaultSort.FieldName + " " + defaultSort.Direction.String()
 	} else {
-		mrlog.Ctx(ctx).Warn().Caller(1).Msg("default sorting is not set")
+		mrlog.Ctx(ctx).Warn().Err(errors.New("default sorting is not set")).Send()
 	}
 
 	return &SQLBuilderOrderBy{
@@ -30,16 +34,18 @@ func NewSQLBuilderOrderBy(ctx context.Context, defaultSort mrtype.SortParams) *S
 	}
 }
 
+// DefaultField - comment method.
 func (b *SQLBuilderOrderBy) DefaultField() mrstorage.SQLBuilderPartFunc {
 	if b.defaultOrderBy == "" {
 		return nil
 	}
 
-	return func(paramNumber int) (string, []any) {
-		return b.defaultOrderBy, []any{}
+	return func(_ int) (string, []any) {
+		return b.defaultOrderBy, nil
 	}
 }
 
+// Join - comment method.
 func (b *SQLBuilderOrderBy) Join(fields ...mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPartFunc {
 	fields = mrstorage.SQLBuilderPartFuncRemoveNil(fields)
 
@@ -47,7 +53,7 @@ func (b *SQLBuilderOrderBy) Join(fields ...mrstorage.SQLBuilderPartFunc) mrstora
 		return nil
 	}
 
-	return func(paramNumber int) (string, []any) {
+	return func(_ int) (string, []any) {
 		var prepared []string
 
 		for i := range fields {
@@ -55,16 +61,17 @@ func (b *SQLBuilderOrderBy) Join(fields ...mrstorage.SQLBuilderPartFunc) mrstora
 			prepared = append(prepared, item)
 		}
 
-		return strings.Join(prepared, ", "), []any{}
+		return strings.Join(prepared, ", "), nil
 	}
 }
 
+// Field - comment method.
 func (b *SQLBuilderOrderBy) Field(name string, direction mrenum.SortDirection) mrstorage.SQLBuilderPartFunc {
 	if name == "" {
 		return nil
 	}
 
-	return func(paramNumber int) (string, []any) {
-		return name + " " + direction.String(), []any{}
+	return func(_ int) (string, []any) {
+		return name + " " + direction.String(), nil
 	}
 }

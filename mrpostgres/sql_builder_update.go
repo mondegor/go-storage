@@ -1,12 +1,14 @@
 package mrpostgres
 
 import (
+	"github.com/mondegor/go-webcore/mrcore"
+
 	"github.com/mondegor/go-storage/mrsql"
 	"github.com/mondegor/go-storage/mrstorage"
-	"github.com/mondegor/go-webcore/mrcore"
 )
 
 type (
+	// SQLBuilderUpdate - comment struct.
 	SQLBuilderUpdate struct {
 		meta  *mrsql.EntityMetaUpdate
 		set   *SQLBuilderSet
@@ -14,6 +16,7 @@ type (
 	}
 )
 
+// NewSQLBuilderUpdate - comment func.
 func NewSQLBuilderUpdate(set *SQLBuilderSet, where *SQLBuilderWhere) *SQLBuilderUpdate {
 	return &SQLBuilderUpdate{
 		set:   set,
@@ -21,6 +24,7 @@ func NewSQLBuilderUpdate(set *SQLBuilderSet, where *SQLBuilderWhere) *SQLBuilder
 	}
 }
 
+// NewSQLBuilderUpdateWithMeta - comment func.
 func NewSQLBuilderUpdateWithMeta(meta *mrsql.EntityMetaUpdate, set *SQLBuilderSet, where *SQLBuilderWhere) *SQLBuilderUpdate {
 	return &SQLBuilderUpdate{
 		meta:  meta,
@@ -29,6 +33,7 @@ func NewSQLBuilderUpdateWithMeta(meta *mrsql.EntityMetaUpdate, set *SQLBuilderSe
 	}
 }
 
+// Set - comment method.
 func (b *SQLBuilderUpdate) Set(f func(s mrstorage.SQLBuilderSet) mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPart {
 	var partFunc mrstorage.SQLBuilderPartFunc
 
@@ -39,17 +44,22 @@ func (b *SQLBuilderUpdate) Set(f func(s mrstorage.SQLBuilderSet) mrstorage.SQLBu
 	return mrsql.NewBuilderPart(partFunc)
 }
 
+// SetFromEntity - comment method.
 func (b *SQLBuilderUpdate) SetFromEntity(entity any) (mrstorage.SQLBuilderPart, error) {
 	return b.SetFromEntityWith(entity, nil)
 }
 
-func (b *SQLBuilderUpdate) SetFromEntityWith(entity any, extFields func(s mrstorage.SQLBuilderSet) mrstorage.SQLBuilderPartFunc) (mrstorage.SQLBuilderPart, error) {
+// SetFromEntityWith - comment method.
+func (b *SQLBuilderUpdate) SetFromEntityWith(
+	entity any,
+	extFields func(s mrstorage.SQLBuilderSet) mrstorage.SQLBuilderPartFunc,
+) (mrstorage.SQLBuilderPart, error) {
 	if b.meta == nil {
-		return nil, mrcore.FactoryErrInternalNilPointer.New()
+		return nil, mrcore.ErrInternalNilPointer.New()
 	}
 
 	if b.set == nil {
-		return nil, mrcore.FactoryErrInternalNilPointer.New()
+		return nil, mrcore.ErrInternalNilPointer.New()
 	}
 
 	dbNames, args, err := b.meta.FieldsForUpdate(entity)
@@ -69,6 +79,7 @@ func (b *SQLBuilderUpdate) SetFromEntityWith(entity any, extFields func(s mrstor
 	), nil
 }
 
+// Where - comment method.
 func (b *SQLBuilderUpdate) Where(f func(w mrstorage.SQLBuilderWhere) mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPart {
 	var partFunc mrstorage.SQLBuilderPartFunc
 
@@ -76,8 +87,8 @@ func (b *SQLBuilderUpdate) Where(f func(w mrstorage.SQLBuilderWhere) mrstorage.S
 		partFunc = f(b.where)
 	} else {
 		// protection against unintended updates
-		partFunc = func(paramNumber int) (string, []any) {
-			return "1 = 0", []any{}
+		partFunc = func(_ int) (string, []any) {
+			return "1 = 0", nil
 		}
 	}
 

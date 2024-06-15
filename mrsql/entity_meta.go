@@ -1,11 +1,42 @@
 package mrsql
 
-import "regexp"
+import (
+	"regexp"
 
-const (
-	fieldTagDBFieldName = "db"
-	fieldTagFieldUpdate = "upd"
-	fieldTagSortByField = "sort"
+	"github.com/mondegor/go-storage/mrstorage"
 )
 
 var regexpDbName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
+
+type (
+	// EntityMeta - comment struct.
+	EntityMeta struct {
+		tableName   string
+		primaryName string
+		where       mrstorage.SQLBuilderPart
+	}
+)
+
+// NewEntityMeta - comment func.
+func NewEntityMeta(tableName, primaryName string, where mrstorage.SQLBuilderPart) *EntityMeta {
+	return &EntityMeta{
+		tableName:   tableName,
+		primaryName: primaryName,
+		where:       where,
+	}
+}
+
+// TableName - comment method.
+func (e *EntityMeta) TableName() string {
+	return e.tableName
+}
+
+// PrimaryName - comment method.
+func (e *EntityMeta) PrimaryName() string {
+	return e.primaryName
+}
+
+// Condition - comment method.
+func (e *EntityMeta) Condition() mrstorage.SQLBuilderPart {
+	return e.where
+}

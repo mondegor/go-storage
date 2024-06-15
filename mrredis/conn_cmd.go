@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// GetStruct - comment method.
 func (c *ConnAdapter) GetStruct(ctx context.Context, key string, data any) error {
 	c.traceCmd(ctx, "get-struct", key, data)
 
@@ -16,6 +17,7 @@ func (c *ConnAdapter) GetStruct(ctx context.Context, key string, data any) error
 	return nil
 }
 
+// SetStruct - comment method.
 func (c *ConnAdapter) SetStruct(ctx context.Context, key string, data any, expiration time.Duration) error {
 	c.traceCmd(ctx, "set-struct", key, data)
 
@@ -26,6 +28,7 @@ func (c *ConnAdapter) SetStruct(ctx context.Context, key string, data any, expir
 	return nil
 }
 
+// Delete - comment method.
 func (c *ConnAdapter) Delete(ctx context.Context, key ...string) error {
 	c.traceCmd(ctx, "delete-row", strings.Join(key, ", "), nil)
 

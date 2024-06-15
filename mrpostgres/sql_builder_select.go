@@ -6,33 +6,28 @@ import (
 )
 
 type (
+	// SQLBuilderSelect - comment struct.
 	SQLBuilderSelect struct {
 		where   *SQLBuilderWhere
 		orderBy *SQLBuilderOrderBy
-		pager   *SQLBuilderPager
+		limit   *SQLBuilderLimit
 	}
 )
 
+// NewSQLBuilderSelect - comment func.
 func NewSQLBuilderSelect(
 	where *SQLBuilderWhere,
 	orderBy *SQLBuilderOrderBy,
-	pager *SQLBuilderPager,
+	limit *SQLBuilderLimit,
 ) *SQLBuilderSelect {
 	return &SQLBuilderSelect{
 		where:   where,
 		orderBy: orderBy,
-		pager:   pager,
+		limit:   limit,
 	}
 }
 
-func NewSQLBuilderSelectCondition(
-	where *SQLBuilderWhere,
-) *SQLBuilderSelect {
-	return &SQLBuilderSelect{
-		where: where,
-	}
-}
-
+// Where - comment method.
 func (b *SQLBuilderSelect) Where(f func(w mrstorage.SQLBuilderWhere) mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPart {
 	var partFunc mrstorage.SQLBuilderPartFunc
 
@@ -43,6 +38,7 @@ func (b *SQLBuilderSelect) Where(f func(w mrstorage.SQLBuilderWhere) mrstorage.S
 	return mrsql.NewBuilderPart(partFunc)
 }
 
+// OrderBy - comment method.
 func (b *SQLBuilderSelect) OrderBy(f func(o mrstorage.SQLBuilderOrderBy) mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPart {
 	var partFunc mrstorage.SQLBuilderPartFunc
 
@@ -57,11 +53,12 @@ func (b *SQLBuilderSelect) OrderBy(f func(o mrstorage.SQLBuilderOrderBy) mrstora
 	return mrsql.NewBuilderPart(partFunc)
 }
 
-func (b *SQLBuilderSelect) Pager(f func(p mrstorage.SQLBuilderPager) mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPart {
+// Limit - comment method.
+func (b *SQLBuilderSelect) Limit(f func(p mrstorage.SQLBuilderLimit) mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPart {
 	var partFunc mrstorage.SQLBuilderPartFunc
 
-	if b.pager != nil {
-		partFunc = f(b.pager)
+	if b.limit != nil {
+		partFunc = f(b.limit)
 	}
 
 	return mrsql.NewBuilderPart(partFunc)

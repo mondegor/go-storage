@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// ImageMeta - comment struct.
 	ImageMeta struct {
 		Path         string     `json:"path,omitempty"`
 		ContentType  string     `json:"type,omitempty"`
@@ -23,6 +24,7 @@ type (
 	}
 )
 
+// Empty - проверяет, что объект пустой.
 func (n *ImageMeta) Empty() bool {
 	return n.Path == "" &&
 		n.OriginalName == ""
@@ -32,32 +34,38 @@ func (n *ImageMeta) Empty() bool {
 func (n *ImageMeta) Scan(value any) error {
 	if value == nil {
 		*n = ImageMeta{}
+
 		return nil
 	}
 
 	if val, ok := value.(string); ok {
 		if err := json.Unmarshal([]byte(val), n); err != nil {
-			return mrcore.FactoryErrInternalTypeAssertion.Wrap(err, "ImageMeta", value)
+			return mrcore.ErrInternalTypeAssertion.Wrap(err, "ImageMeta", value)
 		}
 
 		return nil
 	}
 
-	return mrcore.FactoryErrInternalTypeAssertion.New("ImageMeta", value)
+	return mrcore.ErrInternalTypeAssertion.New("ImageMeta", value)
 }
 
-// Value implements the driver Valuer interface.
+// Value implements the driver.Valuer interface.
 func (n ImageMeta) Value() (driver.Value, error) {
 	if n.Empty() {
-		return nil, nil
+		return nil, nil //nolint:nilnil
 	}
 
 	return json.Marshal(n)
 }
 
-func ImageMetaToInfo(meta ImageMeta) mrtype.ImageInfo {
+// ImageMetaToInfo - comment func.
+func ImageMetaToInfo(meta ImageMeta, mime *mrlib.MimeTypeList) mrtype.ImageInfo {
+	if meta.ContentType == "" && mime != nil {
+		meta.ContentType = mime.ContentTypeByFileName(meta.Path)
+	}
+
 	return mrtype.ImageInfo{
-		ContentType: mrlib.MimeType(meta.ContentType, meta.Path),
+		ContentType: meta.ContentType,
 		// OriginalName: meta.OriginalName,
 		// Name:         path.Base(meta.Path),
 		Path:      meta.Path,
@@ -69,12 +77,13 @@ func ImageMetaToInfo(meta ImageMeta) mrtype.ImageInfo {
 	}
 }
 
-func ImageMetaToInfoPointer(meta *ImageMeta) *mrtype.ImageInfo {
+// ImageMetaToInfoPointer - comment func.
+func ImageMetaToInfoPointer(meta *ImageMeta, mime *mrlib.MimeTypeList) *mrtype.ImageInfo {
 	if meta == nil {
 		return nil
 	}
 
-	c := ImageMetaToInfo(*meta)
+	c := ImageMetaToInfo(*meta, mime)
 
 	return &c
 }

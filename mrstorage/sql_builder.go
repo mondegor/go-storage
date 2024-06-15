@@ -7,13 +7,15 @@ import (
 )
 
 type (
+	// SQLBuilderSet - построитель выражений используемых в SET (список поле=значение через запятую).
 	SQLBuilderSet interface {
 		Join(fields ...SQLBuilderPartFunc) SQLBuilderPartFunc
 		Field(name string, value any) SQLBuilderPartFunc
 		Fields(names []string, args []any) SQLBuilderPartFunc
 	}
 
-	SQLBuilderWhere interface {
+	// SQLBuilderWhere - построитель выражений используемых в WHERE.
+	SQLBuilderWhere interface { //nolint:interfacebloat
 		JoinAnd(conds ...SQLBuilderPartFunc) SQLBuilderPartFunc
 		JoinOr(conds ...SQLBuilderPartFunc) SQLBuilderPartFunc
 
@@ -38,25 +40,30 @@ type (
 		FilterAnyOf(name string, values any) SQLBuilderPartFunc
 	}
 
+	// SQLBuilderOrderBy - построитель выражений используемых в ORDER BY.
 	SQLBuilderOrderBy interface {
 		Join(fields ...SQLBuilderPartFunc) SQLBuilderPartFunc
 		Field(name string, direction mrenum.SortDirection) SQLBuilderPartFunc
 	}
 
-	SQLBuilderPager interface {
+	// SQLBuilderLimit - построитель выражений используемых в LIMIT.
+	SQLBuilderLimit interface {
 		OffsetLimit(index, size uint64) SQLBuilderPartFunc
 	}
 
+	// SQLBuilderCondition - помощник для построения условий объединяющий SQLBuilderWhere выражения.
 	SQLBuilderCondition interface {
 		Where(f func(w SQLBuilderWhere) SQLBuilderPartFunc) SQLBuilderPart
 	}
 
+	// SQLBuilderSelect - помощник для построения SELECT запросов.
 	SQLBuilderSelect interface {
 		SQLBuilderCondition
 		OrderBy(f func(o SQLBuilderOrderBy) SQLBuilderPartFunc) SQLBuilderPart
-		Pager(f func(p SQLBuilderPager) SQLBuilderPartFunc) SQLBuilderPart
+		Limit(f func(p SQLBuilderLimit) SQLBuilderPartFunc) SQLBuilderPart
 	}
 
+	// SQLBuilderUpdate - помощник для построения UPDATE запросов.
 	SQLBuilderUpdate interface {
 		Set(f func(s SQLBuilderSet) SQLBuilderPartFunc) SQLBuilderPart
 		SetFromEntity(entity any) (SQLBuilderPart, error)
@@ -64,9 +71,10 @@ type (
 		SQLBuilderCondition
 	}
 
+	// SQLSelectParams - параметры используемы при построении SELECT запросов.
 	SQLSelectParams struct {
 		Where   SQLBuilderPart
 		OrderBy SQLBuilderPart
-		Pager   SQLBuilderPart
+		Limit   SQLBuilderPart
 	}
 )

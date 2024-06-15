@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 
-	"github.com/mondegor/go-storage/mrminio"
+	"github.com/mondegor/go-webcore/mrlib"
 	"github.com/mondegor/go-webcore/mrlog"
+	"github.com/mondegor/go-webcore/mrlog/mrlogbase"
+
+	"github.com/mondegor/go-storage/mrminio"
 )
 
 func main() {
-	logger := mrlog.New(mrlog.TraceLevel)
+	logger := mrlogbase.New(mrlog.TraceLevel)
 	ctx := mrlog.WithContext(context.Background(), logger)
 
 	logger.Info().Msg("Create minio S3 connection")
@@ -21,7 +24,7 @@ func main() {
 		Password: "12345678",
 	}
 
-	minioAdapter := mrminio.New(true)
+	minioAdapter := mrminio.New(true, mrlib.NewMimeTypeList([]mrlib.MimeType{}))
 
 	if err := minioAdapter.Connect(ctx, opts); err != nil {
 		logger.Fatal().Err(err).Msg("minioAdapter.Connect() error")

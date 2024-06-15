@@ -7,38 +7,44 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/mondegor/go-webcore/mrtype"
+
 	"github.com/mondegor/go-storage/mrsql"
 	"github.com/mondegor/go-storage/mrstorage"
-	"github.com/mondegor/go-webcore/mrtype"
 )
 
 type (
+	// SQLBuilderWhere - comment struct.
 	SQLBuilderWhere struct{}
 )
 
+// NewSQLBuilderWhere - comment func.
 func NewSQLBuilderWhere() *SQLBuilderWhere {
 	return &SQLBuilderWhere{}
 }
 
+// JoinAnd - comment method.
 func (b *SQLBuilderWhere) JoinAnd(conds ...mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPartFunc {
 	return b.join(" AND ", conds)
 }
 
+// JoinOr - comment method.
 func (b *SQLBuilderWhere) JoinOr(conds ...mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPartFunc {
 	return b.join(" OR ", conds)
 }
 
+// Expr - comment method.
 func (b *SQLBuilderWhere) Expr(expr string) mrstorage.SQLBuilderPartFunc {
 	if expr == "" {
 		return nil
 	}
 
-	return func(paramNumber int) (string, []any) {
-		return expr, []any{}
+	return func(_ int) (string, []any) {
+		return expr, nil
 	}
 }
 
-// ExprWithValue - sample: "UPPER(field_name) = %s"
+// ExprWithValue - sample: "UPPER(field_name) = %s".
 func (b *SQLBuilderWhere) ExprWithValue(expr string, value any) mrstorage.SQLBuilderPartFunc {
 	if expr == "" {
 		return nil
@@ -49,30 +55,37 @@ func (b *SQLBuilderWhere) ExprWithValue(expr string, value any) mrstorage.SQLBui
 	}
 }
 
+// Equal - comment method.
 func (b *SQLBuilderWhere) Equal(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return b.compare(name, value, "=")
 }
 
+// NotEqual - comment method.
 func (b *SQLBuilderWhere) NotEqual(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return b.compare(name, value, "<>")
 }
 
+// Less - comment method.
 func (b *SQLBuilderWhere) Less(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return b.compare(name, value, "<")
 }
 
+// LessOrEqual - comment method.
 func (b *SQLBuilderWhere) LessOrEqual(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return b.compare(name, value, "<=")
 }
 
+// Greater - comment method.
 func (b *SQLBuilderWhere) Greater(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return b.compare(name, value, ">")
 }
 
+// GreaterOrEqual - comment method.
 func (b *SQLBuilderWhere) GreaterOrEqual(name string, value any) mrstorage.SQLBuilderPartFunc {
 	return b.compare(name, value, ">=")
 }
 
+// FilterEqualString - comment method.
 func (b *SQLBuilderWhere) FilterEqualString(name, value string) mrstorage.SQLBuilderPartFunc {
 	if value == "" {
 		return nil
@@ -81,6 +94,7 @@ func (b *SQLBuilderWhere) FilterEqualString(name, value string) mrstorage.SQLBui
 	return b.compare(name, value, "=")
 }
 
+// FilterEqualInt64 - comment method.
 func (b *SQLBuilderWhere) FilterEqualInt64(name string, value, empty int64) mrstorage.SQLBuilderPartFunc {
 	if value == empty {
 		return nil
@@ -89,6 +103,7 @@ func (b *SQLBuilderWhere) FilterEqualInt64(name string, value, empty int64) mrst
 	return b.compare(name, value, "=")
 }
 
+// FilterEqualUUID - comment method.
 func (b *SQLBuilderWhere) FilterEqualUUID(name string, value uuid.UUID) mrstorage.SQLBuilderPartFunc {
 	if value == uuid.Nil {
 		return nil
@@ -97,6 +112,7 @@ func (b *SQLBuilderWhere) FilterEqualUUID(name string, value uuid.UUID) mrstorag
 	return b.compare(name, value, "=")
 }
 
+// FilterEqualBool - comment method.
 func (b *SQLBuilderWhere) FilterEqualBool(name string, value *bool) mrstorage.SQLBuilderPartFunc {
 	if value == nil {
 		return nil
@@ -105,10 +121,12 @@ func (b *SQLBuilderWhere) FilterEqualBool(name string, value *bool) mrstorage.SQ
 	return b.compare(name, *value, "=")
 }
 
+// FilterLike - comment method.
 func (b *SQLBuilderWhere) FilterLike(name, value string) mrstorage.SQLBuilderPartFunc {
 	return b.FilterLikeFields([]string{name}, value)
 }
 
+// FilterLikeFields - comment method.
 func (b *SQLBuilderWhere) FilterLikeFields(names []string, value string) mrstorage.SQLBuilderPartFunc {
 	if value == "" {
 		return nil
@@ -138,6 +156,7 @@ func (b *SQLBuilderWhere) FilterLikeFields(names []string, value string) mrstora
 	}
 }
 
+// FilterRangeInt64 - comment method.
 func (b *SQLBuilderWhere) FilterRangeInt64(name string, value mrtype.RangeInt64, empty int64) mrstorage.SQLBuilderPartFunc {
 	if value.Min != empty {
 		if value.Max != empty {
@@ -158,7 +177,7 @@ func (b *SQLBuilderWhere) FilterRangeInt64(name string, value mrtype.RangeInt64,
 	return nil
 }
 
-// FilterAnyOf - 'values' support only slices else the func returns nil
+// FilterAnyOf - 'values' support only slices else the func returns nil.
 func (b *SQLBuilderWhere) FilterAnyOf(name string, values any) mrstorage.SQLBuilderPartFunc {
 	s := reflect.ValueOf(values)
 
@@ -204,8 +223,10 @@ func (b *SQLBuilderWhere) join(separator string, conds []mrstorage.SQLBuilderPar
 
 	// sample: (cond1 AND cond2 AND ...)
 	return func(paramNumber int) (string, []any) {
-		var buf strings.Builder
-		var args []any
+		var (
+			buf  strings.Builder
+			args []any
+		)
 
 		buf.WriteByte('(')
 
@@ -216,6 +237,7 @@ func (b *SQLBuilderWhere) join(separator string, conds []mrstorage.SQLBuilderPar
 
 			item, itemArgs := conds[i](paramNumber + len(args))
 			buf.WriteString(item)
+
 			args = mrsql.MergeArgs(args, itemArgs)
 		}
 

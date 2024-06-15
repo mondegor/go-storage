@@ -16,10 +16,12 @@ const (
 )
 
 type (
+	// ConnAdapter - comment struct.
 	ConnAdapter struct {
 		conn redis.UniversalClient
 	}
 
+	// Options - опции для создания соединения для ConnAdapter.
 	Options struct {
 		Host        string
 		Port        string
@@ -28,13 +30,15 @@ type (
 	}
 )
 
+// New - comment func.
 func New() *ConnAdapter {
 	return &ConnAdapter{}
 }
 
-func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
+// Connect - comment method.
+func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	if c.conn != nil {
-		return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
+		return mrcore.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
 	}
 
 	c.conn = redis.NewClient(
@@ -47,29 +51,32 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	return nil
 }
 
+// Ping - comment method.
 func (c *ConnAdapter) Ping(ctx context.Context) error {
 	if c.conn == nil {
-		return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
+		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
 	if _, err := c.conn.Ping(ctx).Result(); err != nil {
-		return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+		return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
 	}
 
 	return nil
 }
 
-func (c *ConnAdapter) Cli() redis.UniversalClient {
+// Cli - comment method.
+func (c *ConnAdapter) Cli() redis.UniversalClient { //nolint:ireturn
 	return c.conn
 }
 
+// Close - comment method.
 func (c *ConnAdapter) Close() error {
 	if c.conn == nil {
-		return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
+		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
 	if err := c.conn.Close(); err != nil {
-		return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+		return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
 	}
 
 	c.conn = nil

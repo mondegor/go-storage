@@ -7,7 +7,6 @@ import (
 	"path"
 
 	"github.com/minio/minio-go/v7"
-	"github.com/mondegor/go-webcore/mrlib"
 	"github.com/mondegor/go-webcore/mrtype"
 )
 
@@ -18,12 +17,14 @@ const (
 )
 
 type (
+	// FileProvider - comment struct.
 	FileProvider struct {
 		*ConnAdapter
 		bucketName string
 	}
 )
 
+// NewFileProvider - comment func.
 func NewFileProvider(conn *ConnAdapter, bucketName string) *FileProvider {
 	return &FileProvider{
 		ConnAdapter: conn,
@@ -31,6 +32,7 @@ func NewFileProvider(conn *ConnAdapter, bucketName string) *FileProvider {
 	}
 }
 
+// Info - comment method.
 func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileInfo, error) {
 	fp.traceCmd(ctx, "Info", filePath)
 
@@ -47,6 +49,7 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileI
 	return fp.getFileInfo(&info), nil
 }
 
+// Download - comment method.
 func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.File, error) {
 	fp.traceCmd(ctx, "Download", filePath)
 
@@ -58,6 +61,7 @@ func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.F
 	info, err := object.Stat()
 	if err != nil {
 		object.Close()
+
 		return mrtype.File{}, fp.wrapError(err)
 	}
 
@@ -67,6 +71,7 @@ func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.F
 	}, nil
 }
 
+// DownloadFile - comment method.
 func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.ReadCloser, error) {
 	fp.traceCmd(ctx, "DownloadFile", filePath)
 
@@ -77,12 +82,14 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 
 	if _, err = object.Stat(); err != nil {
 		object.Close()
+
 		return nil, fp.wrapError(err)
 	}
 
 	return object, nil
 }
 
+// Upload - comment method.
 func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 	fp.traceCmd(ctx, "Upload", file.Path)
 
@@ -93,7 +100,7 @@ func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 		file.Body,
 		file.Size, // -1 - calculating size
 		minio.PutObjectOptions{
-			ContentType:        mrlib.MimeType(file.ContentType, file.Path),
+			ContentType:        fp.getContentType(file.ContentType, file.Path),
 			ContentDisposition: fp.getContentDisposition(file.OriginalName),
 		},
 	)
@@ -104,6 +111,7 @@ func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 	return nil
 }
 
+// Remove - comment method.
 func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
 	fp.traceCmd(ctx, "Remove", filePath)
 
@@ -131,7 +139,7 @@ func (fp *FileProvider) openObject(ctx context.Context, filePath string) (*minio
 
 func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) mrtype.FileInfo {
 	return mrtype.FileInfo{
-		ContentType:  mrlib.MimeType(info.ContentType, info.Key),
+		ContentType:  fp.getContentType(info.ContentType, info.Key),
 		OriginalName: fp.parseOriginalName(info.Metadata.Get("Content-Disposition")),
 		Name:         path.Base(info.Key),
 		Path:         info.Key,
@@ -148,9 +156,19 @@ func (fp *FileProvider) getContentDisposition(value string) string {
 	return fmt.Sprintf("attachment; filename=\"%s\"", value) // :TODO: escape value
 }
 
+func (fp *FileProvider) getContentType(contentType, fileName string) string {
+	if contentType != "" {
+		return contentType
+	}
+
+	return fp.mimeTypes.ContentTypeByFileName(fileName)
+}
+
 func (fp *FileProvider) parseOriginalName(contentDisposition string) string {
-	const prefix = "attachment; filename=\""
-	const minLength = 23 // len of prefix + '"'
+	const (
+		prefix    = "attachment; filename=\""
+		minLength = 23 // len of prefix + '"'
+	)
 
 	length := len(contentDisposition)
 

@@ -7,7 +7,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mondegor/go-webcore/mrlib"
 	"github.com/mondegor/go-webcore/mrtype"
 )
 
@@ -16,12 +15,14 @@ const (
 )
 
 type (
+	// FileProvider - comment struct.
 	FileProvider struct {
 		fs      *FileSystem
 		rootDir string
 	}
 )
 
+// NewFileProvider - comment func.
 func NewFileProvider(fs *FileSystem, rootDir string) *FileProvider {
 	return &FileProvider{
 		fs:      fs,
@@ -29,6 +30,7 @@ func NewFileProvider(fs *FileSystem, rootDir string) *FileProvider {
 	}
 }
 
+// Info - comment method.
 func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileInfo, error) {
 	fp.traceCmd(ctx, "Info", filePath)
 
@@ -44,6 +46,7 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileI
 	return fp.getFileInfo(filePath, fi), nil
 }
 
+// Download - comment method.
 func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.File, error) {
 	fp.traceCmd(ctx, "Download", filePath)
 
@@ -63,6 +66,7 @@ func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.F
 	}, nil
 }
 
+// DownloadFile - comment method.
 func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.ReadCloser, error) {
 	fp.traceCmd(ctx, "DownloadContent", filePath)
 
@@ -74,6 +78,7 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 	return fd, nil
 }
 
+// Upload - comment method.
 func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 	fp.traceCmd(ctx, "Upload", file.Path)
 
@@ -101,6 +106,7 @@ func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 	return nil
 }
 
+// Remove - comment method.
 func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
 	fp.traceCmd(ctx, "Remove", filePath)
 
@@ -111,7 +117,7 @@ func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
 	return os.Remove(fp.rootDir + filePath)
 }
 
-func (fp *FileProvider) openFile(ctx context.Context, filePath string) (*os.File, error) {
+func (fp *FileProvider) openFile(_ context.Context, filePath string) (*os.File, error) {
 	if err := fp.checkFilePath(filePath); err != nil {
 		return nil, err
 	}
@@ -121,7 +127,7 @@ func (fp *FileProvider) openFile(ctx context.Context, filePath string) (*os.File
 
 func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) mrtype.FileInfo {
 	return mrtype.FileInfo{
-		ContentType: mrlib.MimeTypeByFile(filePath),
+		ContentType: fp.fs.MimeTypes().ContentTypeByFileName(filePath),
 		Name:        fileInfo.Name(),
 		Path:        filePath,
 		Size:        fileInfo.Size(),
@@ -133,12 +139,12 @@ func (fp *FileProvider) checkFilePath(filePath string) error {
 	length := len(filePath)
 
 	if length < 3 {
-		return FactoryErrInvalidPath.New(filePath)
+		return ErrInvalidPath.New(filePath)
 	}
 
 	for i := 1; i < length; i++ {
 		if filePath[i-1] == '.' && filePath[i] == '.' {
-			return FactoryErrInvalidPath.New(filePath)
+			return ErrInvalidPath.New(filePath)
 		}
 	}
 

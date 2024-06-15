@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// FileMeta - comment struct.
 	FileMeta struct {
 		Path         string     `json:"path,omitempty"`
 		ContentType  string     `json:"type,omitempty"`
@@ -21,6 +22,7 @@ type (
 	}
 )
 
+// Empty - проверяет, что объект пустой.
 func (n *FileMeta) Empty() bool {
 	return n.Path == "" &&
 		n.OriginalName == ""
@@ -30,32 +32,38 @@ func (n *FileMeta) Empty() bool {
 func (n *FileMeta) Scan(value any) error {
 	if value == nil {
 		*n = FileMeta{}
+
 		return nil
 	}
 
 	if val, ok := value.(string); ok {
 		if err := json.Unmarshal([]byte(val), n); err != nil {
-			return mrcore.FactoryErrInternalTypeAssertion.Wrap(err, "FileMeta", value)
+			return mrcore.ErrInternalTypeAssertion.Wrap(err, "FileMeta", value)
 		}
 
 		return nil
 	}
 
-	return mrcore.FactoryErrInternalTypeAssertion.New("FileMeta", value)
+	return mrcore.ErrInternalTypeAssertion.New("FileMeta", value)
 }
 
-// Value implements the driver Valuer interface.
+// Value implements the driver.Valuer interface.
 func (n FileMeta) Value() (driver.Value, error) {
 	if n.Empty() {
-		return nil, nil
+		return nil, nil //nolint:nilnil
 	}
 
 	return json.Marshal(n)
 }
 
-func FileMetaToInfo(meta FileMeta) mrtype.FileInfo {
+// FileMetaToInfo - comment func.
+func FileMetaToInfo(meta FileMeta, mime *mrlib.MimeTypeList) mrtype.FileInfo {
+	if meta.ContentType == "" && mime != nil {
+		meta.ContentType = mime.ContentTypeByFileName(meta.Path)
+	}
+
 	return mrtype.FileInfo{
-		ContentType: mrlib.MimeType(meta.ContentType, meta.Path),
+		ContentType: meta.ContentType,
 		// OriginalName: meta.OriginalName,
 		// Name:         path.Base(meta.Path),
 		Path:      meta.Path,
@@ -65,12 +73,13 @@ func FileMetaToInfo(meta FileMeta) mrtype.FileInfo {
 	}
 }
 
-func FileMetaToInfoPointer(meta *FileMeta) *mrtype.FileInfo {
+// FileMetaToInfoPointer - comment func.
+func FileMetaToInfoPointer(meta *FileMeta, mime *mrlib.MimeTypeList) *mrtype.FileInfo {
 	if meta == nil {
 		return nil
 	}
 
-	c := FileMetaToInfo(*meta)
+	c := FileMetaToInfo(*meta, mime)
 
 	return &c
 }

@@ -1,5 +1,6 @@
 package mrsql
 
+// MergeArgs - comment func.
 func MergeArgs(args ...[]any) []any {
 	var total int
 

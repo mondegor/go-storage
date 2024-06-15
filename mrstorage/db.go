@@ -3,23 +3,26 @@ package mrstorage
 import "context"
 
 type (
+	// DBConnManager - менеджер соединений с БД.
+	DBConnManager interface {
+		Conn(ctx context.Context) DBConn
+		DBTxManager
+	}
+
+	// DBTxManager - менеджер транзакций, позволяет исполнять
+	// несколько независимых запросов в рамках одной транзакции.
+	DBTxManager interface {
+		Do(ctx context.Context, job func(ctx context.Context) error) error
+	}
+
+	// DBConn - соединение с БД с возможностью выполнения запросов.
 	DBConn interface {
-		Begin(ctx context.Context) (DBTransaction, error)
-		DBQuery
-	}
-
-	DBTransaction interface {
-		Commit(ctx context.Context) error
-		Rollback(ctx context.Context) error
-		DBQuery
-	}
-
-	DBQuery interface {
 		Query(ctx context.Context, sql string, args ...any) (DBQueryRows, error)
 		QueryRow(ctx context.Context, sql string, args ...any) DBQueryRow
 		Exec(ctx context.Context, sql string, args ...any) error
 	}
 
+	// DBQueryRows - результат запроса в виде списка записей.
 	DBQueryRows interface {
 		Next() bool
 		Scan(dest ...any) error
@@ -27,6 +30,7 @@ type (
 		Close()
 	}
 
+	// DBQueryRow - результат запроса состоящий из одной записи.
 	DBQueryRow interface {
 		Scan(dest ...any) error
 	}

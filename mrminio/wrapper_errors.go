@@ -2,6 +2,7 @@ package mrminio
 
 import (
 	"context"
+	"errors"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/mondegor/go-webcore/mrcore"
@@ -9,19 +10,17 @@ import (
 )
 
 func (fp *FileProvider) wrapError(err error) error {
-	const skipFrame = 1
-
-	minioErr, ok := err.(minio.ErrorResponse)
-	if ok {
+	var minioErr minio.ErrorResponse
+	if errors.As(err, &minioErr) {
 		// The specified key does not exist.
 		if minioErr.Code == "NoSuchKey" {
-			return mrcore.FactoryErrStorageNoRowFound.WithSkipFrame(skipFrame).Wrap(err)
+			return mrcore.ErrStorageNoRowFound.Wrap(err)
 		}
 
-		return mrcore.FactoryErrStorageQueryFailed.WithSkipFrame(skipFrame).Wrap(err)
+		return mrcore.ErrStorageQueryFailed.Wrap(err)
 	}
 
-	return mrcore.FactoryErrInternal.WithSkipFrame(skipFrame).Wrap(err)
+	return mrcore.ErrInternal.Wrap(err)
 }
 
 func (fp *FileProvider) traceCmd(ctx context.Context, command, filePath string) {

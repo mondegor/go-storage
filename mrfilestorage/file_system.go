@@ -7,33 +7,34 @@ import (
 	"strings"
 
 	"github.com/mondegor/go-webcore/mrcore"
+	"github.com/mondegor/go-webcore/mrlib"
 )
 
 type (
+	// FileSystem - comment struct.
 	FileSystem struct {
 		dirMode    os.FileMode
 		createDirs bool // if not exists
-	}
-
-	Options struct {
-		DirMode    os.FileMode
-		CreateDirs bool
+		mimeTypes  *mrlib.MimeTypeList
 	}
 )
 
-func New(opt Options) *FileSystem {
+// New - comment func.
+func New(dirMode os.FileMode, createDirs bool, mimeTypes *mrlib.MimeTypeList) *FileSystem {
 	return &FileSystem{
-		dirMode:    opt.DirMode,
-		createDirs: opt.CreateDirs,
+		dirMode:    dirMode,
+		mimeTypes:  mimeTypes,
+		createDirs: createDirs,
 	}
 }
 
+// InitRootDir - comment method.
 func (f *FileSystem) InitRootDir(path string) (bool, error) {
 	_, err := os.Stat(path)
 
 	if !errors.Is(err, os.ErrNotExist) {
 		if err != nil {
-			return false, mrcore.FactoryErrInternal.Wrap(err)
+			return false, mrcore.ErrInternal.Wrap(err)
 		}
 
 		return false, nil
@@ -44,26 +45,32 @@ func (f *FileSystem) InitRootDir(path string) (bool, error) {
 	}
 
 	if err = os.Mkdir(path, f.dirMode); err != nil {
-		return false, mrcore.FactoryErrInternal.Wrap(err)
+		return false, mrcore.ErrInternal.Wrap(err)
 	}
 
 	return true, nil
 }
 
+// CreateDirIfNotExists - comment method.
 func (f *FileSystem) CreateDirIfNotExists(rootDir, dirPath string) error {
 	if _, err := os.Stat(rootDir); err != nil {
-		return mrcore.FactoryErrInternal.Wrap(err)
+		return mrcore.ErrInternal.Wrap(err)
 	}
 
 	dirPath = strings.TrimRight(rootDir, "/") + "/" + strings.Trim(dirPath, "/")
 
 	if _, err := os.Stat(dirPath); !errors.Is(err, os.ErrNotExist) {
 		if err != nil {
-			return mrcore.FactoryErrInternal.Wrap(err)
+			return mrcore.ErrInternal.Wrap(err)
 		}
 
 		return nil
 	}
 
 	return os.MkdirAll(dirPath, f.dirMode)
+}
+
+// MimeTypes - comment method.
+func (f *FileSystem) MimeTypes() *mrlib.MimeTypeList {
+	return f.mimeTypes
 }

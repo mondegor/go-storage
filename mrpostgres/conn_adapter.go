@@ -17,11 +17,13 @@ const (
 )
 
 type (
+	// ConnAdapter - comment struct.
 	ConnAdapter struct {
 		pool *pgxpool.Pool
 		dbExecHelper
 	}
 
+	// Options - опции для создания соединения для ConnAdapter.
 	Options struct {
 		Host             string
 		Port             string
@@ -37,13 +39,15 @@ type (
 	pgxConnectFunc func(ctx context.Context, conn *pgx.Conn) error
 )
 
+// New - comment func.
 func New() *ConnAdapter {
 	return &ConnAdapter{}
 }
 
+// Connect - comment method.
 func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	if c.pool != nil {
-		return mrcore.FactoryErrStorageConnectionIsAlreadyCreated.New(connectionName)
+		return mrcore.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
 	}
 
 	cfg, err := pgxpool.ParseConfig(
@@ -68,7 +72,7 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 		pgxFunc, ok := opts.AfterConnectFunc().(pgxConnectFunc)
 
 		if !ok {
-			return mrcore.FactoryErrInternalTypeAssertion.New("pgxConnectFunc", opts.AfterConnectFunc())
+			return mrcore.ErrInternalTypeAssertion.New("pgxConnectFunc", opts.AfterConnectFunc())
 		}
 
 		cfg.AfterConnect = pgxFunc
@@ -76,7 +80,7 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
-		return mrcore.FactoryErrStorageConnectionFailed.Wrap(err, connectionName)
+		return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
 	}
 
 	c.pool = pool
@@ -84,21 +88,24 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	return nil
 }
 
+// Ping - comment method.
 func (c *ConnAdapter) Ping(ctx context.Context) error {
 	if c.pool == nil {
-		return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
+		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
 	return c.pool.Ping(ctx)
 }
 
+// Cli - comment method.
 func (c *ConnAdapter) Cli() *pgxpool.Pool {
 	return c.pool
 }
 
+// Close - comment method.
 func (c *ConnAdapter) Close() error {
 	if c.pool == nil {
-		return mrcore.FactoryErrStorageConnectionIsNotOpened.New(connectionName)
+		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
 	c.pool.Close()

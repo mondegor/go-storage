@@ -11,17 +11,16 @@ import (
 )
 
 func (fp *FileProvider) wrapError(err error) error {
-	const skipFrame = 1
-
 	if errors.Is(err, os.ErrNotExist) {
-		return mrcore.FactoryErrStorageNoRowFound.WithSkipFrame(skipFrame).Wrap(err)
+		return mrcore.ErrStorageNoRowFound.Wrap(err)
 	}
 
-	if _, ok := err.(*fs.PathError); ok {
-		return mrcore.FactoryErrStorageQueryFailed.WithSkipFrame(skipFrame).Wrap(err)
+	var pathErr *fs.PathError
+	if errors.As(err, &pathErr) {
+		return mrcore.ErrStorageQueryFailed.Wrap(err)
 	}
 
-	return mrcore.FactoryErrInternal.WithSkipFrame(skipFrame).Wrap(err)
+	return mrcore.ErrInternal.Wrap(err)
 }
 
 func (fp *FileProvider) traceCmd(ctx context.Context, command, filePath string) {

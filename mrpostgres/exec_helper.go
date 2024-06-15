@@ -18,12 +18,12 @@ type (
 	dbExecHelper struct{}
 )
 
-func (e *dbExecHelper) query(ctx context.Context, conn pgxQuery, skipFrame int, sql string, args ...any) (*queryRows, error) {
+func (e *dbExecHelper) query(ctx context.Context, conn pgxQuery, sql string, args ...any) (*queryRows, error) {
 	traceQuery(ctx, sql)
 
 	rows, err := conn.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, wrapError(err, skipFrame+skipThisMethodFrame)
+		return nil, wrapError(err)
 	}
 
 	return &queryRows{
@@ -31,7 +31,7 @@ func (e *dbExecHelper) query(ctx context.Context, conn pgxQuery, skipFrame int, 
 	}, nil
 }
 
-func (e *dbExecHelper) queryRow(ctx context.Context, conn pgxQuery, skipFrame int, sql string, args ...any) *queryRow {
+func (e *dbExecHelper) queryRow(ctx context.Context, conn pgxQuery, sql string, args ...any) *queryRow {
 	traceQuery(ctx, sql)
 
 	return &queryRow{
@@ -39,17 +39,17 @@ func (e *dbExecHelper) queryRow(ctx context.Context, conn pgxQuery, skipFrame in
 	}
 }
 
-func (e *dbExecHelper) exec(ctx context.Context, conn pgxQuery, skipFrame int, sql string, args ...any) error {
+func (e *dbExecHelper) exec(ctx context.Context, conn pgxQuery, sql string, args ...any) error {
 	traceQuery(ctx, sql)
 
 	commandTag, err := conn.Exec(ctx, sql, args...)
 	if err != nil {
-		return wrapError(err, skipFrame+skipThisMethodFrame)
+		return wrapError(err)
 	}
 
 	if commandTag.RowsAffected() < 1 {
 		if commandTag.Insert() || commandTag.Update() || commandTag.Delete() {
-			return mrcore.FactoryErrStorageRowsNotAffected.WithSkipFrame(skipFrame + skipThisMethodFrame).New()
+			return mrcore.ErrStorageRowsNotAffected.New()
 		}
 	}
 

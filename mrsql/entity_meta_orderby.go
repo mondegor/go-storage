@@ -13,17 +13,26 @@ import (
 )
 
 const (
-	ModelNameEntityMetaOrderBy = "EntityMetaOrderBy"
+	ModelNameEntityMetaOrderBy = "EntityMetaOrderBy" // ModelNameEntityMetaOrderBy - название сущности
+
+	fieldTagSortByField = "sort"
 )
 
 type (
+	// EntityMetaOrderBy - comment struct.
 	EntityMetaOrderBy struct {
 		fieldMap    map[string]bool
 		defaultSort mrtype.SortParams
 	}
+
+	parsedTagSort struct {
+		SortName      string
+		IsDefault     bool
+		SortDirection mrenum.SortDirection
+	}
 )
 
-// NewEntityMetaOrderBy - WARNING: use only when starting the main process
+// NewEntityMetaOrderBy - WARNING: use only when starting the main process.
 func NewEntityMetaOrderBy(ctx context.Context, entity any) (*EntityMetaOrderBy, error) {
 	rvt := reflect.TypeOf(entity)
 	logger := mrlog.Ctx(ctx).With().Str("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaOrderBy, rvt.String())).Logger()
@@ -33,7 +42,7 @@ func NewEntityMetaOrderBy(ctx context.Context, entity any) (*EntityMetaOrderBy, 
 	}
 
 	if rvt.Kind() != reflect.Struct {
-		return nil, mrcore.FactoryErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
+		return nil, mrcore.ErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
 	}
 
 	debugInfo := ""
@@ -50,21 +59,22 @@ func NewEntityMetaOrderBy(ctx context.Context, entity any) (*EntityMetaOrderBy, 
 			continue
 		}
 
-		sortName, isDefault, sortDirection, err := parseTagSort(rvt, sort, meta.defaultSort.FieldName == "")
+		parsed, err := parseTagSort(rvt, sort, meta.defaultSort.FieldName == "")
 		if err != nil {
-			logger.Warn().Caller(1).Err(err).Msg("parse tag sort warning")
+			logger.Warn().Err(err).Msg("parse tag sort warning, skipped")
+
 			continue
 		}
 
 		var extMessage string
 
-		if isDefault {
-			meta.defaultSort.FieldName = sortName
-			meta.defaultSort.Direction = sortDirection
+		if parsed.IsDefault {
+			meta.defaultSort.FieldName = parsed.SortName
+			meta.defaultSort.Direction = parsed.SortDirection
 			extMessage = ", default"
 		}
 
-		meta.fieldMap[sortName] = true
+		meta.fieldMap[parsed.SortName] = true
 
 		if logger.Level() <= mrlog.DebugLevel {
 			debugInfo = fmt.Sprintf(
@@ -73,8 +83,8 @@ func NewEntityMetaOrderBy(ctx context.Context, entity any) (*EntityMetaOrderBy, 
 				rvt.Field(i).Name,
 				i,
 				rvt.Field(i).Type,
-				sortName,
-				sortDirection.String(),
+				parsed.SortName,
+				parsed.SortDirection.String(),
 				extMessage,
 			)
 		}
@@ -85,22 +95,24 @@ func NewEntityMetaOrderBy(ctx context.Context, entity any) (*EntityMetaOrderBy, 
 	return &meta, nil
 }
 
+// CheckField - comment method.
 func (m *EntityMetaOrderBy) CheckField(name string) bool {
 	_, ok := m.fieldMap[name]
 
 	return ok
 }
 
+// DefaultSort - comment method.
 func (m *EntityMetaOrderBy) DefaultSort() mrtype.SortParams {
 	return m.defaultSort
 }
 
-func parseTagSort(rvt reflect.Type, value string, canBeDefault bool) (string, bool, mrenum.SortDirection, error) {
+func parseTagSort(rvt reflect.Type, value string, canBeDefault bool) (parsedTagSort, error) {
 	parsed := strings.Split(value, ",")
 	count := len(parsed)
 
-	errFunc := func(errString string) (string, bool, mrenum.SortDirection, error) {
-		return "", false, 0, fmt.Errorf(
+	errFunc := func(errString string) (parsedTagSort, error) {
+		return parsedTagSort{}, fmt.Errorf(
 			"[%s] %s: parse error in '%s': %s",
 			ModelNameEntityMetaOrderBy,
 			rvt.String(),
@@ -145,5 +157,9 @@ func parseTagSort(rvt reflect.Type, value string, canBeDefault bool) (string, bo
 		}
 	}
 
-	return parsed[0], isDefault, sortDirection, nil
+	return parsedTagSort{
+		SortName:      parsed[0],
+		IsDefault:     isDefault,
+		SortDirection: sortDirection,
+	}, nil
 }

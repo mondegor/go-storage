@@ -11,24 +11,18 @@ import (
 	"github.com/mondegor/go-webcore/mrlog"
 )
 
-const (
-	skipThisMethodFrame = 1
-)
-
-func wrapError(err error, skipFrame int) error {
-	skipFrame += skipThisMethodFrame
-
-	_, ok := err.(*pgconn.PgError)
-	if ok {
-		// Severity: ERROR; Code: 42601; Message syntax error at or near "item_status"
-		return mrcore.FactoryErrStorageQueryFailed.WithSkipFrame(skipFrame).Wrap(err)
-	}
-
+func wrapError(err error) error {
 	if errors.Is(err, pgx.ErrNoRows) {
-		return mrcore.FactoryErrStorageNoRowFound.WithSkipFrame(skipFrame).Wrap(err)
+		return mrcore.ErrStorageNoRowFound.Wrap(err)
 	}
 
-	return mrcore.FactoryErrInternal.WithSkipFrame(skipFrame).Wrap(err)
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		// Severity: ERROR; Code: 42601; Message syntax error at or near "item_status"
+		return mrcore.ErrStorageQueryFailed.Wrap(err)
+	}
+
+	return mrcore.ErrInternal.Wrap(err)
 }
 
 func traceQuery(ctx context.Context, sql string) {

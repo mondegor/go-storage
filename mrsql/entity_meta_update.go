@@ -11,10 +11,14 @@ import (
 )
 
 const (
-	ModelNameEntityMetaUpdate = "EntityMetaUpdate"
+	ModelNameEntityMetaUpdate = "EntityMetaUpdate" // ModelNameEntityMetaUpdate - название сущности
+
+	fieldTagDBFieldName = "db"
+	fieldTagFieldUpdate = "upd"
 )
 
 type (
+	// EntityMetaUpdate - comment struct.
 	EntityMetaUpdate struct {
 		structName string
 		fieldsInfo map[int]fieldInfo // field index -> fieldInfo
@@ -27,7 +31,7 @@ type (
 	}
 )
 
-// NewEntityMetaUpdate - WARNING: use only when starting the main process
+// NewEntityMetaUpdate - WARNING: use only when starting the main process.
 func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, error) {
 	rvt := reflect.TypeOf(entity)
 	logger := mrlog.Ctx(ctx).With().Str("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaUpdate, rvt.String())).Logger()
@@ -37,7 +41,7 @@ func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, er
 	}
 
 	if rvt.Kind() != reflect.Struct {
-		return nil, mrcore.FactoryErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
+		return nil, mrcore.ErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
 	}
 
 	debugInfo := ""
@@ -58,7 +62,8 @@ func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, er
 
 		dbName, err := parseTagUpdate(rvt, update, dbName)
 		if err != nil {
-			logger.Warn().Caller(1).Err(err).Msg("parse tag update warning, skipped")
+			logger.Warn().Err(err).Msg("parse tag update warning, skipped")
+
 			continue
 		}
 
@@ -71,7 +76,10 @@ func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, er
 		}
 
 		if !checkEntityMetaUpdateFieldType(fieldType) {
-			logger.Warn().Caller(1).Msgf("field %s of type %s is not supported, skipped", rvt.Field(i).Name, fieldType.Kind())
+			logger.Warn().Err(
+				fmt.Errorf("field %s of type %s is not supported", rvt.Field(i).Name, fieldType.Kind()),
+			).Msg("check field type warning, skipped")
+
 			continue
 		}
 
@@ -121,6 +129,7 @@ func parseTagUpdate(rvt reflect.Type, value, dbName string) (string, error) {
 	return dbName, nil
 }
 
+// FieldsForUpdate - comment method.
 func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) {
 	rv := reflect.ValueOf(entity)
 
@@ -129,11 +138,11 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 	}
 
 	if rv.Type().String() != m.structName {
-		return nil, nil, mrcore.FactoryErrInternalInvalidType.New(rv.Type().String(), m.structName)
+		return nil, nil, mrcore.ErrInternalInvalidType.New(rv.Type().String(), m.structName)
 	}
 
 	if !rv.IsValid() {
-		return nil, nil, mrcore.FactoryErrInternal.WithAttr("reflect.entity", rv).New()
+		return nil, nil, mrcore.ErrInternal.New().WithAttr("reflect.entity", rv)
 	}
 
 	fields := make([]string, 0, len(m.fieldsInfo))
@@ -143,7 +152,7 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 		field := rv.Field(i)
 
 		if !field.IsValid() {
-			return nil, nil, mrcore.FactoryErrInternal.WithAttr("reflect.field", field).New()
+			return nil, nil, mrcore.ErrInternal.New().WithAttr("reflect.field", field)
 		}
 
 		if info.isPointer {
@@ -175,11 +184,11 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 					continue
 				}
 			} else {
-				return nil, nil, mrcore.FactoryErrInternal.WithAttr("reflect.field.struct", field).New()
+				return nil, nil, mrcore.ErrInternal.New().WithAttr("reflect.field.struct", field)
 			}
 
 		default:
-			return nil, nil, mrcore.FactoryErrInternal.WithAttr("reflect.field.undefined", field).New()
+			return nil, nil, mrcore.ErrInternal.New().WithAttr("reflect.field.undefined", field)
 		}
 
 		fields = append(fields, info.dbName)

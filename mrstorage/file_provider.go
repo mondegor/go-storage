@@ -8,6 +8,7 @@ import (
 )
 
 type (
+	// FileProviderAPI - файловый провайдер с возможностью загрузки, скачивания, удаления файла.
 	FileProviderAPI interface {
 		Info(ctx context.Context, filePath string) (mrtype.FileInfo, error)
 		Download(ctx context.Context, filePath string) (mrtype.File, error)
