@@ -24,7 +24,7 @@ type (
 	}
 )
 
-// NewFileProvider - comment func.
+// NewFileProvider - создаёт объект FileProvider.
 func NewFileProvider(conn *ConnAdapter, bucketName string) *FileProvider {
 	return &FileProvider{
 		ConnAdapter: conn,

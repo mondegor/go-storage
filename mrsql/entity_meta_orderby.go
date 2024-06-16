@@ -32,7 +32,8 @@ type (
 	}
 )
 
-// NewEntityMetaOrderBy - WARNING: use only when starting the main process.
+// NewEntityMetaOrderBy - создаёт объект EntityMetaOrderBy.
+// WARNING: use only when starting the main process.
 func NewEntityMetaOrderBy(ctx context.Context, entity any) (*EntityMetaOrderBy, error) {
 	rvt := reflect.TypeOf(entity)
 	logger := mrlog.Ctx(ctx).With().Str("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaOrderBy, rvt.String())).Logger()

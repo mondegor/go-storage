@@ -39,7 +39,7 @@ type (
 	pgxConnectFunc func(ctx context.Context, conn *pgx.Conn) error
 )
 
-// New - comment func.
+// New - создаёт объект ConnAdapter.
 func New() *ConnAdapter {
 	return &ConnAdapter{}
 }

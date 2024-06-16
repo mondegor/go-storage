@@ -19,7 +19,7 @@ type (
 	}
 )
 
-// New - comment func.
+// New - создаёт объект FileSystem.
 func New(dirMode os.FileMode, createDirs bool, mimeTypes *mrlib.MimeTypeList) *FileSystem {
 	return &FileSystem{
 		dirMode:    dirMode,

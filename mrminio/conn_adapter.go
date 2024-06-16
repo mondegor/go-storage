@@ -36,7 +36,7 @@ type (
 	}
 )
 
-// New - comment func.
+// New - создаёт объект ConnAdapter.
 func New(createBuckets bool, mimeTypes *mrlib.MimeTypeList) *ConnAdapter {
 	return &ConnAdapter{
 		createBuckets: createBuckets,

@@ -15,7 +15,7 @@ type (
 	}
 )
 
-// NewConnManager - Создать новый менеджер транзакций.
+// NewConnManager - создаёт объект ConnManager.
 func NewConnManager(conn *ConnAdapter) *ConnManager {
 	return &ConnManager{
 		conn: conn,

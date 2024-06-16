@@ -19,7 +19,7 @@ type (
 	}
 )
 
-// NewSQLBuilderOrderBy - comment func.
+// NewSQLBuilderOrderBy - создаёт объект SQLBuilderOrderBy.
 func NewSQLBuilderOrderBy(ctx context.Context, defaultSort mrtype.SortParams) *SQLBuilderOrderBy {
 	var defaultOrderBy string
 

@@ -22,7 +22,7 @@ type (
 	}
 )
 
-// NewFileProvider - comment func.
+// NewFileProvider - создаёт объект FileProvider.
 func NewFileProvider(fs *FileSystem, rootDir string) *FileProvider {
 	return &FileProvider{
 		fs:      fs,

@@ -14,12 +14,8 @@ type (
 	}
 )
 
-// NewSQLBuilderSelect - comment func.
-func NewSQLBuilderSelect(
-	where *SQLBuilderWhere,
-	orderBy *SQLBuilderOrderBy,
-	limit *SQLBuilderLimit,
-) *SQLBuilderSelect {
+// NewSQLBuilderSelect - создаёт объект SQLBuilderSelect.
+func NewSQLBuilderSelect(where *SQLBuilderWhere, orderBy *SQLBuilderOrderBy, limit *SQLBuilderLimit) *SQLBuilderSelect {
 	return &SQLBuilderSelect{
 		where:   where,
 		orderBy: orderBy,

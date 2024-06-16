@@ -31,7 +31,8 @@ type (
 	}
 )
 
-// NewEntityMetaUpdate - WARNING: use only when starting the main process.
+// NewEntityMetaUpdate - создаёт объект EntityMetaUpdate.
+// WARNING: use only when starting the main process.
 func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, error) {
 	rvt := reflect.TypeOf(entity)
 	logger := mrlog.Ctx(ctx).With().Str("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaUpdate, rvt.String())).Logger()

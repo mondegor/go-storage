@@ -26,7 +26,7 @@ type (
 	}
 )
 
-// NewLockerAdapter - comment func.
+// NewLockerAdapter - создаёт объект LockerAdapter.
 func NewLockerAdapter(conn redis.UniversalClient) *LockerAdapter {
 	return &LockerAdapter{
 		lock: redislock.New(conn),

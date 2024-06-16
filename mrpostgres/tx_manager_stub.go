@@ -3,12 +3,12 @@ package mrpostgres
 import "context"
 
 type (
-	// TxManagerStub - Фиктивный менеджер транзакций, который
+	// TxManagerStub - фиктивный менеджер транзакций, который
 	// запускает только переданную работу без открытия транзакции.
 	TxManagerStub struct{}
 )
 
-// NewTxManagerStub - Создаёт фиктивный менеджер транзакций.
+// NewTxManagerStub - создаёт объект TxManagerStub.
 func NewTxManagerStub() *TxManagerStub {
 	return &TxManagerStub{}
 }

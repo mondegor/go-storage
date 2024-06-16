@@ -17,7 +17,7 @@ type (
 	}
 )
 
-// NewEntityMeta - comment func.
+// NewEntityMeta - создаёт объект EntityMeta.
 func NewEntityMeta(tableName, primaryName string, where mrstorage.SQLBuilderPart) *EntityMeta {
 	return &EntityMeta{
 		tableName:   tableName,

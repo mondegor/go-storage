@@ -13,7 +13,7 @@ type (
 	}
 )
 
-// NewBuilderPart - comment func.
+// NewBuilderPart - создаёт объект BuilderPart.
 func NewBuilderPart(body mrstorage.SQLBuilderPartFunc) *BuilderPart {
 	return &BuilderPart{
 		paramNumber: 1,

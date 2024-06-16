@@ -30,7 +30,7 @@ type (
 	}
 )
 
-// New - comment func.
+// New - создаёт объект ConnAdapter.
 func New() *ConnAdapter {
 	return &ConnAdapter{}
 }

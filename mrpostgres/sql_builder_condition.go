@@ -12,10 +12,8 @@ type (
 	}
 )
 
-// NewSQLBuilderCondition - comment func.
-func NewSQLBuilderCondition(
-	where *SQLBuilderWhere,
-) *SQLBuilderCondition {
+// NewSQLBuilderCondition - создаёт объект SQLBuilderCondition.
+func NewSQLBuilderCondition(where *SQLBuilderWhere) *SQLBuilderCondition {
 	return &SQLBuilderCondition{
 		where: where,
 	}

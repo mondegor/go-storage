@@ -58,7 +58,8 @@ func (n ImageMeta) Value() (driver.Value, error) {
 	return json.Marshal(n)
 }
 
-// ImageMetaToInfo - comment func.
+// ImageMetaToInfo - преобразование данных изображения предназначенных
+// для хранилища в формат данных для передачи клиенту.
 func ImageMetaToInfo(meta ImageMeta, mime *mrlib.MimeTypeList) mrtype.ImageInfo {
 	if meta.ContentType == "" && mime != nil {
 		meta.ContentType = mime.ContentTypeByFileName(meta.Path)
@@ -77,7 +78,7 @@ func ImageMetaToInfo(meta ImageMeta, mime *mrlib.MimeTypeList) mrtype.ImageInfo 
 	}
 }
 
-// ImageMetaToInfoPointer - comment func.
+// ImageMetaToInfoPointer - аналог ImageMetaToInfo, но принимает и возвращает указатель.
 func ImageMetaToInfoPointer(meta *ImageMeta, mime *mrlib.MimeTypeList) *mrtype.ImageInfo {
 	if meta == nil {
 		return nil

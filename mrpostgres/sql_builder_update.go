@@ -16,7 +16,7 @@ type (
 	}
 )
 
-// NewSQLBuilderUpdate - comment func.
+// NewSQLBuilderUpdate - создаёт объект SQLBuilderUpdate.
 func NewSQLBuilderUpdate(set *SQLBuilderSet, where *SQLBuilderWhere) *SQLBuilderUpdate {
 	return &SQLBuilderUpdate{
 		set:   set,
@@ -24,7 +24,7 @@ func NewSQLBuilderUpdate(set *SQLBuilderSet, where *SQLBuilderWhere) *SQLBuilder
 	}
 }
 
-// NewSQLBuilderUpdateWithMeta - comment func.
+// NewSQLBuilderUpdateWithMeta - создаёт объект SQLBuilderUpdate с метаинформацией.
 func NewSQLBuilderUpdateWithMeta(meta *mrsql.EntityMetaUpdate, set *SQLBuilderSet, where *SQLBuilderWhere) *SQLBuilderUpdate {
 	return &SQLBuilderUpdate{
 		meta:  meta,

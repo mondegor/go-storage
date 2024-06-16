@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	// ZeronullInt64 - comment type.
+	// ZeronullInt64 - целочисленный тип для которого значение 0 в БД хранится как NULL.
 	ZeronullInt64 int64
 )
 

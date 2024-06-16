@@ -12,7 +12,7 @@ type (
 	SQLBuilderSet struct{}
 )
 
-// NewSQLBuilderSet - comment func.
+// NewSQLBuilderSet - создаёт объект SQLBuilderSet.
 func NewSQLBuilderSet() *SQLBuilderSet {
 	return &SQLBuilderSet{}
 }

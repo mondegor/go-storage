@@ -18,7 +18,7 @@ type (
 	SQLBuilderWhere struct{}
 )
 
-// NewSQLBuilderWhere - comment func.
+// NewSQLBuilderWhere - создаёт объект SQLBuilderWhere.
 func NewSQLBuilderWhere() *SQLBuilderWhere {
 	return &SQLBuilderWhere{}
 }

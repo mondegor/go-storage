@@ -13,7 +13,7 @@ type (
 	providerMap map[string]FileProviderAPI
 )
 
-// NewFileProviderPool - comment func.
+// NewFileProviderPool - создаёт объект FileProviderPool.
 func NewFileProviderPool() *FileProviderPool {
 	return &FileProviderPool{
 		providers: make(providerMap, 0),

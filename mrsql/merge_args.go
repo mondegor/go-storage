@@ -1,6 +1,7 @@
 package mrsql
 
-// MergeArgs - comment func.
+// MergeArgs - принимает список массивов,
+// формирует из них один линейный массив и возвращает его.
 func MergeArgs(args ...[]any) []any {
 	var total int
 

@@ -56,7 +56,8 @@ func (n FileMeta) Value() (driver.Value, error) {
 	return json.Marshal(n)
 }
 
-// FileMetaToInfo - comment func.
+// FileMetaToInfo - преобразование данных файла предназначенных
+// для хранилища в формат данных для передачи клиенту.
 func FileMetaToInfo(meta FileMeta, mime *mrlib.MimeTypeList) mrtype.FileInfo {
 	if meta.ContentType == "" && mime != nil {
 		meta.ContentType = mime.ContentTypeByFileName(meta.Path)
@@ -73,7 +74,7 @@ func FileMetaToInfo(meta FileMeta, mime *mrlib.MimeTypeList) mrtype.FileInfo {
 	}
 }
 
-// FileMetaToInfoPointer - comment func.
+// FileMetaToInfoPointer - аналог FileMetaToInfo, но принимает и возвращает указатель.
 func FileMetaToInfoPointer(meta *FileMeta, mime *mrlib.MimeTypeList) *mrtype.FileInfo {
 	if meta == nil {
 		return nil

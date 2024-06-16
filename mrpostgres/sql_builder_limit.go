@@ -13,7 +13,7 @@ type (
 	}
 )
 
-// NewSQLBuilderLimit - comment func.
+// NewSQLBuilderLimit - создаёт объект SQLBuilderLimit.
 func NewSQLBuilderLimit(maxSize uint64) *SQLBuilderLimit {
 	return &SQLBuilderLimit{
 		maxSize: maxSize,
