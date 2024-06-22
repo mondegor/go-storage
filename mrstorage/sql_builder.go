@@ -15,7 +15,7 @@ type (
 	}
 
 	// SQLBuilderWhere - построитель выражений используемых в WHERE.
-	SQLBuilderWhere interface { //nolint:interfacebloat
+	SQLBuilderWhere interface {
 		JoinAnd(conds ...SQLBuilderPartFunc) SQLBuilderPartFunc
 		JoinOr(conds ...SQLBuilderPartFunc) SQLBuilderPartFunc
 

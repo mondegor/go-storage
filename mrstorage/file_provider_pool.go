@@ -32,7 +32,7 @@ func (p *FileProviderPool) Register(name string, provider FileProviderAPI) error
 }
 
 // Provider - comment method.
-func (p *FileProviderPool) Provider(name string) (FileProviderAPI, error) { //nolint:ireturn
+func (p *FileProviderPool) Provider(name string) (FileProviderAPI, error) {
 	if provider, ok := p.providers[name]; ok {
 		return provider, nil
 	}

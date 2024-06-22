@@ -6,9 +6,9 @@ require (
 	github.com/bsm/redislock v0.9.4
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.6.0
-	github.com/minio/minio-go/v7 v7.0.71
-	github.com/mondegor/go-sysmess v0.10.3
-	github.com/mondegor/go-webcore v0.18.1
+	github.com/minio/minio-go/v7 v7.0.72
+	github.com/mondegor/go-sysmess v0.10.5
+	github.com/mondegor/go-webcore v0.18.2
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/v9 v9.5.3
 )

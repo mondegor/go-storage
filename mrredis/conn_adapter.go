@@ -65,7 +65,7 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 }
 
 // Cli - comment method.
-func (c *ConnAdapter) Cli() redis.UniversalClient { //nolint:ireturn
+func (c *ConnAdapter) Cli() redis.UniversalClient {
 	return c.conn
 }
 
