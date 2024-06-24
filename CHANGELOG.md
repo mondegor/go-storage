@@ -1,6 +1,12 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-06-24
+### Changed
+- Добавлен сбор статистики из `postgres` для `prometheus`:
+  - `mrstorage.DBStatProvider`;
+  - `mrprometheus.DBCollector`;
+
 ## 2024-06-22
 ### Changed
 - Донастроены линтеры;
