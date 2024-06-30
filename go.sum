@@ -42,8 +42,8 @@ github.com/minio/minio-go/v7 v7.0.72 h1:ZSbxs2BfJensLyHdVOgHv+pfmvxYraaUy07ER04d
 github.com/minio/minio-go/v7 v7.0.72/go.mod h1:4yBA8v80xGA30cfM3fz0DKYMXunWl/AV/6tWEs9ryzo=
 github.com/mondegor/go-sysmess v0.10.6 h1:HTPGPlj/5K6TUTGZIV6heR8UhcVuoJBNETwOFbUVoJ0=
 github.com/mondegor/go-sysmess v0.10.6/go.mod h1:9HcJbyyyztIC/CLitFCU6eViQpE4xNl/xQMJB1GfKSw=
-github.com/mondegor/go-webcore v0.18.3 h1:XqfcNmjIshLl2sM7iuH5Q0Ql/8+yYZq/KrLGy0Mc9aA=
-github.com/mondegor/go-webcore v0.18.3/go.mod h1:qkRMP+Pe5SFPw12VBn/uUL2JXurHJq/GYaUq6rxPan4=
+github.com/mondegor/go-webcore v0.19.1 h1:yT77Zn6gxdnwNtgX10IfIcD2FE3OumHF5hFGAnP3QUM=
+github.com/mondegor/go-webcore v0.19.1/go.mod h1:dZWQCW6QVVQoGmLFzuMl4ZBMVFuE5+ytwEWRrZPL3+U=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

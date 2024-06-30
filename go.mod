@@ -1,6 +1,6 @@
 module github.com/mondegor/go-storage
 
-go 1.21
+go 1.22
 
 require (
 	github.com/bsm/redislock v0.9.4
@@ -8,7 +8,7 @@ require (
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/minio/minio-go/v7 v7.0.72
 	github.com/mondegor/go-sysmess v0.10.6
-	github.com/mondegor/go-webcore v0.18.3
+	github.com/mondegor/go-webcore v0.19.1
 	github.com/prometheus/client_golang v1.19.1
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/v9 v9.5.3

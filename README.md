@@ -1,4 +1,4 @@
-# Описание GoStorage v0.11.4
+# Описание GoStorage v0.11.5
 Этот репозиторий содержит описание библиотеки GoStorage.
 
 ## Статус библиотеки
@@ -14,7 +14,7 @@
 - `Native File System` + `FileProvider`;
 
 ## Подключение библиотеки
-`go get -u github.com/mondegor/go-storage@v0.11.4`
+`go get -u github.com/mondegor/go-storage@v0.11.5`
 
 ## Установка библиотеки для её локальной разработки
 
