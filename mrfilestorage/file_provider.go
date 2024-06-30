@@ -15,7 +15,8 @@ const (
 )
 
 type (
-	// FileProvider - comment struct.
+	// FileProvider - файловый провайдер, работающий с нативной файловой системой,
+	// позволяет читать, сохранять, удалять файлы.
 	FileProvider struct {
 		fs      *FileSystem
 		rootDir string

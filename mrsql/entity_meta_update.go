@@ -18,7 +18,8 @@ const (
 )
 
 type (
-	// EntityMetaUpdate - comment struct.
+	// EntityMetaUpdate - объект для управления динамическим обновлением записей в БД.
+	// Информация об обновлении считывается из тегов структуры.
 	EntityMetaUpdate struct {
 		structName string
 		fieldsInfo map[int]fieldInfo // field index -> fieldInfo

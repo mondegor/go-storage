@@ -20,7 +20,7 @@ const (
 )
 
 type (
-	// LockerAdapter - comment struct.
+	// LockerAdapter - адаптер для работы с сетевыми блокировками на основе Redis.
 	LockerAdapter struct {
 		lock *redislock.Client
 	}

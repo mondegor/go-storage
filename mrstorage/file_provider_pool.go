@@ -5,7 +5,9 @@ import (
 )
 
 type (
-	// FileProviderPool - comment struct.
+	// FileProviderPool - пул файловых провайдеров, позволяет
+	// хранить файловые провайдеры предназначенные для различных целей.
+	// Используется только при инициализации системы.
 	FileProviderPool struct {
 		providers providerMap
 	}

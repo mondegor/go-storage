@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	// FileSystem - comment struct.
+	// FileSystem - объект для работы с файлами проекта.
 	FileSystem struct {
 		dirMode    os.FileMode
 		createDirs bool // if not exists

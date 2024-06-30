@@ -17,7 +17,8 @@ const (
 )
 
 type (
-	// FileProvider - comment struct.
+	// FileProvider - файловый провайдер S3,
+	// позволяет читать, сохранять, удалять файлы.
 	FileProvider struct {
 		*ConnAdapter
 		bucketName string

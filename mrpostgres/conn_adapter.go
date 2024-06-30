@@ -17,7 +17,7 @@ const (
 )
 
 type (
-	// ConnAdapter - comment struct.
+	// ConnAdapter - адаптер для работы с Postgres клиентом.
 	ConnAdapter struct {
 		pool *pgxpool.Pool
 		dbExecHelper

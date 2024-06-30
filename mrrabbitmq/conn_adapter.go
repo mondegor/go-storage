@@ -15,7 +15,7 @@ const (
 )
 
 type (
-	// ConnAdapter - comment struct.
+	// ConnAdapter - адаптер для работы с Rabbitmq клиентом.
 	ConnAdapter struct {
 		conn *amqp.Connection
 	}

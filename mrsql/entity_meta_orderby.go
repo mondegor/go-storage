@@ -19,7 +19,8 @@ const (
 )
 
 type (
-	// EntityMetaOrderBy - comment struct.
+	// EntityMetaOrderBy - объект для управления порядком следования записей БД.
+	// Информация о порядке следования считывается из тегов структуры.
 	EntityMetaOrderBy struct {
 		fieldMap    map[string]bool
 		defaultSort mrtype.SortParams

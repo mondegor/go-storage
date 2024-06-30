@@ -16,7 +16,7 @@ const (
 )
 
 type (
-	// ConnAdapter - comment struct.
+	// ConnAdapter - адаптер для работы с Redis клиентом.
 	ConnAdapter struct {
 		conn redis.UniversalClient
 	}

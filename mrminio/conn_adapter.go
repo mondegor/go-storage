@@ -19,7 +19,7 @@ const (
 )
 
 type (
-	// ConnAdapter - comment struct.
+	// ConnAdapter - адаптер для работы с Minio клиентом.
 	ConnAdapter struct {
 		conn          *minio.Client
 		createBuckets bool // if not exists

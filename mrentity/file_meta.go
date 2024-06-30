@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	// FileMeta - comment struct.
+	// FileMeta - метаинформация о файле, позволяет сохранять в БД и читать из неё в виде json.
 	FileMeta struct {
 		Path         string     `json:"path,omitempty"`
 		ContentType  string     `json:"type,omitempty"`

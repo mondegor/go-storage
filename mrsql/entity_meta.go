@@ -9,7 +9,7 @@ import (
 var regexpDbName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 
 type (
-	// EntityMeta - comment struct.
+	// EntityMeta - метаинформация о таблице БД, которую используют сторонние модули.
 	EntityMeta struct {
 		tableName   string
 		primaryName string

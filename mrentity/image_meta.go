@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	// ImageMeta - comment struct.
+	// ImageMeta - метаинформация об изображении, позволяет сохранять в БД и читать из неё в виде json.
 	ImageMeta struct {
 		Path         string     `json:"path,omitempty"`
 		ContentType  string     `json:"type,omitempty"`
