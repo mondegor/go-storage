@@ -25,18 +25,17 @@ type (
 
 	// Options - опции для создания соединения для ConnAdapter.
 	Options struct {
-		Host             string
-		Port             string
-		Database         string
-		Username         string
-		Password         string
-		MaxPoolSize      int
-		ConnAttempts     int
-		ConnTimeout      time.Duration
-		AfterConnectFunc func() any
+		Host         string
+		Port         string
+		Database     string
+		Username     string
+		Password     string
+		MaxPoolSize  int
+		ConnAttempts int
+		ConnTimeout  time.Duration
+		QueryTracer  pgx.QueryTracer
+		AfterConnect func(ctx context.Context, conn *pgx.Conn) error
 	}
-
-	pgxConnectFunc func(ctx context.Context, conn *pgx.Conn) error
 )
 
 // New - создаёт объект ConnAdapter.
@@ -67,16 +66,8 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	cfg.MaxConns = int32(opts.MaxPoolSize)
 	cfg.ConnConfig.ConnectTimeout = opts.ConnTimeout
 	cfg.MaxConnLifetime = opts.ConnTimeout
-
-	if opts.AfterConnectFunc != nil {
-		pgxFunc, ok := opts.AfterConnectFunc().(pgxConnectFunc)
-
-		if !ok {
-			return mrcore.ErrInternalTypeAssertion.New("pgxConnectFunc", opts.AfterConnectFunc())
-		}
-
-		cfg.AfterConnect = pgxFunc
-	}
+	cfg.ConnConfig.Tracer = opts.QueryTracer
+	cfg.AfterConnect = opts.AfterConnect
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
