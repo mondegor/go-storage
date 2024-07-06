@@ -5,6 +5,7 @@
 ### Added
 - Добавлен параметр `mrpostgres.Options.QueryTracer`;
 - Добавлена поддержка типов `float32` и `float64` в `mrsql.EntityMetaUpdate`;
+- Обновлена документация по командам используемых при разработке;
 
 ### Changed
 - Изменился формат у `mrpostgres.Options.AfterConnect`;
