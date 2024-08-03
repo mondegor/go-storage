@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/mondegor/go-webcore/mrlib"
 	"github.com/mondegor/go-webcore/mrtype"
 
 	"github.com/mondegor/go-storage/mrsql"
@@ -14,7 +15,7 @@ import (
 )
 
 type (
-	// SQLBuilderWhere - comment struct.
+	// SQLBuilderWhere - объект для создания SQL условий.
 	SQLBuilderWhere struct{}
 )
 
@@ -23,17 +24,18 @@ func NewSQLBuilderWhere() *SQLBuilderWhere {
 	return &SQLBuilderWhere{}
 }
 
-// JoinAnd - comment method.
+// JoinAnd - возвращает SQL условия соединённые методом AND.
 func (b *SQLBuilderWhere) JoinAnd(conds ...mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPartFunc {
 	return b.join(" AND ", conds)
 }
 
-// JoinOr - comment method.
+// JoinOr - возвращает SQL условия соединённые методом OR.
 func (b *SQLBuilderWhere) JoinOr(conds ...mrstorage.SQLBuilderPartFunc) mrstorage.SQLBuilderPartFunc {
 	return b.join(" OR ", conds)
 }
 
-// Expr - comment method.
+// Expr - возвращает простое условие, например: "field_name BETWEEN 1000 AND 2000".
+// Но если выражение пустое, то возвращается nil.
 func (b *SQLBuilderWhere) Expr(expr string) mrstorage.SQLBuilderPartFunc {
 	if expr == "" {
 		return nil
@@ -44,7 +46,8 @@ func (b *SQLBuilderWhere) Expr(expr string) mrstorage.SQLBuilderPartFunc {
 	}
 }
 
-// ExprWithValue - sample: "UPPER(field_name) = %s".
+// ExprWithValue - возвращает условие с параметром, например: "UPPER(field_name) = %s".
+// Но если выражение пустое, то возвращается nil.
 func (b *SQLBuilderWhere) ExprWithValue(expr string, value any) mrstorage.SQLBuilderPartFunc {
 	if expr == "" {
 		return nil
@@ -55,78 +58,78 @@ func (b *SQLBuilderWhere) ExprWithValue(expr string, value any) mrstorage.SQLBui
 	}
 }
 
-// Equal - comment method.
+// Equal - возвращает строгое условие равенства.
 func (b *SQLBuilderWhere) Equal(name string, value any) mrstorage.SQLBuilderPartFunc {
-	return b.compare(name, value, "=")
+	return b.makeCompare(name, value, "=")
 }
 
-// NotEqual - comment method.
+// NotEqual - возвращает строгое условие неравенства.
 func (b *SQLBuilderWhere) NotEqual(name string, value any) mrstorage.SQLBuilderPartFunc {
-	return b.compare(name, value, "<>")
+	return b.makeCompare(name, value, "<>")
 }
 
-// Less - comment method.
+// Less - возвращает строгое условие меньше.
 func (b *SQLBuilderWhere) Less(name string, value any) mrstorage.SQLBuilderPartFunc {
-	return b.compare(name, value, "<")
+	return b.makeCompare(name, value, "<")
 }
 
-// LessOrEqual - comment method.
+// LessOrEqual - возвращает строгое условие меньше равно.
 func (b *SQLBuilderWhere) LessOrEqual(name string, value any) mrstorage.SQLBuilderPartFunc {
-	return b.compare(name, value, "<=")
+	return b.makeCompare(name, value, "<=")
 }
 
-// Greater - comment method.
+// Greater - возвращает строгое условие больше.
 func (b *SQLBuilderWhere) Greater(name string, value any) mrstorage.SQLBuilderPartFunc {
-	return b.compare(name, value, ">")
+	return b.makeCompare(name, value, ">")
 }
 
-// GreaterOrEqual - comment method.
+// GreaterOrEqual - возвращает строгое условие больше или равно.
 func (b *SQLBuilderWhere) GreaterOrEqual(name string, value any) mrstorage.SQLBuilderPartFunc {
-	return b.compare(name, value, ">=")
+	return b.makeCompare(name, value, ">=")
 }
 
-// FilterEqualString - comment method.
+// FilterEqualString - возвращает условие равенства строки если значение не пустое, иначе возвращается nil.
 func (b *SQLBuilderWhere) FilterEqualString(name, value string) mrstorage.SQLBuilderPartFunc {
 	if value == "" {
 		return nil
 	}
 
-	return b.compare(name, value, "=")
+	return b.makeCompare(name, value, "=")
 }
 
-// FilterEqualInt64 - comment method.
+// FilterEqualInt64 - возвращает условие равенства целого числа если значение не пустое, иначе возвращается nil.
 func (b *SQLBuilderWhere) FilterEqualInt64(name string, value, empty int64) mrstorage.SQLBuilderPartFunc {
 	if value == empty {
 		return nil
 	}
 
-	return b.compare(name, value, "=")
+	return b.makeCompare(name, value, "=")
 }
 
-// FilterEqualUUID - comment method.
+// FilterEqualUUID - возвращает условие равенства UUID если значение не пустое, иначе возвращается nil.
 func (b *SQLBuilderWhere) FilterEqualUUID(name string, value uuid.UUID) mrstorage.SQLBuilderPartFunc {
 	if value == uuid.Nil {
 		return nil
 	}
 
-	return b.compare(name, value, "=")
+	return b.makeCompare(name, value, "=")
 }
 
-// FilterEqualBool - comment method.
+// FilterEqualBool - возвращает условие равенства bool если значение не nil, иначе возвращается nil.
 func (b *SQLBuilderWhere) FilterEqualBool(name string, value *bool) mrstorage.SQLBuilderPartFunc {
 	if value == nil {
 		return nil
 	}
 
-	return b.compare(name, *value, "=")
+	return b.makeCompare(name, *value, "=")
 }
 
-// FilterLike - comment method.
+// FilterLike - возвращает условие LIKE если значение не пустое, иначе возвращается nil.
 func (b *SQLBuilderWhere) FilterLike(name, value string) mrstorage.SQLBuilderPartFunc {
 	return b.FilterLikeFields([]string{name}, value)
 }
 
-// FilterLikeFields - comment method.
+// FilterLikeFields - возвращает условие LIKE для нескольких полей если значение не пустое, иначе возвращается nil.
 func (b *SQLBuilderWhere) FilterLikeFields(names []string, value string) mrstorage.SQLBuilderPartFunc {
 	if value == "" {
 		return nil
@@ -156,7 +159,7 @@ func (b *SQLBuilderWhere) FilterLikeFields(names []string, value string) mrstora
 	}
 }
 
-// FilterRangeInt64 - comment method.
+// FilterRangeInt64 - возвращает интервальное условие для целых чисел если значения Min, Max не пустые, иначе возвращается nil.
 func (b *SQLBuilderWhere) FilterRangeInt64(name string, value mrtype.RangeInt64, empty int64) mrstorage.SQLBuilderPartFunc {
 	if value.Min != empty {
 		if value.Max != empty {
@@ -169,9 +172,31 @@ func (b *SQLBuilderWhere) FilterRangeInt64(name string, value mrtype.RangeInt64,
 			}
 		}
 
-		return b.compare(name, value.Min, ">=")
+		return b.makeCompare(name, value.Min, ">=")
 	} else if value.Max != empty {
-		return b.compare(name, value.Max, "<=")
+		return b.makeCompare(name, value.Max, "<=")
+	}
+
+	return nil
+}
+
+// FilterRangeFloat64 - возвращает интервальное условие для вещественных чисел если значения Min, Max не пустые, иначе возвращается nil.
+func (b *SQLBuilderWhere) FilterRangeFloat64(name string, value mrtype.RangeFloat64, empty, qualityThreshold float64) mrstorage.SQLBuilderPartFunc {
+	if !mrlib.EqualFloat(value.Min, empty, qualityThreshold) {
+		if !mrlib.EqualFloat(value.Max, empty, qualityThreshold) {
+			if value.Min > value.Max {
+				return nil
+			}
+
+			return func(paramNumber int) (string, []any) {
+				return "(" + name + " BETWEEN $" + strconv.Itoa(paramNumber) + " AND $" + strconv.Itoa(paramNumber+1) + ")",
+					[]any{value.Min - qualityThreshold, value.Max + qualityThreshold}
+			}
+		}
+
+		return b.makeCompare(name, value.Min-qualityThreshold, ">=")
+	} else if value.Max != empty {
+		return b.makeCompare(name, value.Max+qualityThreshold, "<=")
 	}
 
 	return nil
@@ -247,7 +272,7 @@ func (b *SQLBuilderWhere) join(separator string, conds []mrstorage.SQLBuilderPar
 	}
 }
 
-func (b *SQLBuilderWhere) compare(name string, value any, sign string) mrstorage.SQLBuilderPartFunc {
+func (b *SQLBuilderWhere) makeCompare(name string, value any, sign string) mrstorage.SQLBuilderPartFunc {
 	return func(paramNumber int) (string, []any) {
 		return name + " " + sign + " $" + strconv.Itoa(paramNumber), []any{value}
 	}

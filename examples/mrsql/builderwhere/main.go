@@ -19,6 +19,7 @@ func main() {
 			bw.NotEqual("not_equal_field1-2", "1-2"),
 			bw.FilterLike("like_field1-3", "1-3"),
 			bw.FilterEqualInt64("equalInt_field1-4", 10000, 0),
+			bw.FilterRangeFloat64("equalInt_field1-5", mrtype.RangeFloat64{Min: 1.34, Max: 2.81}, 0, 0.0001),
 		),
 		bw.JoinAnd(
 			bw.Equal("equal_field2-1", "2-1"),

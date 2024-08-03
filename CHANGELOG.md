@@ -1,7 +1,11 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
-## 2024-07-20
+## 2024-08-03
+### Added
+- Добавлены комментарии для `mrpostgres.SQLBuilderWhere`;
+- Добавлен метод `FilterRangeFloat64` для интерфейса `mrstorage.SQLBuilderWhere` и его реализация;
+
 ### Changed
 - Обновлены зависимости библиотеки;
 

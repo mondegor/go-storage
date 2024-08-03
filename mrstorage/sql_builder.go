@@ -36,6 +36,7 @@ type (
 		FilterLike(name, value string) SQLBuilderPartFunc
 		FilterLikeFields(names []string, value string) SQLBuilderPartFunc
 		FilterRangeInt64(name string, value mrtype.RangeInt64, empty int64) SQLBuilderPartFunc
+		FilterRangeFloat64(name string, value mrtype.RangeFloat64, empty, qualityThreshold float64) SQLBuilderPartFunc
 		// FilterAnyOf - 'values' support only slices else the func returns nil
 		FilterAnyOf(name string, values any) SQLBuilderPartFunc
 	}
