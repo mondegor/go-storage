@@ -14,6 +14,7 @@ import (
 
 const (
 	connectionName = "Postgres"
+	driverName     = "postgres"
 )
 
 type (
@@ -25,6 +26,7 @@ type (
 
 	// Options - опции для создания соединения для ConnAdapter.
 	Options struct {
+		DSN          string // если указано, то Host, Port, Database, Username, Password не используются
 		Host         string
 		Port         string
 		Database     string
@@ -49,16 +51,19 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 		return mrcore.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
 	}
 
-	cfg, err := pgxpool.ParseConfig(
-		fmt.Sprintf(
-			"postgres://%s:%s@%s:%s/%s",
+	if opts.DSN == "" {
+		opts.DSN = fmt.Sprintf(
+			"%s://%s:%s@%s:%s/%s",
+			driverName,
 			opts.Username,
 			opts.Password,
 			opts.Host,
 			opts.Port,
 			opts.Database,
-		),
-	)
+		)
+	}
+
+	cfg, err := pgxpool.ParseConfig(opts.DSN)
 	if err != nil {
 		return err
 	}
