@@ -1,6 +1,11 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-08-11
+### Added
+- Добавлены параметры `mrpostgres.Options.MaxConnLifetime` и `mrpostgres.Options.MaxConnIdleTime`,
+  а также добавлены для них и двух других параметров значения по умолчанию;
+
 ## 2024-08-10
 ### Added
 - Добавлен параметр `mrpostgres.Options.DSN` для указания соединения с БД в виде URL;

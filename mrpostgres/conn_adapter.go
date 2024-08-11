@@ -15,6 +15,11 @@ import (
 const (
 	connectionName = "Postgres"
 	driverName     = "postgres"
+
+	defaultMaxConns        = 4
+	defaultMaxConnLifetime = time.Hour
+	defaultMaxConnIdleTime = 30 * time.Minute
+	defaultConnTimeout     = 60 * time.Second
 )
 
 type (
@@ -26,17 +31,19 @@ type (
 
 	// Options - опции для создания соединения для ConnAdapter.
 	Options struct {
-		DSN          string // если указано, то Host, Port, Database, Username, Password не используются
-		Host         string
-		Port         string
-		Database     string
-		Username     string
-		Password     string
-		MaxPoolSize  int
-		ConnAttempts int
-		ConnTimeout  time.Duration
-		QueryTracer  pgx.QueryTracer
-		AfterConnect func(ctx context.Context, conn *pgx.Conn) error
+		DSN             string // если указано, то Host, Port, Database, Username, Password не используются
+		Host            string
+		Port            string
+		Database        string
+		Username        string
+		Password        string
+		MaxPoolSize     int
+		MaxConnLifetime time.Duration
+		MaxConnIdleTime time.Duration
+		ConnAttempts    int
+		ConnTimeout     time.Duration
+		QueryTracer     pgx.QueryTracer
+		AfterConnect    func(ctx context.Context, conn *pgx.Conn) error
 	}
 )
 
@@ -63,14 +70,31 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 		)
 	}
 
+	if opts.MaxPoolSize == 0 {
+		opts.MaxPoolSize = defaultMaxConns
+	}
+
+	if opts.MaxConnLifetime == 0 {
+		opts.MaxConnLifetime = defaultMaxConnLifetime
+	}
+
+	if opts.MaxConnIdleTime == 0 {
+		opts.MaxConnIdleTime = defaultMaxConnIdleTime
+	}
+
+	if opts.ConnTimeout == 0 {
+		opts.ConnTimeout = defaultConnTimeout
+	}
+
 	cfg, err := pgxpool.ParseConfig(opts.DSN)
 	if err != nil {
 		return err
 	}
 
 	cfg.MaxConns = int32(opts.MaxPoolSize)
+	cfg.MaxConnLifetime = opts.MaxConnLifetime
+	cfg.MaxConnIdleTime = opts.MaxConnIdleTime
 	cfg.ConnConfig.ConnectTimeout = opts.ConnTimeout
-	cfg.MaxConnLifetime = opts.ConnTimeout
 	cfg.ConnConfig.Tracer = opts.QueryTracer
 	cfg.AfterConnect = opts.AfterConnect
 
