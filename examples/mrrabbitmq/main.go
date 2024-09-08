@@ -4,13 +4,12 @@ import (
 	"context"
 
 	"github.com/mondegor/go-webcore/mrlog"
-	"github.com/mondegor/go-webcore/mrlog/mrlogbase"
 
 	"github.com/mondegor/go-storage/mrrabbitmq"
 )
 
 func main() {
-	logger := mrlogbase.New(mrlog.TraceLevel)
+	logger := mrlog.New(mrlog.TraceLevel)
 	ctx := mrlog.WithContext(context.Background(), logger)
 
 	logger.Info().Msg("Create rabbitmq connection")

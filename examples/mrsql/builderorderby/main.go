@@ -6,7 +6,6 @@ import (
 
 	"github.com/mondegor/go-webcore/mrenum"
 	"github.com/mondegor/go-webcore/mrlog"
-	"github.com/mondegor/go-webcore/mrlog/mrlogbase"
 	"github.com/mondegor/go-webcore/mrtype"
 
 	"github.com/mondegor/go-storage/mrpostgres"
@@ -14,7 +13,7 @@ import (
 )
 
 func main() {
-	logger := mrlogbase.New(mrlog.TraceLevel)
+	logger := mrlog.New(mrlog.TraceLevel)
 	ctx := mrlog.WithContext(context.Background(), logger)
 
 	logger.Info().Msg("SAMPLE1:")

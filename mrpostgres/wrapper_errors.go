@@ -5,17 +5,12 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mondegor/go-webcore/mrcore"
 	"github.com/mondegor/go-webcore/mrlog"
 )
 
 func wrapError(err error) error {
-	if errors.Is(err, pgx.ErrNoRows) {
-		return mrcore.ErrStorageNoRowFound.Wrap(err)
-	}
-
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		// Severity: ERROR; Code: 42601; Message syntax error at or near "item_status"

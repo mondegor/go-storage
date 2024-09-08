@@ -5,13 +5,12 @@ import (
 	"time"
 
 	"github.com/mondegor/go-webcore/mrlog"
-	"github.com/mondegor/go-webcore/mrlog/mrlogbase"
 
 	"github.com/mondegor/go-storage/mrredis"
 )
 
 func main() {
-	logger := mrlogbase.New(mrlog.TraceLevel)
+	logger := mrlog.New(mrlog.TraceLevel)
 	ctx := mrlog.WithContext(context.Background(), logger)
 
 	logger.Info().Msg("Create redis connection")

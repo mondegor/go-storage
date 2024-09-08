@@ -2,14 +2,13 @@ package main
 
 import (
 	"github.com/mondegor/go-webcore/mrlog"
-	"github.com/mondegor/go-webcore/mrlog/mrlogbase"
 
 	"github.com/mondegor/go-storage/mrpostgres"
 	"github.com/mondegor/go-storage/mrstorage"
 )
 
 func main() {
-	logger := mrlogbase.New(mrlog.TraceLevel)
+	logger := mrlog.New(mrlog.TraceLevel)
 	cond := mrpostgres.NewSQLBuilderCondition(
 		mrpostgres.NewSQLBuilderWhere(),
 	)

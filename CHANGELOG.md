@@ -1,6 +1,12 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-09-08
+### Changed
+- Из `mrpostgres.wrapError` проверка ошибки `pgx.ErrNoRows` перенесена в `mrpostgres.queryRow.Scan`.
+  А также добавлена обработка ошибки `pgx.ErrTooManyRows`.
+- Поправлены .env переменные под новую версию `mrcmd`;
+
 ## 2024-08-11
 ### Added
 - Добавлены параметры `mrpostgres.Options.MaxConnLifetime` и `mrpostgres.Options.MaxConnIdleTime`,
