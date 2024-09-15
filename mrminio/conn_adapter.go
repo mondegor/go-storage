@@ -28,6 +28,7 @@ type (
 
 	// Options - опции для создания соединения для ConnAdapter.
 	Options struct {
+		DSN      string // если указано, то Host, Port не используются
 		Host     string
 		Port     string
 		UseSSL   bool
@@ -44,14 +45,18 @@ func New(createBuckets bool, mimeTypes *mrlib.MimeTypeList) *ConnAdapter {
 	}
 }
 
-// Connect - comment method.
+// Connect - создаёт соединение с указанными опциями.
 func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	if c.conn != nil {
 		return mrcore.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
 	}
 
+	if opts.DSN == "" {
+		opts.DSN = fmt.Sprintf("%s:%s", opts.Host, opts.Port)
+	}
+
 	conn, err := minio.New(
-		fmt.Sprintf("%s:%s", opts.Host, opts.Port),
+		opts.DSN,
 		&minio.Options{
 			Creds:  credentials.NewStaticV4(opts.User, opts.Password, ""),
 			Secure: opts.UseSSL,
@@ -66,13 +71,13 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	return nil
 }
 
-// Ping - comment method.
+// Ping - проверяет работоспособность соединения.
 func (c *ConnAdapter) Ping(ctx context.Context) error {
 	if c.conn == nil {
 		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
-	// :TODO: возможно есть способ пинга лучше
+	// :TODO: найти способ пинга лучше
 	if _, err := c.conn.BucketExists(ctx, "bucket-ping"); err != nil {
 		if strings.Contains(err.Error(), "connection") {
 			return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
@@ -109,12 +114,12 @@ func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string) (bool, 
 	return true, nil
 }
 
-// Cli - comment method.
+// Cli - возвращается нативный объект, с которым работает данный адаптер.
 func (c *ConnAdapter) Cli() *minio.Client {
 	return c.conn
 }
 
-// Close - comment method.
+// Close - закрывает текущее соединение.
 func (c *ConnAdapter) Close() error {
 	if c.conn == nil {
 		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)

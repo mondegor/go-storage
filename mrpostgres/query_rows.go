@@ -11,12 +11,14 @@ type (
 	}
 )
 
-// Next - comment method.
+// Next - переходит к следующей записи.
+// Если следующей записи не существует, то возвращает false.
 func (qr *queryRows) Next() bool {
 	return qr.rows.Next()
 }
 
-// Scan - comment method.
+// Scan - извлекает значения полученные запросом
+// и присваивает их переданным переменным.
 func (qr *queryRows) Scan(dest ...any) error {
 	if err := qr.rows.Scan(dest...); err != nil {
 		return mrcore.ErrStorageFetchDataFailed.Wrap(err)
@@ -25,7 +27,7 @@ func (qr *queryRows) Scan(dest ...any) error {
 	return nil
 }
 
-// Err - comment method.
+// Err - возвращает ошибку в результате обработки списка переданного в запросе.
 func (qr *queryRows) Err() error {
 	if err := qr.rows.Err(); err != nil {
 		return mrcore.ErrStorageFetchDataFailed.Wrap(err)
@@ -34,7 +36,7 @@ func (qr *queryRows) Err() error {
 	return nil
 }
 
-// Close - comment method.
+// Close - закрывает запрос вернувший список записей.
 func (qr *queryRows) Close() {
 	qr.rows.Close()
 }

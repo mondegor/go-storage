@@ -1,6 +1,14 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-09-15
+### Added
+- Добавлены новые опции для:
+  - `mrpostgres` (`DSN`);
+  - `mrredis` (`ReadTimeout`, `WriteTimeout`, `DSN`);
+  - `mrminio` (`DSN`);
+- Добавлены короткие команды в Makefile, и обновлена инструкция команд.
+
 ## 2024-09-08
 ### Changed
 - Из `mrpostgres.wrapError` проверка ошибки `pgx.ErrNoRows` перенесена в `mrpostgres.queryRow.Scan`.

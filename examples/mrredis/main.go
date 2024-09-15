@@ -16,10 +16,11 @@ func main() {
 	logger.Info().Msg("Create redis connection")
 
 	opts := mrredis.Options{
-		Host:        "127.0.0.1",
-		Port:        "6379",
-		Password:    "123456",
-		ConnTimeout: 10 * time.Second,
+		Host:         "127.0.0.1",
+		Port:         "6379",
+		Password:     "123456",
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	redisAdapter := mrredis.New()

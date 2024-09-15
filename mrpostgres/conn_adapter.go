@@ -31,7 +31,7 @@ type (
 
 	// Options - опции для создания соединения для ConnAdapter.
 	Options struct {
-		DSN             string // если указано, то Host, Port, Database, Username, Password не используются
+		DSN             string // если указано, то Host, Port, Database, Username не используются, но Password более приоритетен если явно указан
 		Host            string
 		Port            string
 		Database        string
@@ -52,7 +52,7 @@ func New() *ConnAdapter {
 	return &ConnAdapter{}
 }
 
-// Connect - comment method.
+// Connect - создаёт соединение с указанными опциями.
 func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	if c.pool != nil {
 		return mrcore.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
@@ -98,6 +98,10 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	cfg.ConnConfig.Tracer = opts.QueryTracer
 	cfg.AfterConnect = opts.AfterConnect
 
+	if opts.Password != "" {
+		cfg.ConnConfig.Password = opts.Password
+	}
+
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
@@ -108,7 +112,7 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	return nil
 }
 
-// Ping - comment method.
+// Ping - проверяет работоспособность соединения.
 func (c *ConnAdapter) Ping(ctx context.Context) error {
 	if c.pool == nil {
 		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
@@ -117,12 +121,12 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 	return c.pool.Ping(ctx)
 }
 
-// Cli - comment method.
+// Cli - возвращается нативный объект, с которым работает данный адаптер.
 func (c *ConnAdapter) Cli() *pgxpool.Pool {
 	return c.pool
 }
 
-// Close - comment method.
+// Close - закрывает текущее соединение.
 func (c *ConnAdapter) Close() error {
 	if c.pool == nil {
 		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)

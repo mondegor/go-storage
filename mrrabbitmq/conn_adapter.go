@@ -34,7 +34,7 @@ func New() *ConnAdapter {
 	return &ConnAdapter{}
 }
 
-// Connect - comment method.
+// Connect - создаёт соединение с указанными опциями.
 func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	if c.conn != nil {
 		return mrcore.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
@@ -58,12 +58,12 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	return nil
 }
 
-// Cli - comment method.
+// Cli - возвращается нативный объект, с которым работает данный адаптер.
 func (c *ConnAdapter) Cli() *amqp.Connection {
 	return c.conn
 }
 
-// Close - comment method.
+// Close - закрывает текущее соединение.
 func (c *ConnAdapter) Close() error {
 	if c.conn == nil {
 		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)

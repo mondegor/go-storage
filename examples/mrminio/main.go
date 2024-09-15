@@ -23,7 +23,7 @@ func main() {
 		Password: "12345678",
 	}
 
-	minioAdapter := mrminio.New(true, mrlib.NewMimeTypeList([]mrlib.MimeType{}))
+	minioAdapter := mrminio.New(true, mrlib.NewMimeTypeList(logger, []mrlib.MimeType{}))
 
 	if err := minioAdapter.Connect(ctx, opts); err != nil {
 		logger.Fatal().Err(err).Msg("minioAdapter.Connect() error")

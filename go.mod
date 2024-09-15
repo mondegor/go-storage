@@ -5,10 +5,10 @@ go 1.22
 require (
 	github.com/bsm/redislock v0.9.4
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.7.0
+	github.com/jackc/pgx/v5 v5.7.1
 	github.com/minio/minio-go/v7 v7.0.76
-	github.com/mondegor/go-sysmess v0.10.12
-	github.com/mondegor/go-webcore v0.21.0
+	github.com/mondegor/go-sysmess v0.11.1
+	github.com/mondegor/go-webcore v0.23.0
 	github.com/prometheus/client_golang v1.20.3
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/v9 v9.6.1
@@ -23,7 +23,7 @@ require (
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/puddle/v2 v2.2.1 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
@@ -39,3 +39,6 @@ require (
 	golang.org/x/text v0.18.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
+
+// replace github.com/mondegor/go-sysmess => ../go-sysmess
+// replace github.com/mondegor/go-webcore => ../go-webcore
