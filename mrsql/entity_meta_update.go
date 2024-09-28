@@ -50,7 +50,7 @@ func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, er
 
 	meta := EntityMetaUpdate{
 		structName: rvt.String(),
-		fieldsInfo: make(map[int]fieldInfo, 0),
+		fieldsInfo: make(map[int]fieldInfo),
 	}
 
 	for i, cnt := 0, rvt.NumField(); i < cnt; i++ {

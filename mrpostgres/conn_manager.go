@@ -8,7 +8,7 @@ import (
 	"github.com/mondegor/go-storage/mrstorage"
 )
 
-// ConnManager - Менеджер транзакций.
+// ConnManager - менеджер транзакций.
 type (
 	ConnManager struct {
 		conn *ConnAdapter
@@ -22,7 +22,7 @@ func NewConnManager(conn *ConnAdapter) *ConnManager {
 	}
 }
 
-// Conn - Возвращает соединение с PostgreSQL.
+// Conn - возвращает соединение с PostgreSQL или транзакцию, если она была открыта.
 func (m *ConnManager) Conn(ctx context.Context) mrstorage.DBConn {
 	if tx := ctxTransaction(ctx); tx != nil {
 		return tx
@@ -31,7 +31,12 @@ func (m *ConnManager) Conn(ctx context.Context) mrstorage.DBConn {
 	return m.conn
 }
 
-// Do - Запуск команды в транзакции.
+// ConnAdapter - возвращает соединение с PostgreSQL.
+func (m *ConnManager) ConnAdapter() *ConnAdapter {
+	return m.conn
+}
+
+// Do - запускает задачу с запросом в транзакции.
 // Пытается запустить в текущей транзакции, если ее нет, создает новую транзакцию.
 func (m *ConnManager) Do(ctx context.Context, job func(ctx context.Context) error) error {
 	if tx := ctxTransaction(ctx); tx != nil {

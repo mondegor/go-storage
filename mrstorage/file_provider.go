@@ -8,6 +8,18 @@ import (
 )
 
 type (
+	// FileProvider - файловый провайдер.
+	FileProvider interface {
+		FileProviderConn
+		FileProviderAPI
+	}
+
+	// FileProviderConn - управление открытым соединением файлового провайдера.
+	FileProviderConn interface {
+		Ping(ctx context.Context) error
+		Close() error
+	}
+
 	// FileProviderAPI - файловый провайдер с возможностью загрузки, скачивания, удаления файла.
 	FileProviderAPI interface {
 		Info(ctx context.Context, filePath string) (mrtype.FileInfo, error)

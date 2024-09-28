@@ -2,8 +2,9 @@ package mrminio
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
+	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -72,22 +73,28 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 }
 
 // Ping - проверяет работоспособность соединения.
-func (c *ConnAdapter) Ping(ctx context.Context) error {
+func (c *ConnAdapter) Ping(_ context.Context) error {
 	if c.conn == nil {
 		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
-	// :TODO: найти способ пинга лучше
-	if _, err := c.conn.BucketExists(ctx, "bucket-ping"); err != nil {
-		if strings.Contains(err.Error(), "connection") {
-			return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
-		}
+	// TODO: желательно вызывать cancel(), если внешний контекст отменился, без этого HealthCheck вылетит по таймауту только через 3 секунды
+
+	cancel, err := c.conn.HealthCheck(time.Hour) // 1 час - нужно чтобы внутренняя горутина гарантирована не вызвалась
+	if err != nil {
+		return mrcore.ErrStorageConnectionIsBusy.Wrap(err, connectionName)
+	}
+	defer cancel()
+
+	if c.conn.IsOffline() {
+		return mrcore.ErrStorageConnectionFailed.Wrap(errors.New("expected status 'online' but found 'offline'"), connectionName)
 	}
 
 	return nil
 }
 
-// InitBucket - comment method.
+// InitBucket - инициализирует бакет: проверяет что он существует, и если нет,
+// то или создаёт его (если разрешено) или выдаёт ошибку.
 func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string) (bool, error) {
 	exists, err := c.conn.BucketExists(ctx, bucketName)
 	if err != nil {

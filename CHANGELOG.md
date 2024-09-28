@@ -1,13 +1,26 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-09-28
+### Added
+- Добавлен интерфейс `mrstorage.FileProvider` расширяющий `FileProviderAPI`
+  с возможностью проверки работоспособности провайдера и закрытия соединения.
+- Для `mrstorage.FileProviderPool` добавлены методы `Ping()`, `Close()`,
+  а для `mrfilestorage.FileProvider` добавлен метод `Ping()`;
+- Добавлен пакет `mrtests/helpers` используемый в тестировании системы с поддержкой `testcontainers`;
+
+### Changed
+- Доработан `Ping()` для `mrminio.ConnAdapter`;
+- Поправлен `.editorconfig`, добавлены `*.proto`, `*.mk`;
+- Удалена нулевая ёмкость у map;
+
 ## 2024-09-15
 ### Added
 - Добавлены новые опции для:
   - `mrpostgres` (`DSN`);
   - `mrredis` (`ReadTimeout`, `WriteTimeout`, `DSN`);
   - `mrminio` (`DSN`);
-- Добавлены короткие команды в Makefile, и обновлена инструкция команд.
+- Добавлены короткие команды в Makefile, обновлена инструкция команд.
 
 ## 2024-09-08
 ### Changed

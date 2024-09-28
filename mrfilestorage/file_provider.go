@@ -2,16 +2,19 @@ package mrfilestorage
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/mondegor/go-webcore/mrtype"
 )
 
 const (
 	providerName = "FileStorage"
+	testFile     = "testFile-d6b6943c-e1b2-4625-b133-9805a5cf5f8d"
 )
 
 type (
@@ -20,6 +23,7 @@ type (
 	FileProvider struct {
 		fs      *FileSystem
 		rootDir string
+		muPing  sync.Mutex
 	}
 )
 
@@ -115,7 +119,38 @@ func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
 		return err
 	}
 
-	return os.Remove(fp.rootDir + filePath)
+	if err := os.Remove(fp.rootDir + filePath); err != nil {
+		return fp.wrapError(err)
+	}
+
+	return nil
+}
+
+// Ping - проверяет возможность работы с файлами.
+func (fp *FileProvider) Ping(ctx context.Context) error {
+	fp.traceCmd(ctx, "Ping", testFile)
+
+	fp.muPing.Lock()
+	defer fp.muPing.Unlock()
+
+	if dst, err := os.Create(fp.rootDir + testFile); err != nil {
+		if !errors.Is(err, os.ErrExist) {
+			return fp.wrapError(err)
+		}
+	} else if err = dst.Close(); err != nil {
+		return fp.wrapError(err)
+	}
+
+	if err := os.Remove(fp.rootDir + testFile); err != nil {
+		return fp.wrapError(err)
+	}
+
+	return nil
+}
+
+// Close - закрывает текущее соединение.
+func (fp *FileProvider) Close() error {
+	return nil
 }
 
 func (fp *FileProvider) openFile(_ context.Context, filePath string) (*os.File, error) {

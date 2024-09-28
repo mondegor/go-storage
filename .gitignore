@@ -4,5 +4,5 @@
 .vscode
 
 /.env
-/Makefile.loc
+/Makefile.mk
 /test-coverage-full.html

@@ -118,7 +118,18 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
-	return c.pool.Ping(ctx)
+	if err := c.pool.Ping(ctx); err != nil {
+		return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
+	}
+
+	var maxValue uint64
+
+	row := c.pool.QueryRow(ctx, `SELECT 18446744073709551615`)
+	if err := row.Scan(&maxValue); err != nil {
+		return mrcore.ErrStorageFetchDataFailed.Wrap(err)
+	}
+
+	return nil
 }
 
 // Cli - возвращается нативный объект, с которым работает данный адаптер.

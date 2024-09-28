@@ -50,7 +50,7 @@ func NewEntityMetaOrderBy(ctx context.Context, entity any) (*EntityMetaOrderBy, 
 	debugInfo := ""
 
 	meta := EntityMetaOrderBy{
-		fieldMap: make(map[string]bool, 0),
+		fieldMap: make(map[string]bool),
 	}
 
 	for i, cnt := 0, rvt.NumField(); i < cnt; i++ {

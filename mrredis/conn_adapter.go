@@ -2,6 +2,7 @@ package mrredis
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 
 const (
 	connectionName = "Redis"
+	testKey        = "testKey-d6b6943c-e1b2-4625-b133-9805a5cf5f8d"
 
 	defaultReadTimeout  = 5 * time.Second
 	defaultWriteTimeout = 5 * time.Second
@@ -94,14 +96,25 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
-	if _, err := c.conn.Ping(ctx).Result(); err != nil {
+	ping := c.conn.Ping(ctx)
+
+	if err := ping.Err(); err != nil {
 		return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
+	}
+
+	if ping.Val() != "PONG" {
+		return mrcore.ErrStorageQueryFailed.Wrap(errors.New("redis unexpected ping response"))
+	}
+
+	get := c.conn.Get(ctx, testKey)
+	if err := get.Err(); err != nil && !errors.Is(err, redis.Nil) {
+		return mrcore.ErrStorageQueryFailed.Wrap(err)
 	}
 
 	return nil
 }
 
-// Cli - comment method.
+// Cli - возвращается нативный объект, с которым работает данный адаптер.
 func (c *ConnAdapter) Cli() redis.UniversalClient {
 	return c.conn
 }
