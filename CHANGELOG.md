@@ -1,6 +1,13 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-09-29
+### Added
+- Добавлен `gomigrate.LoggerAdapter` для работы с логами golang-migrate.
+
+### Changed
+- Добавлена директория `.cache` в `.gitignore`, скорректирована документация;
+
 ## 2024-09-28
 ### Added
 - Добавлен интерфейс `mrstorage.FileProvider` расширяющий `FileProviderAPI`
@@ -26,7 +33,7 @@
 ### Changed
 - Из `mrpostgres.wrapError` проверка ошибки `pgx.ErrNoRows` перенесена в `mrpostgres.queryRow.Scan`.
   А также добавлена обработка ошибки `pgx.ErrTooManyRows`.
-- Поправлены .env переменные под новую версию `mrcmd`;
+- Поправлены `.env` переменные под новую версию `mrcmd`;
 
 ## 2024-08-11
 ### Added

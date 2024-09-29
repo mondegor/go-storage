@@ -4,13 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mondegor/go-storage/mrtests/helpers"
-
 	"github.com/mondegor/go-webcore/mrlib"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrminio"
+	"github.com/mondegor/go-storage/mrtests/helpers"
 )
 
 const (

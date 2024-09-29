@@ -4,11 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mondegor/go-storage/mrtests/helpers"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrredis"
+	"github.com/mondegor/go-storage/mrtests/helpers"
 )
 
 const (
