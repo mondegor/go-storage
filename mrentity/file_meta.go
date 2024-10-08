@@ -69,8 +69,8 @@ func FileMetaToInfo(meta FileMeta, mime *mrlib.MimeTypeList) mrtype.FileInfo {
 		// Name:         path.Base(meta.Path),
 		Path:      meta.Path,
 		Size:      meta.Size,
-		CreatedAt: mrtype.TimePointerCopy(meta.CreatedAt),
-		UpdatedAt: mrtype.TimePointerCopy(meta.UpdatedAt),
+		CreatedAt: mrtype.CopyTimePointer(meta.CreatedAt),
+		UpdatedAt: mrtype.CopyTimePointer(meta.UpdatedAt),
 	}
 }
 

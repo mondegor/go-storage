@@ -22,9 +22,9 @@ func NewSQLBuilderLimit(maxSize uint64) *SQLBuilderLimit {
 
 // OffsetLimit - comment method.
 func (b *SQLBuilderLimit) OffsetLimit(index, size uint64) mrstorage.SQLBuilderPartFunc {
-	if b.maxSize > 0 && (size < 1 || size > b.maxSize) {
+	if b.maxSize > 0 && (size == 0 || size > b.maxSize) {
 		size = b.maxSize
-	} else if size < 1 {
+	} else if size == 0 {
 		return nil
 	}
 

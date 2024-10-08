@@ -1,6 +1,24 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-10-09
+### Added
+- Добавлен пакет `mrpostgres/db` для формирования часто встречающихся запросов.
+  В него вошли следующие компоненты:
+  - `ColumnFetcher`;
+  - `FieldFetcher`;
+  - `FieldUpdater`;
+  - `FieldWithVersionUpdater`;
+  - `RowExistsChecker`;
+  - `RowSoftDeleter`;
+  - `TotalRowsFetcher`;
+
+### Changed
+- Все проверки соответствия структур интерфейсам перенесены в тесты, а также добавлены новые тесты для этого вида проверок;
+
+### Removed
+- Удалёны `ZeronullInt32` и `ZeronullInt64`, вместо них добавлен `ZeronullUint64` предназначенный для числовых идентификаторов;
+
 ## 2024-09-29
 ### Added
 - Добавлен `gomigrate.LoggerAdapter` для работы с логами golang-migrate.

@@ -29,9 +29,6 @@ type (
 	}
 )
 
-// Make sure the DBCollector conforms with the prometheus.Collector interface.
-var _ prometheus.Collector = (*DBCollector)(nil)
-
 // NewDBCollector - создаёт объект DBCollector.
 func NewDBCollector(namespace string, providerFunc func() mrstorage.DBStatProvider, labels map[string]string) *DBCollector {
 	fqName := func(name string) string {
@@ -102,7 +99,7 @@ func NewDBCollector(namespace string, providerFunc func() mrstorage.DBStatProvid
 		),
 		maxLifetimeDestroyCountDesc: prometheus.NewDesc(
 			fqName("max_lifetime_destroy_count"),
-			"Cumulative count of connections destroyed because they exceeded MaxConnLifetime. ",
+			"Cumulative count of connections destroyed because they exceeded MaxConnLifetime.",
 			nil,
 			labels,
 		),

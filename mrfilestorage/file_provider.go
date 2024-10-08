@@ -167,7 +167,7 @@ func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) mrtyp
 		Name:        fileInfo.Name(),
 		Path:        filePath,
 		Size:        fileInfo.Size(),
-		UpdatedAt:   mrtype.TimeToPointer(fileInfo.ModTime()),
+		UpdatedAt:   mrtype.CastTimeToPointer(fileInfo.ModTime()),
 	}
 }
 
