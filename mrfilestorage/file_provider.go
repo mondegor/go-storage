@@ -166,7 +166,7 @@ func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) mrtyp
 		ContentType: fp.fs.MimeTypes().ContentTypeByFileName(filePath),
 		Name:        fileInfo.Name(),
 		Path:        filePath,
-		Size:        fileInfo.Size(),
+		Size:        uint64(fileInfo.Size()),
 		UpdatedAt:   mrtype.CastTimeToPointer(fileInfo.ModTime()),
 	}
 }

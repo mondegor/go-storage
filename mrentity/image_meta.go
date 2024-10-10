@@ -16,9 +16,9 @@ type (
 		Path         string     `json:"path,omitempty"`
 		ContentType  string     `json:"type,omitempty"`
 		OriginalName string     `json:"origin,omitempty"`
-		Width        int32      `json:"width,omitempty"`
-		Height       int32      `json:"height,omitempty"`
-		Size         int64      `json:"size,omitempty"`
+		Width        uint64     `json:"width,omitempty"`
+		Height       uint64     `json:"height,omitempty"`
+		Size         uint64     `json:"size,omitempty"`
 		CreatedAt    *time.Time `json:"created,omitempty"`
 		UpdatedAt    *time.Time `json:"updated,omitempty"`
 	}

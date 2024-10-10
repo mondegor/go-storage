@@ -94,12 +94,18 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 	fp.traceCmd(ctx, "Upload", file.Path)
 
+	fileSize := int64(file.Size)
+
+	if fileSize < -1 {
+		fileSize = -1 // -1 - calculating size
+	}
+
 	_, err := fp.conn.PutObject(
 		ctx,
 		fp.bucketName,
 		file.Path,
 		file.Body,
-		file.Size, // -1 - calculating size
+		fileSize,
 		minio.PutObjectOptions{
 			ContentType:        fp.getContentType(file.ContentType, file.Path),
 			ContentDisposition: fp.getContentDisposition(file.OriginalName),
@@ -144,7 +150,7 @@ func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) mrtype.FileInfo {
 		OriginalName: fp.parseOriginalName(info.Metadata.Get("Content-Disposition")),
 		Name:         path.Base(info.Key),
 		Path:         info.Key,
-		Size:         info.Size,
+		Size:         uint64(info.Size),
 		UpdatedAt:    mrtype.CastTimeToPointer(info.LastModified),
 	}
 }

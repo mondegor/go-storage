@@ -1,6 +1,6 @@
 module github.com/mondegor/go-storage
 
-go 1.22.0
+go 1.22.6
 
 require (
 	github.com/bsm/redislock v0.9.4
@@ -9,8 +9,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/minio/minio-go/v7 v7.0.77
-	github.com/mondegor/go-sysmess v0.11.5
-	github.com/mondegor/go-webcore v0.25.0
+	github.com/mondegor/go-sysmess v0.11.6
+	github.com/mondegor/go-webcore v0.25.1
 	github.com/prometheus/client_golang v1.20.4
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/v9 v9.6.1
@@ -19,7 +19,7 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/minio v0.33.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.33.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.33.0
-	golang.org/x/exp v0.0.0-20241004190924-225e2abe05e6
+	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
 )
 
 require (
@@ -29,7 +29,7 @@ require (
 	github.com/ClickHouse/ch-go v0.62.0 // indirect
 	github.com/ClickHouse/clickhouse-go/v2 v2.29.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
