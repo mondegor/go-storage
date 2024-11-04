@@ -2,7 +2,6 @@ package mrpostgres
 
 import (
 	"github.com/jackc/pgx/v5"
-	"github.com/mondegor/go-webcore/mrcore"
 )
 
 type (
@@ -21,7 +20,7 @@ func (qr *queryRows) Next() bool {
 // и присваивает их переданным переменным.
 func (qr *queryRows) Scan(dest ...any) error {
 	if err := qr.rows.Scan(dest...); err != nil {
-		return mrcore.ErrStorageFetchDataFailed.Wrap(err)
+		return wrapErrorFetchDataFailed(err)
 	}
 
 	return nil
@@ -30,7 +29,7 @@ func (qr *queryRows) Scan(dest ...any) error {
 // Err - возвращает ошибку в результате обработки списка переданного в запросе.
 func (qr *queryRows) Err() error {
 	if err := qr.rows.Err(); err != nil {
-		return mrcore.ErrStorageFetchDataFailed.Wrap(err)
+		return wrapErrorFetchDataFailed(err)
 	}
 
 	return nil

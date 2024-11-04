@@ -1,7 +1,6 @@
 package mrsql
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -34,10 +33,9 @@ type (
 )
 
 // NewEntityMetaOrderBy - создаёт объект EntityMetaOrderBy.
-// WARNING: use only when starting the main process.
-func NewEntityMetaOrderBy(ctx context.Context, entity any) (*EntityMetaOrderBy, error) {
+func NewEntityMetaOrderBy(logger mrlog.Logger, entity any) (*EntityMetaOrderBy, error) {
 	rvt := reflect.TypeOf(entity)
-	logger := mrlog.Ctx(ctx).With().Str("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaOrderBy, rvt.String())).Logger()
+	logger = logger.With().Str("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaOrderBy, rvt.String())).Logger()
 
 	for rvt.Kind() == reflect.Pointer {
 		rvt = rvt.Elem()
@@ -92,19 +90,21 @@ func NewEntityMetaOrderBy(ctx context.Context, entity any) (*EntityMetaOrderBy, 
 		}
 	}
 
-	logger.Debug().Msg(debugInfo)
+	if debugInfo != "" {
+		logger.Debug().Msg(debugInfo)
+	}
 
 	return &meta, nil
 }
 
-// CheckField - comment method.
+// CheckField - проверяет зарегистрировано ли указанное поле в распарсенной структуре.
 func (m *EntityMetaOrderBy) CheckField(name string) bool {
 	_, ok := m.fieldMap[name]
 
 	return ok
 }
 
-// DefaultSort - comment method.
+// DefaultSort - возвращает данные о сортировке по умолчанию.
 func (m *EntityMetaOrderBy) DefaultSort() mrtype.SortParams {
 	return m.defaultSort
 }

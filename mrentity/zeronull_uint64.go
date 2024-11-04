@@ -12,21 +12,21 @@ type (
 )
 
 // Scan implements the Scanner interface.
-func (n *ZeronullUint64) Scan(value any) error {
+func (e *ZeronullUint64) Scan(value any) error {
 	if value == nil {
-		*n = 0
+		*e = 0
 
 		return nil
 	}
 
 	if val, ok := value.(uint64); ok {
-		*n = ZeronullUint64(val)
+		*e = ZeronullUint64(val)
 
 		return nil
 	}
 
 	if val, ok := value.(uint32); ok {
-		*n = ZeronullUint64(val)
+		*e = ZeronullUint64(val)
 
 		return nil
 	}
@@ -36,7 +36,7 @@ func (n *ZeronullUint64) Scan(value any) error {
 			return mrcore.ErrInternalInvalidType.New("int64 < 0", "int64 >= 0")
 		}
 
-		*n = ZeronullUint64(val)
+		*e = ZeronullUint64(val)
 
 		return nil
 	}
@@ -46,7 +46,7 @@ func (n *ZeronullUint64) Scan(value any) error {
 			return mrcore.ErrInternalInvalidType.New("int32 < 0", "int32 >= 0")
 		}
 
-		*n = ZeronullUint64(val)
+		*e = ZeronullUint64(val)
 
 		return nil
 	}
@@ -55,10 +55,10 @@ func (n *ZeronullUint64) Scan(value any) error {
 }
 
 // Value implements the driver.Valuer interface.
-func (n ZeronullUint64) Value() (driver.Value, error) {
-	if n == 0 {
+func (e ZeronullUint64) Value() (driver.Value, error) {
+	if e == 0 {
 		return nil, nil //nolint:nilnil
 	}
 
-	return uint64(n), nil
+	return uint64(e), nil
 }

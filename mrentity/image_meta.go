@@ -25,21 +25,21 @@ type (
 )
 
 // Empty - проверяет, что объект пустой.
-func (n *ImageMeta) Empty() bool {
-	return n.Path == "" &&
-		n.OriginalName == ""
+func (e *ImageMeta) Empty() bool {
+	return e.Path == "" &&
+		e.OriginalName == ""
 }
 
 // Scan implements the Scanner interface.
-func (n *ImageMeta) Scan(value any) error {
+func (e *ImageMeta) Scan(value any) error {
 	if value == nil {
-		*n = ImageMeta{}
+		*e = ImageMeta{}
 
 		return nil
 	}
 
 	if val, ok := value.(string); ok {
-		if err := json.Unmarshal([]byte(val), n); err != nil {
+		if err := json.Unmarshal([]byte(val), e); err != nil {
 			return mrcore.ErrInternalTypeAssertion.Wrap(err, "ImageMeta", value)
 		}
 
@@ -50,12 +50,12 @@ func (n *ImageMeta) Scan(value any) error {
 }
 
 // Value implements the driver.Valuer interface.
-func (n ImageMeta) Value() (driver.Value, error) {
-	if n.Empty() {
+func (e ImageMeta) Value() (driver.Value, error) {
+	if e.Empty() {
 		return nil, nil //nolint:nilnil
 	}
 
-	return json.Marshal(n)
+	return json.Marshal(e)
 }
 
 // ImageMetaToInfo - преобразование данных изображения предназначенных

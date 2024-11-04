@@ -1,9 +1,9 @@
 package mrsql
 
 import (
-	"context"
 	"fmt"
 	"reflect"
+	"regexp"
 	"time"
 
 	"github.com/mondegor/go-webcore/mrcore"
@@ -32,11 +32,12 @@ type (
 	}
 )
 
+var regexpDbName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
+
 // NewEntityMetaUpdate - создаёт объект EntityMetaUpdate.
-// WARNING: use only when starting the main process.
-func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, error) {
+func NewEntityMetaUpdate(logger mrlog.Logger, entity any) (*EntityMetaUpdate, error) {
 	rvt := reflect.TypeOf(entity)
-	logger := mrlog.Ctx(ctx).With().Str("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaUpdate, rvt.String())).Logger()
+	logger = logger.With().Str("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaUpdate, rvt.String())).Logger()
 
 	for rvt.Kind() == reflect.Pointer {
 		rvt = rvt.Elem()
@@ -96,7 +97,9 @@ func NewEntityMetaUpdate(ctx context.Context, entity any) (*EntityMetaUpdate, er
 		}
 	}
 
-	logger.Debug().Msg(debugInfo)
+	if debugInfo != "" {
+		logger.Debug().Msg(debugInfo)
+	}
 
 	return &meta, nil
 }
@@ -131,7 +134,7 @@ func parseTagUpdate(rvt reflect.Type, value, dbName string) (string, error) {
 	return dbName, nil
 }
 
-// FieldsForUpdate - comment method.
+// FieldsForUpdate - возвращает список полей и их значения для использования их при формировании SQL запроса.
 func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) {
 	rv := reflect.ValueOf(entity)
 
@@ -139,12 +142,12 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 		rv = rv.Elem()
 	}
 
-	if rv.Type().String() != m.structName {
-		return nil, nil, mrcore.ErrInternalInvalidType.New(rv.Type().String(), m.structName)
-	}
-
 	if !rv.IsValid() {
 		return nil, nil, mrcore.ErrInternal.New().WithAttr("reflect.entity", rv)
+	}
+
+	if rv.Type().String() != m.structName {
+		return nil, nil, mrcore.ErrInternalInvalidType.New(rv.Type().String(), m.structName)
 	}
 
 	fields := make([]string, 0, len(m.fieldsInfo))

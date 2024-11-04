@@ -126,7 +126,7 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 
 	row := c.pool.QueryRow(ctx, `SELECT 18446744073709551615`)
 	if err := row.Scan(&maxValue); err != nil {
-		return mrcore.ErrStorageFetchDataFailed.Wrap(err)
+		return wrapErrorFetchDataFailed(err)
 	}
 
 	return nil

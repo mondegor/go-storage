@@ -23,21 +23,21 @@ type (
 )
 
 // Empty - проверяет, что объект пустой.
-func (n *FileMeta) Empty() bool {
-	return n.Path == "" &&
-		n.OriginalName == ""
+func (e *FileMeta) Empty() bool {
+	return e.Path == "" &&
+		e.OriginalName == ""
 }
 
 // Scan implements the Scanner interface.
-func (n *FileMeta) Scan(value any) error {
+func (e *FileMeta) Scan(value any) error {
 	if value == nil {
-		*n = FileMeta{}
+		*e = FileMeta{}
 
 		return nil
 	}
 
 	if val, ok := value.(string); ok {
-		if err := json.Unmarshal([]byte(val), n); err != nil {
+		if err := json.Unmarshal([]byte(val), e); err != nil {
 			return mrcore.ErrInternalTypeAssertion.Wrap(err, "FileMeta", value)
 		}
 
@@ -48,12 +48,12 @@ func (n *FileMeta) Scan(value any) error {
 }
 
 // Value implements the driver.Valuer interface.
-func (n FileMeta) Value() (driver.Value, error) {
-	if n.Empty() {
+func (e FileMeta) Value() (driver.Value, error) {
+	if e.Empty() {
 		return nil, nil //nolint:nilnil
 	}
 
-	return json.Marshal(n)
+	return json.Marshal(e)
 }
 
 // FileMetaToInfo - преобразование данных файла предназначенных

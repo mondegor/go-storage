@@ -1,42 +1,43 @@
 package mrsql
 
 import (
-	"regexp"
-
-	"github.com/mondegor/go-storage/mrstorage"
+	"github.com/mondegor/go-webcore/mrlog"
 )
-
-var regexpDbName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 
 type (
-	// EntityMeta - метаинформация о таблице БД, которую используют сторонние модули.
+	// EntityMeta - объект для управления динамическим обновлением записей в БД.
+	// Информация об обновлении считывается из тегов структуры.
 	EntityMeta struct {
-		tableName   string
-		primaryName string
-		where       mrstorage.SQLBuilderPart
+		metaUpdate  *EntityMetaUpdate
+		metaOrderBy *EntityMetaOrderBy
 	}
 )
 
-// NewEntityMeta - создаёт объект EntityMeta.
-func NewEntityMeta(tableName, primaryName string, where mrstorage.SQLBuilderPart) *EntityMeta {
-	return &EntityMeta{
-		tableName:   tableName,
-		primaryName: primaryName,
-		where:       where,
+// ParseEntity - парсит указанную структуру entity и на основе её тегов
+// создаёт объекты EntityMetaUpdate и EntityMetaOrderBy.
+func ParseEntity(logger mrlog.Logger, entity any) (EntityMeta, error) {
+	metaUpdate, err := NewEntityMetaUpdate(logger, entity)
+	if err != nil {
+		return EntityMeta{}, err
 	}
+
+	metaOrderBy, err := NewEntityMetaOrderBy(logger, entity)
+	if err != nil {
+		return EntityMeta{}, err
+	}
+
+	return EntityMeta{
+		metaUpdate:  metaUpdate,
+		metaOrderBy: metaOrderBy,
+	}, nil
 }
 
-// TableName - comment method.
-func (e *EntityMeta) TableName() string {
-	return e.tableName
+// MetaUpdate - возвращает метаинформацию об обновлении полей из распарсенной структуры.
+func (e *EntityMeta) MetaUpdate() *EntityMetaUpdate {
+	return e.metaUpdate
 }
 
-// PrimaryName - comment method.
-func (e *EntityMeta) PrimaryName() string {
-	return e.primaryName
-}
-
-// Condition - comment method.
-func (e *EntityMeta) Condition() mrstorage.SQLBuilderPart {
-	return e.where
+// MetaOrderBy - возвращает метаинформацию о сортировке полей из распарсенной структуры.
+func (e *EntityMeta) MetaOrderBy() *EntityMetaOrderBy {
+	return e.metaOrderBy
 }

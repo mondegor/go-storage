@@ -19,8 +19,6 @@ type (
 )
 
 func (e *dbExecHelper) query(ctx context.Context, conn pgxQuery, sql string, args ...any) (*queryRows, error) {
-	traceQuery(ctx, sql)
-
 	rows, err := conn.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, wrapError(err)
@@ -32,16 +30,12 @@ func (e *dbExecHelper) query(ctx context.Context, conn pgxQuery, sql string, arg
 }
 
 func (e *dbExecHelper) queryRow(ctx context.Context, conn pgxQuery, sql string, args ...any) *queryRow {
-	traceQuery(ctx, sql)
-
 	return &queryRow{
 		row: conn.QueryRow(ctx, sql, args...),
 	}
 }
 
 func (e *dbExecHelper) exec(ctx context.Context, conn pgxQuery, sql string, args ...any) error {
-	traceQuery(ctx, sql)
-
 	commandTag, err := conn.Exec(ctx, sql, args...)
 	if err != nil {
 		return wrapError(err)

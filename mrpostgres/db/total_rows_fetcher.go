@@ -25,7 +25,7 @@ func NewTotalRowsFetcher[CountRows constraints.Integer](client mrstorage.DBConnM
 }
 
 // Fetch - возвращает кол-ва записей в таблице по указанному условию.
-func (r TotalRowsFetcher[CountRows]) Fetch(ctx context.Context, where mrstorage.SQLBuilderPart) (CountRows, error) {
+func (r TotalRowsFetcher[CountRows]) Fetch(ctx context.Context, where mrstorage.SQLPart) (CountRows, error) {
 	whereStr, whereArgs := where.WithPrefix(" WHERE ").ToSQL()
 
 	var total CountRows
