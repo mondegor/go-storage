@@ -9,6 +9,17 @@ func MergeArgs(args ...[]any) []any {
 		total += len(args[i])
 	}
 
+	if total == 0 {
+		return nil
+	}
+
+	// оптимизация, когда не требуется объединения
+	for i := range args {
+		if len(args[i]) == total {
+			return args[i]
+		}
+	}
+
 	mergedArgs := make([]any, total)
 	n := 0
 

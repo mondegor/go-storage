@@ -28,12 +28,12 @@ func NewRowExistsChecker[RowID any](
 
 // IsExist - проверяет существование записи по указанному значению поля в таблице.
 // result: nil - exists, ErrStorageNoRowFound - not exists, error - query error
-func (r RowExistsChecker[RowID]) IsExist(ctx context.Context, id RowID) error {
+func (re RowExistsChecker[RowID]) IsExist(ctx context.Context, id RowID) error {
 	var value uint32
 
-	err := r.client.Conn(ctx).QueryRow(
+	err := re.client.Conn(ctx).QueryRow(
 		ctx,
-		r.sqlIsExistValue,
+		re.sqlIsExistValue,
 		id,
 	).Scan(
 		&value,

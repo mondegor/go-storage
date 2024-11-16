@@ -26,10 +26,10 @@ func NewRowSoftDeleter[RowID any](
 }
 
 // Delete - помечает указанную запись в качестве удалённой, если такая существует.
-func (r RowSoftDeleter[RowID]) Delete(ctx context.Context, id RowID) error {
-	return r.client.Conn(ctx).Exec(
+func (re RowSoftDeleter[RowID]) Delete(ctx context.Context, id RowID) error {
+	return re.client.Conn(ctx).Exec(
 		ctx,
-		r.sqlSoftDeleteRow,
+		re.sqlSoftDeleteRow,
 		id,
 	)
 }

@@ -27,14 +27,49 @@ func TestMergeArgs(t *testing.T) {
 		{
 			name: "test 2",
 			args: nil,
-			want: []any{},
+			want: nil,
 		},
 		{
 			name: "test 3",
 			args: [][]any{
 				{},
+				{1, 2, 3},
+				{},
+				nil,
 			},
-			want: []any{},
+			want: []any{1, 2, 3},
+		},
+		{
+			name: "test 4",
+			args: [][]any{
+				{},
+			},
+			want: nil,
+		},
+		{
+			name: "test 5",
+			args: [][]any{
+				nil,
+			},
+			want: nil,
+		},
+		{
+			name: "test 6",
+			args: [][]any{
+				nil,
+				{},
+				{},
+			},
+			want: nil,
+		},
+		{
+			name: "test 7",
+			args: [][]any{
+				{},
+				nil,
+				{},
+			},
+			want: nil,
 		},
 	}
 	for _, tt := range tests {

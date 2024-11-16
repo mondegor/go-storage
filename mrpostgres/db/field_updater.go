@@ -28,15 +28,15 @@ func NewFieldUpdater[RowID, FieldValue any](
 
 // Fetch - возвращает значение поля для указанной записи в таблице.
 // result: nil - exists, ErrStorageNoRowFound - not exists, error - query error.
-func (r FieldUpdater[RowID, FieldValue]) Fetch(ctx context.Context, id RowID) (FieldValue, error) {
-	return r.fetcher.Fetch(ctx, id)
+func (re FieldUpdater[RowID, FieldValue]) Fetch(ctx context.Context, id RowID) (FieldValue, error) {
+	return re.fetcher.Fetch(ctx, id)
 }
 
 // Update - обновляет значение поля указанной записи в таблице.
-func (r FieldUpdater[RowID, FieldValue]) Update(ctx context.Context, id RowID, value FieldValue) error {
-	return r.fetcher.client.Conn(ctx).Exec(
+func (re FieldUpdater[RowID, FieldValue]) Update(ctx context.Context, id RowID, value FieldValue) error {
+	return re.fetcher.client.Conn(ctx).Exec(
 		ctx,
-		r.sqlUpdateValue,
+		re.sqlUpdateValue,
 		id,
 		value,
 	)

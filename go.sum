@@ -163,10 +163,10 @@ github.com/moby/sys/userns v0.1.0 h1:tVLXkFOxVu9A64/yh59slHVv9ahO9UIev4JZusOLG/g
 github.com/moby/sys/userns v0.1.0/go.mod h1:IHUYgu/kao6N8YZlp9Cf444ySSvCmDlmzUcYfDHOl28=
 github.com/moby/term v0.5.0 h1:xt8Q1nalod/v7BqbG21f8mQPqH+xAaC9C3N3wfWbVP0=
 github.com/moby/term v0.5.0/go.mod h1:8FzsFHVUBGZdbDsJw/ot+X+d5HLUbvklYLJ9uGfcI3Y=
-github.com/mondegor/go-sysmess v0.12.0 h1:dqQ1d8D5yGMtw4W6Nam3UVqaq+r4mcyzmf5KfkrC2iY=
-github.com/mondegor/go-sysmess v0.12.0/go.mod h1:lmtm83olOIDpxyfhjLT5ZTX4sQIUYH/Gv2A6pfbCSsc=
-github.com/mondegor/go-webcore v0.26.1 h1:li4icxzcXPhIT0T6xmVTjtJKvXyH57u2PGOXfK4iyYw=
-github.com/mondegor/go-webcore v0.26.1/go.mod h1:Ay3xGTiNbaxSE4WihtwF4zlmuW4xifyT/7OULud3hc0=
+github.com/mondegor/go-sysmess v0.13.0 h1:8VBVQEafBHn9WrbJrTpjvj3IAFCiPH3Mb4svTsnr4Gs=
+github.com/mondegor/go-sysmess v0.13.0/go.mod h1:lmtm83olOIDpxyfhjLT5ZTX4sQIUYH/Gv2A6pfbCSsc=
+github.com/mondegor/go-webcore v0.27.0 h1:J3g7jROM5PRg5U8fqlqrYdkFfDI1/9pHWStldbBQGKw=
+github.com/mondegor/go-webcore v0.27.0/go.mod h1:whzNBAaf17o4rjtK51sogEHyWQ0crOSNLboALBUPv9Q=
 github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe/go.mod h1:wL8QJuTMNUDYhXwkmfOly8iTdp5TEcJFWZD2D7SIkUc=
 github.com/morikuni/aec v1.0.0 h1:nP9CBfwrvYnBRgY6qfDQkygYDmYwOilePFkwzv4dU8A=
 github.com/morikuni/aec v1.0.0/go.mod h1:BbKIizmSmc5MMPqRYbxO4ZU0S0+P200+tUnFx7PXmsc=

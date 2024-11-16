@@ -31,20 +31,20 @@ func NewFieldWithVersionUpdater[RowID any, VersionValue constraints.Integer, Fie
 
 // Fetch - возвращает значение поля для указанной записи в таблице.
 // result: nil - exists, ErrStorageNoRowFound - not exists, error - query error.
-func (r FieldWithVersionUpdater[RowID, VersionValue, FieldValue]) Fetch(ctx context.Context, id RowID) (FieldValue, error) {
-	return r.fetcher.Fetch(ctx, id)
+func (re FieldWithVersionUpdater[RowID, VersionValue, FieldValue]) Fetch(ctx context.Context, id RowID) (FieldValue, error) {
+	return re.fetcher.Fetch(ctx, id)
 }
 
 // Update - обновляет значение поля указанной записи в таблице и возвращает идентификатор её новой версии.
-func (r FieldWithVersionUpdater[RowID, VersionValue, FieldValue]) Update(
+func (re FieldWithVersionUpdater[RowID, VersionValue, FieldValue]) Update(
 	ctx context.Context,
 	id RowID,
 	version VersionValue,
 	field FieldValue,
 ) (VersionValue, error) {
-	err := r.fetcher.client.Conn(ctx).QueryRow(
+	err := re.fetcher.client.Conn(ctx).QueryRow(
 		ctx,
-		r.sqlUpdateValue,
+		re.sqlUpdateValue,
 		id,
 		version,
 		field,

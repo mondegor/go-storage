@@ -24,7 +24,7 @@ type (
 )
 
 // NewSQL - создаёт объект SQL.
-func NewSQL(opts ...SQLOption) *SQL {
+func NewSQL(opts ...Option) *SQL {
 	b := &SQL{
 		set:       part.NewSQLSetBuilder(nil), // WARNING: по умолчанию EntityMeta не указано
 		condition: part.NewSQLConditionBuilder(),

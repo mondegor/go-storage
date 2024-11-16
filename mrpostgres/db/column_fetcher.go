@@ -28,10 +28,10 @@ func NewColumnFetcher[FilterValue, FieldValue any](
 }
 
 // Fetch - возвращает список значений полей по указанному значению поля-фильтра.
-func (r ColumnFetcher[FilterValue, FieldValue]) Fetch(ctx context.Context, byValue FilterValue) ([]FieldValue, error) {
-	cursor, err := r.client.Conn(ctx).Query(
+func (re ColumnFetcher[FilterValue, FieldValue]) Fetch(ctx context.Context, byValue FilterValue) ([]FieldValue, error) {
+	cursor, err := re.client.Conn(ctx).Query(
 		ctx,
-		r.sqlFetchColumn,
+		re.sqlFetchColumn,
 		byValue,
 	)
 	if err != nil {

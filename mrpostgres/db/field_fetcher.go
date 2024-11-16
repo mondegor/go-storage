@@ -28,12 +28,12 @@ func NewFieldFetcher[RowID, FieldValue any](
 
 // Fetch - возвращает значение поля для указанной записи в таблице.
 // result: nil - exists, ErrStorageNoRowFound - not exists, error - query error.
-func (r FieldFetcher[RowID, FieldValue]) Fetch(ctx context.Context, id RowID) (FieldValue, error) {
+func (re FieldFetcher[RowID, FieldValue]) Fetch(ctx context.Context, id RowID) (FieldValue, error) {
 	var value FieldValue
 
-	err := r.client.Conn(ctx).QueryRow(
+	err := re.client.Conn(ctx).QueryRow(
 		ctx,
-		r.sqlFetchValue,
+		re.sqlFetchValue,
 		id,
 	).Scan(
 		&value,
