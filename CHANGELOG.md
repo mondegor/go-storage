@@ -1,6 +1,10 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2024-11-24
+### Changed
+- Обновлены зависимости библиотеки;
+
 ## 2024-11-17
 ### Added
 - Добавлен интерфейс `mrstorage.SequenceGenerator`, а пакет `db.SequenceGenerator` перенесён в `sequence.Generator`;
