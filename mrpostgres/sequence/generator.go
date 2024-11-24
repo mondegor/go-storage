@@ -2,7 +2,6 @@ package sequence
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/mondegor/go-webcore/mrcore"
@@ -56,7 +55,7 @@ func (g Generator) Next(ctx context.Context) (nextID uint64, err error) {
 func (g Generator) MultiNext(ctx context.Context, count uint32) (nextIDs []uint64, err error) {
 	if count < 2 {
 		if count == 0 {
-			return nil, mrcore.ErrInternal.Wrap(errors.New("count must be greater than zero"))
+			return nil, mrcore.ErrInternalWithDetails.New("count must be greater than zero")
 		}
 
 		nextID, err := g.Next(ctx)
