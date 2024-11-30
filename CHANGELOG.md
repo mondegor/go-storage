@@ -43,13 +43,13 @@
 ### Added
 - Добавлен пакет `mrpostgres/db` для формирования часто встречающихся запросов.
   В него вошли следующие компоненты:
-  - `ColumnFetcher`;
-  - `FieldFetcher`;
-  - `FieldUpdater`;
-  - `FieldWithVersionUpdater`;
-  - `RowExistsChecker`;
-  - `RowSoftDeleter`;
-  - `TotalRowsFetcher`;
+    - `ColumnFetcher`;
+    - `FieldFetcher`;
+    - `FieldUpdater`;
+    - `FieldWithVersionUpdater`;
+    - `RowExistsChecker`;
+    - `RowSoftDeleter`;
+    - `TotalRowsFetcher`;
 
 ### Changed
 - Все проверки соответствия структур интерфейсам перенесены в тесты, а также добавлены новые тесты для этого вида проверок;
@@ -80,9 +80,9 @@
 ## 2024-09-15
 ### Added
 - Добавлены новые опции для:
-  - `mrpostgres` (`DSN`);
-  - `mrredis` (`ReadTimeout`, `WriteTimeout`, `DSN`);
-  - `mrminio` (`DSN`);
+    - `mrpostgres` (`DSN`);
+    - `mrredis` (`ReadTimeout`, `WriteTimeout`, `DSN`);
+    - `mrminio` (`DSN`);
 - Добавлены короткие команды в Makefile, обновлена инструкция команд.
 
 ## 2024-09-08
@@ -126,8 +126,8 @@
 ## 2024-06-24
 ### Changed
 - Добавлен сбор статистики из `postgres` для `prometheus`:
-  - `mrstorage.DBStatProvider`;
-  - `mrprometheus.DBCollector`;
+    - `mrstorage.DBStatProvider`;
+    - `mrprometheus.DBCollector`;
 
 ## 2024-06-22
 ### Changed
