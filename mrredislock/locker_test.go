@@ -3,7 +3,7 @@ package mrredislock_test
 import (
 	"testing"
 
-	"github.com/mondegor/go-webcore/mrlock"
+	"github.com/mondegor/go-sysmess/mrlock"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mondegor/go-storage/mrredislock"

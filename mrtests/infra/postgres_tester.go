@@ -11,6 +11,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // используется в migrate.NewWithDatabaseInstance
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/mondegor/go-sysmess/mrlog/slog/nop"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrpostgres"
@@ -31,7 +32,7 @@ type (
 		ownerT            *testing.T
 		container         *helpers.PostgresContainer
 		truncateCondition string
-		connAdapter       *mrpostgres.ConnAdapter
+		conn              *mrpostgres.ConnAdapter
 		connManager       *mrpostgres.ConnManager
 	}
 )
@@ -53,7 +54,7 @@ func NewPostgresTester(t *testing.T, dbSchemas, excludedTables []string) *Postgr
 	)
 	require.NoError(t, err)
 
-	connAdapter, err := newPostgres(ctx, container.DSN())
+	conn, err := newPostgres(ctx, container.DSN())
 	require.NoError(t, err)
 
 	excludedTables = append(excludedTables, postgres.DefaultMigrationsTable)
@@ -62,8 +63,8 @@ func NewPostgresTester(t *testing.T, dbSchemas, excludedTables []string) *Postgr
 		ownerT:            t,
 		container:         container,
 		truncateCondition: prepareTruncateCondition(dbSchemas, excludedTables),
-		connAdapter:       connAdapter,
-		connManager:       mrpostgres.NewConnManager(connAdapter),
+		conn:              conn,
+		connManager:       mrpostgres.NewConnManager(conn, nop.NewLoggerAdapter()),
 	}
 }
 
@@ -91,7 +92,7 @@ func (t *PostgresTester) TruncateTables(ctx context.Context) {
 
 	// t.ownerT.Log(sql)
 
-	err := t.connAdapter.Exec(ctx, sql)
+	err := t.conn.Exec(ctx, sql)
 	require.NoError(t.ownerT, err)
 }
 
@@ -99,7 +100,10 @@ func (t *PostgresTester) TruncateTables(ctx context.Context) {
 func (t *PostgresTester) ApplyMigrations(dirPath string) {
 	t.ownerT.Helper()
 
-	db := stdlib.OpenDBFromPool(t.connAdapter.Cli())
+	pgxPool, err := t.conn.Cli()
+	require.NoError(t.ownerT, err)
+
+	db := stdlib.OpenDBFromPool(pgxPool)
 	defer db.Close()
 
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
@@ -118,7 +122,10 @@ func (t *PostgresTester) ApplyMigrations(dirPath string) {
 func (t *PostgresTester) ApplyFixtures(dirPath string) {
 	t.ownerT.Helper()
 
-	db := stdlib.OpenDBFromPool(t.connAdapter.Cli())
+	pgxPool, err := t.conn.Cli()
+	require.NoError(t.ownerT, err)
+
+	db := stdlib.OpenDBFromPool(pgxPool)
 	defer db.Close()
 
 	fixtures, err := testfixtures.New(
@@ -135,7 +142,7 @@ func (t *PostgresTester) ApplyFixtures(dirPath string) {
 func (t *PostgresTester) CountRows(ctx context.Context, tableName string) (count uint64) {
 	t.ownerT.Helper()
 
-	err := t.connAdapter.
+	err := t.conn.
 		QueryRow(ctx, `SELECT COUNT(*) FROM `+tableName).
 		Scan(&count)
 

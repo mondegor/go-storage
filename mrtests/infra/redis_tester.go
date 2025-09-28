@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/mondegor/go-sysmess/mrtrace/noptracer"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrredis"
@@ -18,9 +19,9 @@ const (
 type (
 	// RedisTester - вспомогательный объект для работы с тестовой БД.
 	RedisTester struct {
-		ownerT      *testing.T
-		container   *helpers.RedisContainer
-		connAdapter *mrredis.ConnAdapter
+		ownerT    *testing.T
+		container *helpers.RedisContainer
+		conn      *mrredis.ConnAdapter
 	}
 )
 
@@ -35,13 +36,13 @@ func NewRedisTester(t *testing.T) *RedisTester {
 	)
 	require.NoError(t, err)
 
-	connAdapter, err := newRedis(ctx, container.DSN())
+	conn, err := newRedis(ctx, container.DSN())
 	require.NoError(t, err)
 
 	return &RedisTester{
-		ownerT:      t,
-		container:   container,
-		connAdapter: connAdapter,
+		ownerT:    t,
+		container: container,
+		conn:      conn,
 	}
 }
 
@@ -49,14 +50,17 @@ func NewRedisTester(t *testing.T) *RedisTester {
 func (t *RedisTester) Conn() *mrredis.ConnAdapter {
 	t.ownerT.Helper()
 
-	return t.connAdapter
+	return t.conn
 }
 
 // FlushAll - очистка всех данных в RedisTester.
 func (t *RedisTester) FlushAll(ctx context.Context) {
 	t.ownerT.Helper()
 
-	cmd := t.connAdapter.Cli().FlushAll(ctx)
+	redisCli, err := t.conn.Cli()
+	require.NoError(t.ownerT, err)
+
+	cmd := redisCli.FlushAll(ctx)
 	require.NoError(t.ownerT, cmd.Err())
 }
 
@@ -68,7 +72,7 @@ func (t *RedisTester) Destroy(ctx context.Context) {
 }
 
 func newRedis(ctx context.Context, dsn string) (*mrredis.ConnAdapter, error) {
-	conn := mrredis.New()
+	conn := mrredis.New(noptracer.NewTracer())
 	opts := mrredis.Options{
 		DSN:      dsn,
 		Password: redisPassword,

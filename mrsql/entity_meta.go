@@ -1,8 +1,6 @@
 package mrsql
 
-import (
-	"github.com/mondegor/go-webcore/mrlog"
-)
+import "github.com/mondegor/go-sysmess/mrlog"
 
 type (
 	// EntityMeta - объект для управления динамическим обновлением записей в БД.

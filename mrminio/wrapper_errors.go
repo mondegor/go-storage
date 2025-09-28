@@ -5,8 +5,7 @@ import (
 	"errors"
 
 	"github.com/minio/minio-go/v7"
-	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrlog"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
 )
 
 func (fp *FileProvider) wrapError(err error) error {
@@ -14,21 +13,21 @@ func (fp *FileProvider) wrapError(err error) error {
 	if errors.As(err, &minioErr) {
 		// The specified key does not exist.
 		if minioErr.Code == "NoSuchKey" {
-			return mrcore.ErrStorageNoRowFound.Wrap(err)
+			return mr.ErrStorageNoRowFound.Wrap(err)
 		}
 
-		return mrcore.ErrStorageQueryFailed.Wrap(err)
+		return mr.ErrStorageQueryFailed.Wrap(err)
 	}
 
-	return mrcore.ErrInternal.Wrap(err)
+	return mr.ErrInternal.Wrap(err)
 }
 
 func (fp *FileProvider) traceCmd(ctx context.Context, command, filePath string) {
-	mrlog.Ctx(ctx).
-		Trace().
-		Str("source", providerName).
-		Str("cmd", command).
-		Str("bucket", fp.bucketName).
-		Str("file", filePath).
-		Send()
+	fp.tracer.Trace(
+		ctx,
+		"source", providerName,
+		"cmd", command,
+		"bucket", fp.bucketName,
+		"file", filePath,
+	)
 }

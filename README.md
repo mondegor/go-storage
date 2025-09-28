@@ -1,4 +1,4 @@
-# Описание GoStorage v0.16.4
+# Описание GoStorage v0.17.0
 Этот репозиторий содержит описание библиотеки GoStorage.
 
 ## Статус библиотеки
@@ -21,7 +21,7 @@
 - minio;
 
 ## Подключение библиотеки
-`go get -u github.com/mondegor/go-storage@v0.16.4`
+`go get -u github.com/mondegor/go-storage@v0.17.0`
 
 ## Установка библиотеки для её локальной разработки
 - Выбрать рабочую директорию, где должна быть расположена библиотека
@@ -49,8 +49,6 @@
 #### Короткий вариант выше приведённых команд (Makefile)
 - `make deps` // аналог `mrcmd go-dev deps`
 - `make generate` // аналог `mrcmd go-dev generate`
-- `make fmt` // аналог `mrcmd go-dev gofumpt-fix`
-- `make fmti` // аналог `mrcmd go-dev goimports-fix`
 - `make lint` // аналог `mrcmd golangci-lint check`
 - `make test` // аналог `mrcmd go-dev test`
 - `make test-report` // аналог `mrcmd go-dev test-report`

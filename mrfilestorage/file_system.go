@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrlib"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/mrlib/extfile"
 )
 
 type (
@@ -15,12 +15,12 @@ type (
 	FileSystem struct {
 		dirMode    os.FileMode
 		createDirs bool // if not exists
-		mimeTypes  *mrlib.MimeTypeList
+		mimeTypes  *extfile.MimeTypeList
 	}
 )
 
 // New - создаёт объект FileSystem.
-func New(dirMode os.FileMode, createDirs bool, mimeTypes *mrlib.MimeTypeList) *FileSystem {
+func New(dirMode os.FileMode, createDirs bool, mimeTypes *extfile.MimeTypeList) *FileSystem {
 	return &FileSystem{
 		dirMode:    dirMode,
 		mimeTypes:  mimeTypes,
@@ -34,18 +34,18 @@ func (f *FileSystem) InitRootDir(path string) (bool, error) {
 
 	if !errors.Is(err, os.ErrNotExist) {
 		if err != nil {
-			return false, mrcore.ErrInternal.Wrap(err)
+			return false, mr.ErrInternal.Wrap(err)
 		}
 
 		return false, nil
 	}
 
 	if !f.createDirs {
-		return false, mrcore.ErrInternalWithDetails.New(fmt.Sprintf("root dir '%s' not exists", path))
+		return false, mr.ErrInternal.Wrap(fmt.Errorf("root dir '%s' not exists", path))
 	}
 
 	if err = os.Mkdir(path, f.dirMode); err != nil {
-		return false, mrcore.ErrInternal.Wrap(err)
+		return false, mr.ErrInternal.Wrap(err)
 	}
 
 	return true, nil
@@ -54,14 +54,14 @@ func (f *FileSystem) InitRootDir(path string) (bool, error) {
 // CreateDirIfNotExists - comment method.
 func (f *FileSystem) CreateDirIfNotExists(rootDir, dirPath string) error {
 	if _, err := os.Stat(rootDir); err != nil {
-		return mrcore.ErrInternal.Wrap(err)
+		return mr.ErrInternal.Wrap(err)
 	}
 
 	dirPath = strings.TrimRight(rootDir, "/") + "/" + strings.Trim(dirPath, "/")
 
 	if _, err := os.Stat(dirPath); !errors.Is(err, os.ErrNotExist) {
 		if err != nil {
-			return mrcore.ErrInternal.Wrap(err)
+			return mr.ErrInternal.Wrap(err)
 		}
 
 		return nil
@@ -71,6 +71,6 @@ func (f *FileSystem) CreateDirIfNotExists(rootDir, dirPath string) error {
 }
 
 // MimeTypes - comment method.
-func (f *FileSystem) MimeTypes() *mrlib.MimeTypeList {
+func (f *FileSystem) MimeTypes() *extfile.MimeTypeList {
 	return f.mimeTypes
 }

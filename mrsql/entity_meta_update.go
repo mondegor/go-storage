@@ -1,17 +1,20 @@
 package mrsql
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"regexp"
+	"strings"
 	"time"
 
-	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrlog"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/mrlog"
 )
 
 const (
-	ModelNameEntityMetaUpdate = "EntityMetaUpdate" // ModelNameEntityMetaUpdate - название сущности
+	// ModelNameEntityMetaUpdate - название сущности.
+	ModelNameEntityMetaUpdate = "EntityMetaUpdate"
 
 	fieldTagDBFieldName = "db"
 	fieldTagFieldUpdate = "upd"
@@ -37,17 +40,17 @@ var regexpDbName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 // NewEntityMetaUpdate - создаёт объект EntityMetaUpdate.
 func NewEntityMetaUpdate(logger mrlog.Logger, entity any) (*EntityMetaUpdate, error) {
 	rvt := reflect.TypeOf(entity)
-	logger = logger.With().Str("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaUpdate, rvt.String())).Logger()
+	logger = logger.WithAttrs("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaUpdate, rvt.String()))
 
 	for rvt.Kind() == reflect.Pointer {
 		rvt = rvt.Elem()
 	}
 
 	if rvt.Kind() != reflect.Struct {
-		return nil, mrcore.ErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
+		return nil, mr.ErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
 	}
 
-	debugInfo := ""
+	var debugInfo []string
 
 	meta := EntityMetaUpdate{
 		structName: rvt.String(),
@@ -65,7 +68,7 @@ func NewEntityMetaUpdate(logger mrlog.Logger, entity any) (*EntityMetaUpdate, er
 
 		dbName, err := parseTagUpdate(rvt, update, dbName)
 		if err != nil {
-			logger.Warn().Err(err).Msg("parse tag update warning, skipped")
+			logger.Warn(context.Background(), "parse tag update warning, skipped", "error", err)
 
 			continue
 		}
@@ -79,9 +82,11 @@ func NewEntityMetaUpdate(logger mrlog.Logger, entity any) (*EntityMetaUpdate, er
 		}
 
 		if !checkEntityMetaUpdateFieldType(fieldType) {
-			logger.Warn().Err(
-				fmt.Errorf("field %s of type %s is not supported", rvt.Field(i).Name, fieldType.Kind()),
-			).Msg("check field type warning, skipped")
+			logger.Warn(
+				context.Background(),
+				"check field type warning, skipped",
+				"error", fmt.Errorf("field %s of type %s is not supported", rvt.Field(i).Name, fieldType.Kind()),
+			)
 
 			continue
 		}
@@ -92,13 +97,19 @@ func NewEntityMetaUpdate(logger mrlog.Logger, entity any) (*EntityMetaUpdate, er
 			dbName:    dbName,
 		}
 
-		if logger.Level() <= mrlog.DebugLevel {
-			debugInfo = fmt.Sprintf("%s\n- %s(%d, %s) -> %s;", debugInfo, rvt.Field(i).Name, i, rvt.Field(i).Type, dbName)
+		if logger.Enabled(mrlog.LevelDebug) {
+			debugInfo = append(
+				debugInfo,
+				fmt.Sprintf(
+					"- %s(%d, %s) -> %s;",
+					rvt.Field(i).Name, i, rvt.Field(i).Type, dbName,
+				),
+			)
 		}
 	}
 
-	if debugInfo != "" {
-		logger.Debug().Msg(debugInfo)
+	if len(debugInfo) > 0 {
+		logger.Debug(context.Background(), strings.Join(debugInfo, "\n"))
 	}
 
 	return &meta, nil
@@ -143,11 +154,11 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 	}
 
 	if !rv.IsValid() {
-		return nil, nil, mrcore.ErrInternal.New().WithAttr("reflect.entity", rv)
+		return nil, nil, mr.ErrInternal.New("reflect.entity", rv)
 	}
 
 	if rv.Type().String() != m.structName {
-		return nil, nil, mrcore.ErrInternalInvalidType.New(rv.Type().String(), m.structName)
+		return nil, nil, mr.ErrInternalInvalidType.New(rv.Type().String(), m.structName)
 	}
 
 	fields := make([]string, 0, len(m.fieldsInfo))
@@ -157,7 +168,7 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 		field := rv.Field(i)
 
 		if !field.IsValid() {
-			return nil, nil, mrcore.ErrInternal.New().WithAttr("reflect.field", field)
+			return nil, nil, mr.ErrInternal.New("reflect.field", field)
 		}
 
 		if info.isPointer {
@@ -185,16 +196,17 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 		case reflect.Struct:
 			v := field.Interface()
 
-			if value, ok := v.(time.Time); ok {
-				if !info.isPointer && value.IsZero() {
-					continue
-				}
-			} else {
-				return nil, nil, mrcore.ErrInternal.New().WithAttr("reflect.field.struct", field)
+			value, ok := v.(time.Time)
+			if !ok {
+				return nil, nil, mr.ErrInternal.New("reflect.field.struct", field)
+			}
+
+			if !info.isPointer && value.IsZero() {
+				continue
 			}
 
 		default:
-			return nil, nil, mrcore.ErrInternal.New().WithAttr("reflect.field.undefined", field)
+			return nil, nil, mr.ErrInternal.New("reflect.field.undefined", field)
 		}
 
 		fields = append(fields, info.dbName)

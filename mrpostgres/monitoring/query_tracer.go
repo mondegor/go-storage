@@ -1,21 +1,23 @@
-package logger
+package monitoring
 
 import (
 	"context"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/mondegor/go-webcore/mrlog"
+	"github.com/mondegor/go-sysmess/mrtrace"
 )
 
 // QueryTracer - traces Query, QueryRow, and Exec.
 type QueryTracer struct {
+	tracer mrtrace.Tracer
 	source string
 }
 
 // NewQueryTracer - создаёт объект QueryTracer.
-func NewQueryTracer(host, port, database string) *QueryTracer {
+func NewQueryTracer(host, port, database string, tracer mrtrace.Tracer) *QueryTracer {
 	return &QueryTracer{
+		tracer: tracer,
 		source: host + ":" + port + "/" + database,
 	}
 }
@@ -29,10 +31,12 @@ func (t *QueryTracer) TraceQueryStart(ctx context.Context, _ *pgx.Conn, data pgx
 		lenArgs = maxArgs
 	}
 
-	mrlog.Ctx(ctx).
-		Trace().
-		Str("source", t.source).
-		Msgf("SQL: %s ARGS: %v", strings.Join(strings.Fields(data.SQL), " "), data.Args[:lenArgs])
+	t.tracer.Trace(
+		ctx,
+		"source", t.source,
+		"sql", strings.Join(strings.Fields(data.SQL), " "),
+		"args", data.Args[:lenArgs],
+	)
 
 	return ctx
 }

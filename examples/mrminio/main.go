@@ -2,18 +2,24 @@ package main
 
 import (
 	"context"
+	"os"
 
-	"github.com/mondegor/go-webcore/mrlib"
-	"github.com/mondegor/go-webcore/mrlog"
+	"github.com/mondegor/go-sysmess/mrerr"
+	"github.com/mondegor/go-sysmess/mrlib/extfile"
+	"github.com/mondegor/go-sysmess/mrlog"
+	"github.com/mondegor/go-sysmess/mrlog/litelog"
+	"github.com/mondegor/go-sysmess/mrlog/slog"
 
 	"github.com/mondegor/go-storage/mrminio"
 )
 
 func main() {
-	logger := mrlog.New(mrlog.TraceLevel)
-	ctx := mrlog.WithContext(context.Background(), logger)
+	mrerr.InitDefaultOptions(mrerr.DefaultOptionsHandler())
 
-	logger.Info().Msg("Create minio S3 connection")
+	l, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
+	logger := litelog.NewLogger(l)
+
+	logger.Info("Create minio S3 connection")
 
 	opts := mrminio.Options{
 		Host:     "127.0.0.1",
@@ -23,34 +29,45 @@ func main() {
 		Password: "12345678",
 	}
 
-	minioAdapter := mrminio.New(true, mrlib.NewMimeTypeList(logger, []mrlib.MimeType{}))
+	ctx := context.Background()
+	minioAdapter := mrminio.New(true, extfile.NewMimeTypeList([]extfile.MimeType{}), mrlog.NewDebugTracer(l))
 
 	if err := minioAdapter.Connect(ctx, opts); err != nil {
-		logger.Fatal().Err(err).Msg("minioAdapter.Connect() error")
+		logger.Error("minioAdapter.Connect()", "error", err) // mrlog.Fatal
+		os.Exit(1)
 	}
 
 	defer minioAdapter.Close()
 
 	if err := minioAdapter.Ping(ctx); err != nil {
-		logger.Fatal().Err(err).Msg("minioAdapter.Ping() error")
+		logger.Error("minioAdapter.Ping()", "error", err) // mrlog.Fatal
+		os.Exit(1)
 	}
 
-	logger.Info().Msg("Create test bucket")
+	logger.Info("Create test bucket")
 	bucketName := "test-bucket"
 
 	if created, err := minioAdapter.InitBucket(ctx, bucketName); err != nil {
-		logger.Fatal().Err(err).Msg("minioAdapter.InitBucket() error")
+		logger.Error("minioAdapter.InitBucket()", "error", err) // mrlog.Fatal
+		os.Exit(1)
 	} else {
 		if created {
-			logger.Info().Msgf("Bucket '%s' created", bucketName)
+			logger.Info("Bucket created", "bucket", bucketName)
 		} else {
-			logger.Info().Msgf("Bucket '%s' exists, OK", bucketName)
+			logger.Info("Bucket exists, OK", "bucket", bucketName)
 		}
 	}
 
-	if err := minioAdapter.Cli().RemoveBucket(ctx, bucketName); err != nil {
-		logger.Fatal().Err(err).Msg("minioAdapter.Cli().RemoveBucket() error")
+	minioCli, err := minioAdapter.Cli()
+	if err != nil {
+		logger.Error("minioAdapter.Cli()", "error", err) // mrlog.Fatal
+		os.Exit(1)
+	}
+
+	if err := minioCli.RemoveBucket(ctx, bucketName); err != nil {
+		logger.Error("minioCli.RemoveBucket()", "error", err) // mrlog.Fatal
+		os.Exit(1)
 	} else {
-		logger.Info().Msg("Test bucket removed")
+		logger.Info("Test bucket removed")
 	}
 }

@@ -2,20 +2,31 @@ package mrredislock
 
 import (
 	"context"
+	"errors"
 
-	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrlog"
+	"github.com/bsm/redislock"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
 )
 
-func (l *LockerAdapter) wrapError(err error) error {
-	return mrcore.ErrStorageQueryFailed.Wrap(err)
+func (l *LockerAdapter) wrapError(err error, key string) error {
+	args := []any{"source", lockerName, "key", key}
+
+	if errors.Is(err, redislock.ErrNotObtained) {
+		return mr.ErrStorageLockKeyNotCaptured.Wrap(err, args...)
+	}
+
+	if errors.Is(err, redislock.ErrLockNotHeld) {
+		err = mr.ErrStorageLockKeyNotHeld.Wrap(err, args...)
+	}
+
+	return mr.ErrStorageQueryFailed.Wrap(err, args...)
 }
 
 func (l *LockerAdapter) traceCmd(ctx context.Context, command, key string) {
-	mrlog.Ctx(ctx).
-		Trace().
-		Str("source", lockerName).
-		Str("cmd", command).
-		Str("key", key).
-		Send()
+	l.tracer.Trace(
+		ctx,
+		"source", lockerName,
+		"cmd", command,
+		"key", key,
+	)
 }

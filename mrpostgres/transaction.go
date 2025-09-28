@@ -11,39 +11,29 @@ import (
 type (
 	transaction struct {
 		tx pgx.Tx
-		dbExecHelper
 	}
 )
 
-// Commit - comment method.
-func (t *transaction) Commit(ctx context.Context) error {
-	if err := t.tx.Commit(ctx); err != nil {
-		return wrapError(err)
-	}
-
-	return nil
-}
-
-// Rollback - comment method.
-func (t *transaction) Rollback(ctx context.Context) error {
-	if err := t.tx.Rollback(ctx); err != nil {
-		return wrapError(err)
-	}
-
-	return nil
-}
-
-// Query - comment method.
+// Query - отправляет SQL запрос к БД и возвращает результат в виде списка записей.
 func (t *transaction) Query(ctx context.Context, sql string, args ...any) (mrstorage.DBQueryRows, error) {
-	return t.query(ctx, t.tx, sql, args...)
+	rows, err := t.tx.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+
+	return &queryRows{
+		rows: rows,
+	}, nil
 }
 
-// QueryRow - comment method.
+// QueryRow - отправляет SQL запрос к БД и возвращает результат в виде одной записи.
 func (t *transaction) QueryRow(ctx context.Context, sql string, args ...any) mrstorage.DBQueryRow {
-	return t.queryRow(ctx, t.tx, sql, args...)
+	return &queryRow{
+		row: t.tx.QueryRow(ctx, sql, args...),
+	}
 }
 
-// Exec - comment method.
+// Exec - отправляет SQL запрос к БД и исполняет его.
 func (t *transaction) Exec(ctx context.Context, sql string, args ...any) error {
-	return t.exec(ctx, t.tx, sql, args...)
+	return wrapErrorCommandTag(t.tx.Exec(ctx, sql, args...))
 }

@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mondegor/go-webcore/mrlib"
+	"github.com/mondegor/go-sysmess/mrlib/extfile"
+	"github.com/mondegor/go-sysmess/mrtrace/noptracer"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrminio"
@@ -27,7 +28,7 @@ type (
 )
 
 // NewMinioTester - создаёт объект MinioTester.
-func NewMinioTester(t *testing.T, mimeTypes *mrlib.MimeTypeList) *MinioTester {
+func NewMinioTester(t *testing.T, mimeTypes *extfile.MimeTypeList) *MinioTester {
 	t.Helper()
 
 	ctx := context.Background()
@@ -63,8 +64,8 @@ func (t *MinioTester) Destroy(ctx context.Context) {
 	require.NoError(t.ownerT, t.container.Terminate(ctx))
 }
 
-func newMinio(ctx context.Context, dsn string, mimeTypes *mrlib.MimeTypeList) (*mrminio.ConnAdapter, error) {
-	conn := mrminio.New(false, mimeTypes)
+func newMinio(ctx context.Context, dsn string, mimeTypes *extfile.MimeTypeList) (*mrminio.ConnAdapter, error) {
+	conn := mrminio.New(false, mimeTypes, noptracer.NewTracer())
 	opts := mrminio.Options{
 		DSN:      dsn,
 		User:     minioUser,

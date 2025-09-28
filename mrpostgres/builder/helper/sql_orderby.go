@@ -3,7 +3,7 @@ package helper
 import (
 	"strings"
 
-	"github.com/mondegor/go-webcore/mrenum"
+	"github.com/mondegor/go-sysmess/mrtype/enums"
 
 	"github.com/mondegor/go-storage/mrsql"
 	"github.com/mondegor/go-storage/mrstorage"
@@ -40,7 +40,7 @@ func (b *SQLOrderBy) JoinComma(fields ...mrstorage.SQLPartFunc) mrstorage.SQLPar
 }
 
 // Field - возвращает SQL поле с указанием направления сортировки.
-func (b *SQLOrderBy) Field(name string, direction mrenum.SortDirection) mrstorage.SQLPartFunc {
+func (b *SQLOrderBy) Field(name string, direction enums.SortDirection) mrstorage.SQLPartFunc {
 	if name == "" {
 		return nil
 	}

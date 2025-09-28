@@ -1,14 +1,19 @@
 package main
 
 import (
-	"github.com/mondegor/go-webcore/mrlog"
+	"os"
+
+	"github.com/mondegor/go-sysmess/mrlog/litelog"
+	"github.com/mondegor/go-sysmess/mrlog/slog"
 
 	"github.com/mondegor/go-storage/mrpostgres/builder/part"
 	"github.com/mondegor/go-storage/mrstorage"
 )
 
 func main() {
-	logger := mrlog.New(mrlog.TraceLevel)
+	l, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
+	logger := litelog.NewLogger(l)
+
 	condBuilder := part.NewSQLConditionBuilder()
 
 	partFunc1 := condBuilder.HelpFunc(
@@ -33,6 +38,6 @@ func main() {
 	joinedParts := condBuilder.BuildAnd(partFunc1, partFunc2).WithStartArg(5)
 	cc, vv := joinedParts.ToSQL()
 
-	logger.Info().Msgf("generated sql: %v", cc)
-	logger.Info().Msgf("generated args: %v", vv)
+	logger.Info("generated sql", "value", cc)
+	logger.Info("generated args", "value", vv)
 }

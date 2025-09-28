@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mondegor/go-webcore/mrcore"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -37,7 +37,7 @@ func New() *ConnAdapter {
 // Connect - создаёт соединение с указанными опциями.
 func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	if c.conn != nil {
-		return mrcore.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
+		return mr.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
 	}
 
 	conn, err := amqp.Dial(
@@ -50,7 +50,7 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 		),
 	)
 	if err != nil {
-		return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
 	}
 
 	c.conn = conn
@@ -59,18 +59,22 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 }
 
 // Cli - возвращается нативный объект, с которым работает данный адаптер.
-func (c *ConnAdapter) Cli() *amqp.Connection {
-	return c.conn
+func (c *ConnAdapter) Cli() (*amqp.Connection, error) {
+	if c.conn == nil {
+		return nil, mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+	}
+
+	return c.conn, nil
 }
 
 // Close - закрывает текущее соединение.
 func (c *ConnAdapter) Close() error {
 	if c.conn == nil {
-		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return mr.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
 	if err := c.conn.Close(); err != nil {
-		return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
 	}
 
 	c.conn = nil

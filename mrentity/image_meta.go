@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrlib"
-	"github.com/mondegor/go-webcore/mrtype"
+	"github.com/mondegor/go-sysmess/mrdto"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/mrlib/copyptr"
 )
 
 type (
@@ -24,8 +24,8 @@ type (
 	}
 )
 
-// Empty - проверяет, что объект пустой.
-func (e *ImageMeta) Empty() bool {
+// Empty - сообщает, является ли объект пустым.
+func (e ImageMeta) Empty() bool {
 	return e.Path == "" &&
 		e.OriginalName == ""
 }
@@ -40,13 +40,13 @@ func (e *ImageMeta) Scan(value any) error {
 
 	if val, ok := value.(string); ok {
 		if err := json.Unmarshal([]byte(val), e); err != nil {
-			return mrcore.ErrInternalTypeAssertion.Wrap(err, "ImageMeta", value)
+			return mr.ErrInternalTypeAssertion.Wrap(err, "ImageMeta", value)
 		}
 
 		return nil
 	}
 
-	return mrcore.ErrInternalTypeAssertion.New("ImageMeta", value)
+	return mr.ErrInternalTypeAssertion.New("ImageMeta", value)
 }
 
 // Value implements the driver.Valuer interface.
@@ -60,12 +60,8 @@ func (e ImageMeta) Value() (driver.Value, error) {
 
 // ImageMetaToInfo - преобразование данных изображения предназначенных
 // для хранилища в формат данных для передачи клиенту.
-func ImageMetaToInfo(meta ImageMeta, mime *mrlib.MimeTypeList) mrtype.ImageInfo {
-	if meta.ContentType == "" && mime != nil {
-		meta.ContentType = mime.ContentTypeByFileName(meta.Path)
-	}
-
-	return mrtype.ImageInfo{
+func ImageMetaToInfo(meta ImageMeta) mrdto.ImageInfo {
+	return mrdto.ImageInfo{
 		ContentType: meta.ContentType,
 		// OriginalName: meta.OriginalName,
 		// Name:         path.Base(meta.Path),
@@ -73,18 +69,18 @@ func ImageMetaToInfo(meta ImageMeta, mime *mrlib.MimeTypeList) mrtype.ImageInfo 
 		Width:     meta.Width,
 		Height:    meta.Height,
 		Size:      meta.Size,
-		CreatedAt: meta.CreatedAt,
-		UpdatedAt: meta.UpdatedAt,
+		CreatedAt: copyptr.Time(meta.CreatedAt),
+		UpdatedAt: copyptr.Time(meta.UpdatedAt),
 	}
 }
 
 // ImageMetaToInfoPointer - аналог ImageMetaToInfo, но принимает и возвращает указатель.
-func ImageMetaToInfoPointer(meta *ImageMeta, mime *mrlib.MimeTypeList) *mrtype.ImageInfo {
+func ImageMetaToInfoPointer(meta *ImageMeta) *mrdto.ImageInfo {
 	if meta == nil {
 		return nil
 	}
 
-	c := ImageMetaToInfo(*meta, mime)
+	c := ImageMetaToInfo(*meta)
 
 	return &c
 }

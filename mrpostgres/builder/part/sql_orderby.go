@@ -1,7 +1,7 @@
 package part
 
 import (
-	"github.com/mondegor/go-webcore/mrtype"
+	"github.com/mondegor/go-sysmess/mrtype"
 
 	"github.com/mondegor/go-storage/mrpostgres/builder/helper"
 	"github.com/mondegor/go-storage/mrsql"

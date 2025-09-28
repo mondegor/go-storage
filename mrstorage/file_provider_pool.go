@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mondegor/go-webcore/mrcore"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
 )
 
 type (
@@ -28,7 +28,7 @@ func NewFileProviderPool() *FileProviderPool {
 // Register - регистрирует провайдера по его имени.
 func (p *FileProviderPool) Register(name string, provider FileProvider) error {
 	if _, ok := p.providers[name]; ok {
-		return mrcore.ErrInternalWithDetails.New(fmt.Sprintf("file provider '%s' is already registered", name))
+		return mr.ErrInternal.Wrap(fmt.Errorf("file provider '%s' is already registered", name))
 	}
 
 	p.providers[name] = provider
@@ -42,14 +42,14 @@ func (p *FileProviderPool) ProviderAPI(name string) (FileProviderAPI, error) {
 		return provider, nil
 	}
 
-	return nil, mrcore.ErrInternalWithDetails.New(fmt.Sprintf("file provider '%s' is not registered", name))
+	return nil, mr.ErrInternal.Wrap(fmt.Errorf("file provider '%s' is not registered", name))
 }
 
-// Ping - проверяет работоспособность всех зарегистрированных провайдеров.
+// Ping - сообщает, установлено ли соединение и является ли оно стабильным для всех зарегистрированных провайдеров.
 func (p *FileProviderPool) Ping(ctx context.Context) error {
 	for name, provider := range p.providers {
 		if err := provider.Ping(ctx); err != nil {
-			return mrcore.ErrInternalWithDetails.Wrap(err, fmt.Sprintf("file provider '%s' ping error", name))
+			return ErrFileProviderPingError.Wrap(err, name)
 		}
 	}
 
@@ -67,7 +67,10 @@ func (p *FileProviderPool) Close() error {
 	}
 
 	if len(errs) > 0 {
-		return mrcore.ErrInternalWithDetails.Wrap(errors.Join(errs...), "file provider pool")
+		return mr.ErrInternalFailedToClose.Wrap(
+			errors.Join(errs...),
+			"source", "file provider pool",
+		)
 	}
 
 	return nil

@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mondegor/go-webcore/mrlib"
-	"github.com/mondegor/go-webcore/mrtype"
+	"github.com/mondegor/go-sysmess/mrlib/extmath"
+	"github.com/mondegor/go-sysmess/mrtype"
 
 	"github.com/mondegor/go-storage/mrsql"
 	"github.com/mondegor/go-storage/mrstorage"
@@ -178,8 +178,8 @@ func (h *SQLCondition) FilterRangeInt64(field string, value mrtype.RangeInt64, e
 
 // FilterRangeFloat64 - возвращает интервальное условие для вещественных чисел если значения Min, Max не пустые, иначе возвращается nil.
 func (h *SQLCondition) FilterRangeFloat64(field string, value mrtype.RangeFloat64, empty, qualityThreshold float64) mrstorage.SQLPartFunc {
-	if !mrlib.EqualFloat(value.Min, empty, qualityThreshold) {
-		if !mrlib.EqualFloat(value.Max, empty, qualityThreshold) {
+	if !extmath.EqualFloat(value.Min, empty, qualityThreshold) {
+		if !extmath.EqualFloat(value.Max, empty, qualityThreshold) {
 			if value.Min > value.Max {
 				return nil
 			}

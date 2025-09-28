@@ -2,9 +2,10 @@ package sequence
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/mondegor/go-webcore/mrcore"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
 
 	"github.com/mondegor/go-storage/mrstorage"
 )
@@ -17,7 +18,7 @@ type (
 	// Generator - генератор последовательностей (на основе postgres).
 	Generator struct {
 		client                  mrstorage.DBConnManager
-		maxIDsOneQuery          uint32
+		maxIDsOneQuery          uint64
 		sqlGeneratorSequenceID  string
 		sqlGeneratorSequenceIDs string
 	}
@@ -52,10 +53,10 @@ func (g Generator) Next(ctx context.Context) (nextID uint64, err error) {
 }
 
 // MultiNext - возвращает нужное кол-во идентификаторов, но без гарантии непрерывности.
-func (g Generator) MultiNext(ctx context.Context, count uint32) (nextIDs []uint64, err error) {
+func (g Generator) MultiNext(ctx context.Context, count uint64) (nextIDs []uint64, err error) {
 	if count < 2 {
 		if count == 0 {
-			return nil, mrcore.ErrInternalWithDetails.New("count must be greater than zero")
+			return nil, mr.ErrInternal.Wrap(errors.New("count must be greater than zero"))
 		}
 
 		nextID, err := g.Next(ctx)
@@ -76,7 +77,7 @@ func (g Generator) MultiNext(ctx context.Context, count uint32) (nextIDs []uint6
 		batches++
 	}
 
-	for i := uint32(1); i <= batches; i++ {
+	for i := uint64(1); i <= batches; i++ {
 		if i == batches && rest > 0 {
 			idsOneQuery = rest
 		}
@@ -113,8 +114,8 @@ func (g Generator) MultiNext(ctx context.Context, count uint32) (nextIDs []uint6
 		}
 	}
 
-	if count != uint32(len(nextIDs)) {
-		return nil, mrcore.ErrStorageFetchDataFailed.Wrap(fmt.Errorf("expected next ids %d, got %d", count, len(nextIDs)))
+	if count != uint64(len(nextIDs)) {
+		return nil, mr.ErrStorageFetchDataFailed.Wrap(fmt.Errorf("expected next ids %d, got %d", count, len(nextIDs)))
 	}
 
 	return nextIDs, nil

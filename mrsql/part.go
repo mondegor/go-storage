@@ -48,7 +48,7 @@ func (p *Part) WithStartArg(number int) mrstorage.SQLPart {
 	return &c
 }
 
-// Empty - проверяет, что в объекте не установлена функция для формирования части SQL.
+// Empty - сообщает, отсутствует ли функция для формирования части SQL.
 func (p *Part) Empty() bool {
 	return p.partFunc == nil
 }

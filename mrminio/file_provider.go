@@ -2,12 +2,17 @@ package mrminio
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"math"
 	"path"
 
 	"github.com/minio/minio-go/v7"
-	"github.com/mondegor/go-webcore/mrtype"
+	"github.com/mondegor/go-sysmess/mrdto"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/mrlib/casttype"
+	"github.com/mondegor/go-sysmess/mrtype"
 )
 
 // https://min.io/docs/minio/linux/developers/go/API.html
@@ -34,7 +39,7 @@ func NewFileProvider(conn *ConnAdapter, bucketName string) *FileProvider {
 }
 
 // Info - comment method.
-func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileInfo, error) {
+func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrdto.FileInfo, error) {
 	fp.traceCmd(ctx, "Info", filePath)
 
 	info, err := fp.conn.StatObject(
@@ -44,10 +49,15 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileI
 		minio.StatObjectOptions{},
 	)
 	if err != nil {
-		return mrtype.FileInfo{}, fp.wrapError(err)
+		return mrdto.FileInfo{}, fp.wrapError(err)
 	}
 
-	return fp.getFileInfo(&info), nil
+	fileInfo, err := fp.getFileInfo(&info)
+	if err != nil {
+		return mrdto.FileInfo{}, fp.wrapError(err)
+	}
+
+	return fileInfo, nil
 }
 
 // Download - comment method.
@@ -66,8 +76,13 @@ func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.F
 		return mrtype.File{}, fp.wrapError(err)
 	}
 
+	fileInfo, err := fp.getFileInfo(&info)
+	if err != nil {
+		return mrtype.File{}, fp.wrapError(err)
+	}
+
 	return mrtype.File{
-		FileInfo: fp.getFileInfo(&info),
+		FileInfo: fileInfo,
 		Body:     object,
 	}, nil
 }
@@ -94,20 +109,29 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 	fp.traceCmd(ctx, "Upload", file.Path)
 
-	fileSize := int64(file.Size)
+	if file.Size > math.MaxInt64 {
+		return errors.New("file size too big")
+	}
 
-	if fileSize < -1 {
+	fileSize := int64(file.Size) //nolint:gosec
+
+	if fileSize == 0 {
 		fileSize = -1 // -1 - calculating size
 	}
 
-	_, err := fp.conn.PutObject(
+	contentType, err := fp.getContentType(file.ContentType, file.Path)
+	if err != nil {
+		return fp.wrapError(err)
+	}
+
+	_, err = fp.conn.PutObject(
 		ctx,
 		fp.bucketName,
 		file.Path,
 		file.Body,
 		fileSize,
 		minio.PutObjectOptions{
-			ContentType:        fp.getContentType(file.ContentType, file.Path),
+			ContentType:        contentType,
 			ContentDisposition: fp.getContentDisposition(file.OriginalName),
 		},
 	)
@@ -144,15 +168,24 @@ func (fp *FileProvider) openObject(ctx context.Context, filePath string) (*minio
 	)
 }
 
-func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) mrtype.FileInfo {
-	return mrtype.FileInfo{
-		ContentType:  fp.getContentType(info.ContentType, info.Key),
+func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) (mrdto.FileInfo, error) {
+	contentType, err := fp.getContentType(info.ContentType, info.Key)
+	if err != nil {
+		return mrdto.FileInfo{}, err
+	}
+
+	if info.Size < 0 {
+		return mrdto.FileInfo{}, mr.ErrValidateFileSize.New()
+	}
+
+	return mrdto.FileInfo{
+		ContentType:  contentType,
 		OriginalName: fp.parseOriginalName(info.Metadata.Get("Content-Disposition")),
 		Name:         path.Base(info.Key),
 		Path:         info.Key,
 		Size:         uint64(info.Size),
-		UpdatedAt:    mrtype.CastTimeToPointer(info.LastModified),
-	}
+		UpdatedAt:    casttype.TimeToPointer(info.LastModified),
+	}, nil
 }
 
 func (fp *FileProvider) getContentDisposition(value string) string {
@@ -163,12 +196,17 @@ func (fp *FileProvider) getContentDisposition(value string) string {
 	return fmt.Sprintf("attachment; filename=\"%s\"", value) // :TODO: escape value
 }
 
-func (fp *FileProvider) getContentType(contentType, fileName string) string {
+func (fp *FileProvider) getContentType(contentType, fileName string) (string, error) {
 	if contentType != "" {
-		return contentType
+		return contentType, nil
 	}
 
-	return fp.mimeTypes.ContentTypeByFileName(fileName)
+	contentType, err := fp.mimeTypes.ContentTypeByExt(path.Ext(fileName))
+	if err != nil {
+		return "", err
+	}
+
+	return contentType, nil
 }
 
 func (fp *FileProvider) parseOriginalName(contentDisposition string) string {

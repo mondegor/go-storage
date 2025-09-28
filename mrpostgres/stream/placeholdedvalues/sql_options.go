@@ -6,10 +6,10 @@ type (
 )
 
 // WithCountArgs - устанавливает количество аргументов на одну строку (запись).
-func WithCountArgs(value int) Option {
+func WithCountArgs(value uint64) Option {
 	return func(s *sql) {
 		if value > 0 {
-			s.p.countArgs = uint32(value)
+			s.p.countArgs = value
 		}
 	}
 }
@@ -37,9 +37,9 @@ func WithLinePrefix(value string) Option {
 }
 
 // WithLineMiddle - устанавливает строки после номеров аргументов,
-// где map[uint32]string - номер аргумента (за исключением последнего) - устанавливаемое значение сразу после этого аргумента.
+// где map[uint64]string - номер аргумента (за исключением последнего) - устанавливаемое значение сразу после этого аргумента.
 // При этом нужно устанавливать запятую, разделяющие аргументы.
-func WithLineMiddle(value map[uint32]string) Option {
+func WithLineMiddle(value map[uint64]string) Option {
 	return func(s *sql) {
 		s.p.lineMiddle = value
 	}

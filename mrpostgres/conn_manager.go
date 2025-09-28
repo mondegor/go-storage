@@ -2,8 +2,10 @@ package mrpostgres
 
 import (
 	"context"
+	"errors"
 
-	"github.com/mondegor/go-webcore/mrlog"
+	"github.com/jackc/pgx/v5"
+	"github.com/mondegor/go-sysmess/mrlog"
 
 	"github.com/mondegor/go-storage/mrstorage"
 )
@@ -11,20 +13,24 @@ import (
 // ConnManager - менеджер транзакций.
 type (
 	ConnManager struct {
-		conn *ConnAdapter
+		conn   *ConnAdapter
+		logger mrlog.Logger
 	}
+
+	ctxTransactionKey struct{}
 )
 
 // NewConnManager - создаёт объект ConnManager.
-func NewConnManager(conn *ConnAdapter) *ConnManager {
+func NewConnManager(conn *ConnAdapter, logger mrlog.Logger) *ConnManager {
 	return &ConnManager{
-		conn: conn,
+		conn:   conn,
+		logger: logger,
 	}
 }
 
 // Conn - возвращает соединение с PostgreSQL или транзакцию, если она была открыта.
 func (m *ConnManager) Conn(ctx context.Context) mrstorage.DBConn {
-	if tx := ctxTransaction(ctx); tx != nil {
+	if tx, ok := ctx.Value(ctxTransactionKey{}).(*transaction); ok {
 		return tx
 	}
 
@@ -39,29 +45,40 @@ func (m *ConnManager) ConnAdapter() *ConnAdapter {
 // Do - запускает задачу с запросом в транзакции.
 // Пытается запустить в текущей транзакции, если ее нет, создает новую транзакцию.
 func (m *ConnManager) Do(ctx context.Context, job func(ctx context.Context) error) error {
-	if tx := ctxTransaction(ctx); tx != nil {
+	if _, ok := ctx.Value(ctxTransactionKey{}).(*transaction); ok {
 		return job(ctx)
 	}
 
-	return m.do(ctx, job)
-}
-
-func (m *ConnManager) do(ctx context.Context, job func(ctx context.Context) error) error {
-	tx, err := m.conn.begin(ctx)
+	pgxTx, err := m.conn.pool.Begin(ctx)
 	if err != nil {
-		return err
+		return wrapError(err)
 	}
 
-	ctx = withTransactionContext(ctx, tx)
+	defer func() {
+		// страховка от panic: Rollback всегда вызывается в конце работы функции,
+		// даже в случае вызова Commit, чтобы гарантировать закрытие транзакции
+		if rbErr := pgxTx.Rollback(ctx); rbErr != nil {
+			if errors.Is(rbErr, pgx.ErrTxClosed) {
+				return // работа в штатном режиме, транзакция зафиксирована
+			}
 
-	if err = job(ctx); err != nil {
-		if rbErr := tx.Rollback(ctx); rbErr != nil {
-			mrlog.Ctx(ctx).Error().Err(err).Msg("before error in tx.Rollback")
-			err = rbErr
+			m.logger.Error(ctx, "call unsuccessful tx.Rollback", "error", wrapError(rbErr))
+
+			return
 		}
 
+		m.logger.Warn(ctx, "call tx.Rollback")
+	}()
+
+	ctx = context.WithValue(ctx, ctxTransactionKey{}, &transaction{tx: pgxTx})
+
+	if err = job(ctx); err != nil {
 		return err
 	}
 
-	return tx.Commit(ctx)
+	if err = pgxTx.Commit(ctx); err != nil {
+		return wrapError(err)
+	}
+
+	return nil
 }

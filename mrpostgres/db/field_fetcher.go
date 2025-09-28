@@ -6,6 +6,8 @@ import (
 	"github.com/mondegor/go-storage/mrstorage"
 )
 
+// :TODO: добавить опции: fieldDeletedName, wrapperError, ...
+
 type (
 	// FieldFetcher - формирователь запроса для получения значения заданного поля таблицы.
 	FieldFetcher[RowID, FieldValue any] struct {

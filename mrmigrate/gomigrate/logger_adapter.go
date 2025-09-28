@@ -1,9 +1,10 @@
 package gomigrate
 
 import (
+	"context"
 	"strings"
 
-	"github.com/mondegor/go-webcore/mrlog"
+	"github.com/mondegor/go-sysmess/mrlog"
 )
 
 type (
@@ -22,10 +23,10 @@ func NewLoggerAdapter(l mrlog.Logger) *LoggerAdapter {
 
 // Printf - выводит лог информацию о миграции БД.
 func (a *LoggerAdapter) Printf(format string, v ...any) {
-	a.logger.Info().Msgf(strings.TrimSpace(format), v...)
+	a.logger.Info(context.Background(), strings.TrimSpace(format), v...)
 }
 
 // Verbose - возвращает можно ли выводить лог миграций БД.
 func (a *LoggerAdapter) Verbose() bool {
-	return a.logger.Level() >= mrlog.InfoLevel
+	return a.logger.Enabled(mrlog.LevelInfo)
 }

@@ -8,8 +8,9 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrlib"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/mrlib/extfile"
+	"github.com/mondegor/go-sysmess/mrtrace"
 )
 
 // go get -u github.com/minio/minio-go/v7
@@ -23,8 +24,9 @@ type (
 	// ConnAdapter - адаптер для работы с Minio клиентом.
 	ConnAdapter struct {
 		conn          *minio.Client
+		tracer        mrtrace.Tracer
 		createBuckets bool // if not exists
-		mimeTypes     *mrlib.MimeTypeList
+		mimeTypes     *extfile.MimeTypeList
 	}
 
 	// Options - опции для создания соединения для ConnAdapter.
@@ -39,17 +41,18 @@ type (
 )
 
 // New - создаёт объект ConnAdapter.
-func New(createBuckets bool, mimeTypes *mrlib.MimeTypeList) *ConnAdapter {
+func New(createBuckets bool, mimeTypes *extfile.MimeTypeList, tracer mrtrace.Tracer) *ConnAdapter {
 	return &ConnAdapter{
 		createBuckets: createBuckets,
 		mimeTypes:     mimeTypes,
+		tracer:        tracer,
 	}
 }
 
 // Connect - создаёт соединение с указанными опциями.
 func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	if c.conn != nil {
-		return mrcore.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
+		return mr.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
 	}
 
 	if opts.DSN == "" {
@@ -64,7 +67,7 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 		},
 	)
 	if err != nil {
-		return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
 	}
 
 	c.conn = conn
@@ -72,22 +75,22 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	return nil
 }
 
-// Ping - проверяет работоспособность соединения.
+// Ping - сообщает, установлено ли соединение и является ли оно стабильным.
 func (c *ConnAdapter) Ping(_ context.Context) error {
 	if c.conn == nil {
-		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return mr.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
 	// TODO: желательно вызывать cancel(), если внешний контекст отменился, без этого HealthCheck вылетит по таймауту только через 3 секунды
 
 	cancel, err := c.conn.HealthCheck(time.Hour) // 1 час - нужно чтобы внутренняя горутина гарантирована не вызвалась
 	if err != nil {
-		return mrcore.ErrStorageConnectionIsBusy.Wrap(err, connectionName)
+		return mr.ErrStorageConnectionIsBusy.Wrap(err, connectionName)
 	}
 	defer cancel()
 
 	if c.conn.IsOffline() {
-		return mrcore.ErrStorageConnectionFailed.Wrap(errors.New("expected status 'online' but found 'offline'"), connectionName)
+		return mr.ErrStorageConnectionFailed.Wrap(errors.New("expected status 'online' but found 'offline'"), connectionName)
 	}
 
 	return nil
@@ -122,14 +125,18 @@ func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string) (bool, 
 }
 
 // Cli - возвращается нативный объект, с которым работает данный адаптер.
-func (c *ConnAdapter) Cli() *minio.Client {
-	return c.conn
+func (c *ConnAdapter) Cli() (*minio.Client, error) {
+	if c.conn == nil {
+		return nil, mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+	}
+
+	return c.conn, nil
 }
 
 // Close - закрывает текущее соединение.
 func (c *ConnAdapter) Close() error {
 	if c.conn == nil {
-		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return mr.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
 	c.conn = nil

@@ -1,18 +1,20 @@
 package mrsql
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
 
-	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrenum"
-	"github.com/mondegor/go-webcore/mrlog"
-	"github.com/mondegor/go-webcore/mrtype"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/mrlog"
+	"github.com/mondegor/go-sysmess/mrtype"
+	"github.com/mondegor/go-sysmess/mrtype/enums"
 )
 
 const (
-	ModelNameEntityMetaOrderBy = "EntityMetaOrderBy" // ModelNameEntityMetaOrderBy - название сущности
+	// ModelNameEntityMetaOrderBy - название сущности.
+	ModelNameEntityMetaOrderBy = "EntityMetaOrderBy"
 
 	fieldTagSortByField = "sort"
 )
@@ -28,24 +30,24 @@ type (
 	parsedTagSort struct {
 		SortName      string
 		IsDefault     bool
-		SortDirection mrenum.SortDirection
+		SortDirection enums.SortDirection
 	}
 )
 
 // NewEntityMetaOrderBy - создаёт объект EntityMetaOrderBy.
 func NewEntityMetaOrderBy(logger mrlog.Logger, entity any) (*EntityMetaOrderBy, error) {
 	rvt := reflect.TypeOf(entity)
-	logger = logger.With().Str("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaOrderBy, rvt.String())).Logger()
+	logger = logger.WithAttrs("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaOrderBy, rvt.String()))
 
 	for rvt.Kind() == reflect.Pointer {
 		rvt = rvt.Elem()
 	}
 
 	if rvt.Kind() != reflect.Struct {
-		return nil, mrcore.ErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
+		return nil, mr.ErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
 	}
 
-	debugInfo := ""
+	var debugInfo []string
 
 	meta := EntityMetaOrderBy{
 		fieldMap: make(map[string]bool),
@@ -61,7 +63,7 @@ func NewEntityMetaOrderBy(logger mrlog.Logger, entity any) (*EntityMetaOrderBy, 
 
 		parsed, err := parseTagSort(rvt, sort, meta.defaultSort.FieldName == "")
 		if err != nil {
-			logger.Warn().Err(err).Msg("parse tag sort warning, skipped")
+			logger.Warn(context.Background(), "parse tag sort warning, skipped")
 
 			continue
 		}
@@ -76,28 +78,25 @@ func NewEntityMetaOrderBy(logger mrlog.Logger, entity any) (*EntityMetaOrderBy, 
 
 		meta.fieldMap[parsed.SortName] = true
 
-		if logger.Level() <= mrlog.DebugLevel {
-			debugInfo = fmt.Sprintf(
-				"%s\n- %s(%d, %s) -> %s %s%s;",
+		if logger.Enabled(mrlog.LevelDebug) {
+			debugInfo = append(
 				debugInfo,
-				rvt.Field(i).Name,
-				i,
-				rvt.Field(i).Type,
-				parsed.SortName,
-				parsed.SortDirection.String(),
-				extMessage,
+				fmt.Sprintf(
+					"- %s(%d, %s) -> %s %s%s;",
+					rvt.Field(i).Name, i, rvt.Field(i).Type, parsed.SortName, parsed.SortDirection.String(), extMessage,
+				),
 			)
 		}
 	}
 
-	if debugInfo != "" {
-		logger.Debug().Msg(debugInfo)
+	if len(debugInfo) > 0 {
+		logger.Debug(context.Background(), strings.Join(debugInfo, "\n"))
 	}
 
 	return &meta, nil
 }
 
-// CheckField - проверяет зарегистрировано ли указанное поле в распарсенной структуре.
+// CheckField - сообщает, зарегистрировано ли указанное поле в распарсенной структуре.
 func (m *EntityMetaOrderBy) CheckField(name string) bool {
 	_, ok := m.fieldMap[name]
 
@@ -149,19 +148,20 @@ func parseTagSort(rvt reflect.Type, value string, canBeDefault bool) (parsedTagS
 		return errFunc("default field already exists")
 	}
 
-	sortDirection := mrenum.SortDirectionASC
-
-	if count > 2 {
-		parsed[2] = strings.ToUpper(parsed[2])
-
-		if err := sortDirection.ParseAndSet(strings.ToUpper(parsed[2])); err != nil {
-			return errFunc("the third parameter can only be equal to 'asc' or 'desc'")
-		}
-	}
-
-	return parsedTagSort{
+	tagSort := parsedTagSort{
 		SortName:      parsed[0],
 		IsDefault:     isDefault,
-		SortDirection: sortDirection,
-	}, nil
+		SortDirection: enums.SortDirectionASC,
+	}
+
+	if count > 2 {
+		sortDirection, err := enums.ParseSortDirection(strings.ToUpper(parsed[2]))
+		if err != nil {
+			return errFunc("the third parameter can only be equal to 'asc' or 'desc'")
+		}
+
+		tagSort.SortDirection = sortDirection
+	}
+
+	return tagSort, nil
 }

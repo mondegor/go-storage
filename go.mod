@@ -9,8 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/minio/minio-go/v7 v7.0.81
-	github.com/mondegor/go-sysmess v0.13.2
-	github.com/mondegor/go-webcore v0.28.4
+	github.com/mondegor/go-sysmess v0.15.2
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/v9 v9.7.0
@@ -76,6 +75,7 @@ require (
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
 	github.com/lib/pq v1.10.9 // indirect
+	github.com/lmittmann/tint v1.0.7 // indirect
 	github.com/lufia/plan9stats v0.0.0-20240909124753-873cd0166683 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
@@ -131,4 +131,3 @@ require (
 )
 
 // replace github.com/mondegor/go-sysmess => ../go-sysmess
-// replace github.com/mondegor/go-webcore => ../go-webcore

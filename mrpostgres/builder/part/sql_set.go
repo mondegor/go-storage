@@ -1,7 +1,7 @@
 package part
 
 import (
-	"github.com/mondegor/go-webcore/mrcore"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
 
 	"github.com/mondegor/go-storage/mrpostgres/builder/helper"
 	"github.com/mondegor/go-storage/mrsql"
@@ -54,7 +54,7 @@ func (b *SQLSetBuilder) BuildComma(parts ...mrstorage.SQLPartFunc) mrstorage.SQL
 // Возвращаемое значение предназначено быть частью конкретного SQL выражения.
 func (b *SQLSetBuilder) BuildEntity(entity any, parts ...mrstorage.SQLPartFunc) (mrstorage.SQLPart, error) {
 	if b.meta == nil {
-		return nil, mrcore.ErrInternalNilPointer.New()
+		return nil, mr.ErrInternalNilPointer.New()
 	}
 
 	dbNames, args, err := b.meta.FieldsForUpdate(entity)

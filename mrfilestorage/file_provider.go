@@ -9,7 +9,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mondegor/go-webcore/mrtype"
+	"github.com/mondegor/go-sysmess/mrdto"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/mrlib/casttype"
+	"github.com/mondegor/go-sysmess/mrtrace"
+	"github.com/mondegor/go-sysmess/mrtype"
 )
 
 const (
@@ -22,33 +26,40 @@ type (
 	// позволяет читать, сохранять, удалять файлы.
 	FileProvider struct {
 		fs      *FileSystem
+		tracer  mrtrace.Tracer
 		rootDir string
 		muPing  sync.Mutex
 	}
 )
 
 // NewFileProvider - создаёт объект FileProvider.
-func NewFileProvider(fs *FileSystem, rootDir string) *FileProvider {
+func NewFileProvider(fs *FileSystem, tracer mrtrace.Tracer, rootDir string) *FileProvider {
 	return &FileProvider{
 		fs:      fs,
+		tracer:  tracer,
 		rootDir: strings.TrimRight(rootDir, "/") + "/",
 	}
 }
 
 // Info - comment method.
-func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileInfo, error) {
+func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrdto.FileInfo, error) {
 	fp.traceCmd(ctx, "Info", filePath)
 
 	if err := fp.checkFilePath(filePath); err != nil {
-		return mrtype.FileInfo{}, err
+		return mrdto.FileInfo{}, err
 	}
 
 	fi, err := os.Stat(fp.rootDir + filePath)
 	if err != nil {
-		return mrtype.FileInfo{}, fp.wrapError(err)
+		return mrdto.FileInfo{}, fp.wrapError(err)
 	}
 
-	return fp.getFileInfo(filePath, fi), nil
+	fileInfo, err := fp.getFileInfo(filePath, fi)
+	if err != nil {
+		return mrdto.FileInfo{}, fp.wrapError(err)
+	}
+
+	return fileInfo, nil
 }
 
 // Download - comment method.
@@ -65,8 +76,13 @@ func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.F
 		return mrtype.File{}, fp.wrapError(err)
 	}
 
+	fileInfo, err := fp.getFileInfo(filePath, fi)
+	if err != nil {
+		return mrtype.File{}, fp.wrapError(err)
+	}
+
 	return mrtype.File{
-		FileInfo: fp.getFileInfo(filePath, fi),
+		FileInfo: fileInfo,
 		Body:     fd,
 	}, nil
 }
@@ -126,7 +142,7 @@ func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
 	return nil
 }
 
-// Ping - проверяет возможность работы с файлами.
+// Ping - сообщает о возможности работы с файлами.
 func (fp *FileProvider) Ping(ctx context.Context) error {
 	fp.traceCmd(ctx, "Ping", testFile)
 
@@ -161,14 +177,23 @@ func (fp *FileProvider) openFile(_ context.Context, filePath string) (*os.File, 
 	return os.Open(fp.rootDir + filePath)
 }
 
-func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) mrtype.FileInfo {
-	return mrtype.FileInfo{
-		ContentType: fp.fs.MimeTypes().ContentTypeByFileName(filePath),
+func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) (mrdto.FileInfo, error) {
+	contentType, err := fp.fs.MimeTypes().ContentTypeByExt(path.Ext(filePath))
+	if err != nil {
+		return mrdto.FileInfo{}, err
+	}
+
+	if fileInfo.Size() < 0 {
+		return mrdto.FileInfo{}, mr.ErrValidateFileSize.New()
+	}
+
+	return mrdto.FileInfo{
+		ContentType: contentType,
 		Name:        fileInfo.Name(),
 		Path:        filePath,
-		Size:        uint64(fileInfo.Size()),
-		UpdatedAt:   mrtype.CastTimeToPointer(fileInfo.ModTime()),
-	}
+		Size:        uint64(fileInfo.Size()), //nolint:gosec
+		UpdatedAt:   casttype.TimeToPointer(fileInfo.ModTime()),
+	}, nil
 }
 
 func (fp *FileProvider) checkFilePath(filePath string) error {

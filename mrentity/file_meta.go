@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/mondegor/go-webcore/mrcore"
-	"github.com/mondegor/go-webcore/mrlib"
-	"github.com/mondegor/go-webcore/mrtype"
+	"github.com/mondegor/go-sysmess/mrdto"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/mrlib/copyptr"
 )
 
 type (
@@ -22,8 +22,8 @@ type (
 	}
 )
 
-// Empty - проверяет, что объект пустой.
-func (e *FileMeta) Empty() bool {
+// Empty - сообщает, является ли объект пустым.
+func (e FileMeta) Empty() bool {
 	return e.Path == "" &&
 		e.OriginalName == ""
 }
@@ -38,13 +38,13 @@ func (e *FileMeta) Scan(value any) error {
 
 	if val, ok := value.(string); ok {
 		if err := json.Unmarshal([]byte(val), e); err != nil {
-			return mrcore.ErrInternalTypeAssertion.Wrap(err, "FileMeta", value)
+			return mr.ErrInternalTypeAssertion.Wrap(err, "FileMeta", value)
 		}
 
 		return nil
 	}
 
-	return mrcore.ErrInternalTypeAssertion.New("FileMeta", value)
+	return mr.ErrInternalTypeAssertion.New("FileMeta", value)
 }
 
 // Value implements the driver.Valuer interface.
@@ -58,29 +58,25 @@ func (e FileMeta) Value() (driver.Value, error) {
 
 // FileMetaToInfo - преобразование данных файла предназначенных
 // для хранилища в формат данных для передачи клиенту.
-func FileMetaToInfo(meta FileMeta, mime *mrlib.MimeTypeList) mrtype.FileInfo {
-	if meta.ContentType == "" && mime != nil {
-		meta.ContentType = mime.ContentTypeByFileName(meta.Path)
-	}
-
-	return mrtype.FileInfo{
+func FileMetaToInfo(meta FileMeta) mrdto.FileInfo {
+	return mrdto.FileInfo{
 		ContentType: meta.ContentType,
 		// OriginalName: meta.OriginalName,
 		// Name:         path.Base(meta.Path),
 		Path:      meta.Path,
 		Size:      meta.Size,
-		CreatedAt: mrtype.CopyTimePointer(meta.CreatedAt),
-		UpdatedAt: mrtype.CopyTimePointer(meta.UpdatedAt),
+		CreatedAt: copyptr.Time(meta.CreatedAt),
+		UpdatedAt: copyptr.Time(meta.UpdatedAt),
 	}
 }
 
 // FileMetaToInfoPointer - аналог FileMetaToInfo, но принимает и возвращает указатель.
-func FileMetaToInfoPointer(meta *FileMeta, mime *mrlib.MimeTypeList) *mrtype.FileInfo {
+func FileMetaToInfoPointer(meta *FileMeta) *mrdto.FileInfo {
 	if meta == nil {
 		return nil
 	}
 
-	c := FileMetaToInfo(*meta, mime)
+	c := FileMetaToInfo(*meta)
 
 	return &c
 }

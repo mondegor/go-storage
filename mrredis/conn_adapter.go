@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mondegor/go-webcore/mrcore"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/mrtrace"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -23,7 +24,8 @@ const (
 type (
 	// ConnAdapter - адаптер для работы с Redis клиентом.
 	ConnAdapter struct {
-		conn redis.UniversalClient
+		conn   redis.UniversalClient
+		tracer mrtrace.Tracer
 	}
 
 	// Options - опции для создания соединения для ConnAdapter.
@@ -38,14 +40,16 @@ type (
 )
 
 // New - создаёт объект ConnAdapter.
-func New() *ConnAdapter {
-	return &ConnAdapter{}
+func New(tracer mrtrace.Tracer) *ConnAdapter {
+	return &ConnAdapter{
+		tracer: tracer,
+	}
 }
 
 // Connect - создаёт соединение с указанными опциями.
 func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	if c.conn != nil {
-		return mrcore.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
+		return mr.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
 	}
 
 	var (
@@ -90,43 +94,47 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	return nil
 }
 
-// Ping - проверяет работоспособность соединения.
+// Ping - сообщает, установлено ли соединение и является ли оно стабильным.
 func (c *ConnAdapter) Ping(ctx context.Context) error {
 	if c.conn == nil {
-		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return mr.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
 	ping := c.conn.Ping(ctx)
 
 	if err := ping.Err(); err != nil {
-		return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
 	}
 
 	if ping.Val() != "PONG" {
-		return mrcore.ErrStorageQueryFailed.Wrap(errors.New("redis unexpected ping response"))
+		return mr.ErrStorageQueryFailed.Wrap(errors.New("redis unexpected ping response"))
 	}
 
 	get := c.conn.Get(ctx, testKey)
 	if err := get.Err(); err != nil && !errors.Is(err, redis.Nil) {
-		return mrcore.ErrStorageQueryFailed.Wrap(err)
+		return mr.ErrStorageQueryFailed.Wrap(err)
 	}
 
 	return nil
 }
 
 // Cli - возвращается нативный объект, с которым работает данный адаптер.
-func (c *ConnAdapter) Cli() redis.UniversalClient {
-	return c.conn
+func (c *ConnAdapter) Cli() (redis.UniversalClient, error) {
+	if c.conn == nil {
+		return nil, mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+	}
+
+	return c.conn, nil
 }
 
 // Close - закрывает текущее соединение.
 func (c *ConnAdapter) Close() error {
 	if c.conn == nil {
-		return mrcore.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return mr.ErrStorageConnectionIsNotOpened.New(connectionName)
 	}
 
 	if err := c.conn.Close(); err != nil {
-		return mrcore.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
 	}
 
 	c.conn = nil

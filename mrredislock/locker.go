@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/bsm/redislock"
-	"github.com/mondegor/go-webcore/mrlock"
-	"github.com/mondegor/go-webcore/mrlog"
+	"github.com/mondegor/go-sysmess/mrlock"
+	"github.com/mondegor/go-sysmess/mrlog"
+	"github.com/mondegor/go-sysmess/mrtrace"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -22,14 +23,18 @@ const (
 type (
 	// LockerAdapter - адаптер для работы с сетевыми блокировками на основе Redis.
 	LockerAdapter struct {
-		lock *redislock.Client
+		lock   *redislock.Client
+		logger mrlog.Logger
+		tracer mrtrace.Tracer
 	}
 )
 
 // NewLockerAdapter - создаёт объект LockerAdapter.
-func NewLockerAdapter(conn redis.UniversalClient) *LockerAdapter {
+func NewLockerAdapter(conn redis.UniversalClient, logger mrlog.Logger, tracer mrtrace.Tracer) *LockerAdapter {
 	return &LockerAdapter{
-		lock: redislock.New(conn),
+		lock:   redislock.New(conn),
+		logger: logger,
+		tracer: tracer,
 	}
 }
 
@@ -48,20 +53,14 @@ func (l *LockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry t
 
 	mutex, err := l.lock.Obtain(ctx, key, expiry, nil)
 	if err != nil {
-		return nil, l.wrapError(err)
+		return nil, l.wrapError(err, key)
 	}
 
 	return func() {
 		l.traceCmd(ctx, "Unlock", key)
 
 		if err := mutex.Release(ctx); err != nil {
-			mrlog.Ctx(ctx).
-				Debug().
-				Str("source", lockerName).
-				Str("cmd", "unlock").
-				Str("key", key).
-				Err(err).
-				Send()
+			l.logger.Warn(ctx, "unlock", "error", l.wrapError(err, key))
 		}
 	}, nil
 }

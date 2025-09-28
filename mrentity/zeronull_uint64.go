@@ -3,7 +3,7 @@ package mrentity
 import (
 	"database/sql/driver"
 
-	"github.com/mondegor/go-webcore/mrcore"
+	"github.com/mondegor/go-sysmess/mrerr/mr"
 )
 
 type (
@@ -33,7 +33,7 @@ func (e *ZeronullUint64) Scan(value any) error {
 
 	if val, ok := value.(int64); ok {
 		if val < 0 {
-			return mrcore.ErrInternalInvalidType.New("int64 < 0", "int64 >= 0")
+			return mr.ErrInternalInvalidType.New("int64 < 0", "int64 >= 0")
 		}
 
 		*e = ZeronullUint64(val)
@@ -43,7 +43,7 @@ func (e *ZeronullUint64) Scan(value any) error {
 
 	if val, ok := value.(int32); ok {
 		if val < 0 {
-			return mrcore.ErrInternalInvalidType.New("int32 < 0", "int32 >= 0")
+			return mr.ErrInternalInvalidType.New("int32 < 0", "int32 >= 0")
 		}
 
 		*e = ZeronullUint64(val)
@@ -51,7 +51,7 @@ func (e *ZeronullUint64) Scan(value any) error {
 		return nil
 	}
 
-	return mrcore.ErrInternalTypeAssertion.New("ZeronullUint64", value)
+	return mr.ErrInternalTypeAssertion.New("ZeronullUint64", value)
 }
 
 // Value implements the driver.Valuer interface.

@@ -1,16 +1,22 @@
 package main
 
 import (
+	"os"
+
 	"github.com/google/uuid"
-	"github.com/mondegor/go-webcore/mrlog"
-	"github.com/mondegor/go-webcore/mrtype"
+	"github.com/mondegor/go-sysmess/mrlib/casttype"
+	"github.com/mondegor/go-sysmess/mrlog/litelog"
+	"github.com/mondegor/go-sysmess/mrlog/slog"
+	"github.com/mondegor/go-sysmess/mrtype"
 
 	"github.com/mondegor/go-storage/mrpostgres/builder/part"
 	"github.com/mondegor/go-storage/mrstorage"
 )
 
 func main() {
-	logger := mrlog.New(mrlog.TraceLevel)
+	l, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
+	logger := litelog.NewLogger(l)
+
 	condBuilder := part.NewSQLConditionBuilder()
 
 	partSql := condBuilder.BuildFunc(
@@ -27,7 +33,7 @@ func main() {
 					c.Equal("equal_field2-1", "2-1"),
 					c.NotEqual("not_equal_field2-2", "2-2"),
 					c.FilterLike("like_field2-3", "2-3"),
-					c.FilterEqualBool("bool_field2-4", mrtype.CastBoolToPointer(true)),
+					c.FilterEqualBool("bool_field2-4", casttype.BoolToPointer(true)),
 					c.Less("equal_field2-5", "2-5"),
 					c.LessOrEqual("equal_field2-6", "2-6"),
 				),
@@ -52,6 +58,6 @@ func main() {
 
 	cc, vv := partSql.WithStartArg(4).ToSQL()
 
-	logger.Info().Msgf("generated sql: %v", cc)
-	logger.Info().Msgf("generated args: %v", vv)
+	logger.Info("generated sql", "value", cc)
+	logger.Info("generated args", "value", vv)
 }
