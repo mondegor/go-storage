@@ -993,8 +993,6 @@ github.com/moby/sys/userns v0.1.0 h1:tVLXkFOxVu9A64/yh59slHVv9ahO9UIev4JZusOLG/g
 github.com/moby/sys/userns v0.1.0/go.mod h1:IHUYgu/kao6N8YZlp9Cf444ySSvCmDlmzUcYfDHOl28=
 github.com/moby/term v0.5.0 h1:xt8Q1nalod/v7BqbG21f8mQPqH+xAaC9C3N3wfWbVP0=
 github.com/moby/term v0.5.0/go.mod h1:8FzsFHVUBGZdbDsJw/ot+X+d5HLUbvklYLJ9uGfcI3Y=
-github.com/mondegor/go-sysmess v0.15.1 h1:EzUhRaOIhmj0d6CmDw9suIDBddLDq2jt2gZUbOAEzwY=
-github.com/mondegor/go-sysmess v0.15.1/go.mod h1:vw452qgNo9O3iqUxCEyuewVq4IR+BPG89KQnK+bVrZQ=
 github.com/mondegor/go-sysmess v0.15.2 h1:3+1Eq1FdG5lC78uaM7QHcwSDmm09b7U25PaUASqOIFY=
 github.com/mondegor/go-sysmess v0.15.2/go.mod h1:vw452qgNo9O3iqUxCEyuewVq4IR+BPG89KQnK+bVrZQ=
 github.com/morikuni/aec v1.0.0 h1:nP9CBfwrvYnBRgY6qfDQkygYDmYwOilePFkwzv4dU8A=

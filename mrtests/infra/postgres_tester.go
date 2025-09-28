@@ -139,7 +139,7 @@ func (t *PostgresTester) ApplyFixtures(dirPath string) {
 }
 
 // CountRows - возвращает количество записей указанной таблицы находящейся в текущей схеме.
-func (t *PostgresTester) CountRows(ctx context.Context, tableName string) (count uint64) {
+func (t *PostgresTester) CountRows(ctx context.Context, tableName string) (count int) {
 	t.ownerT.Helper()
 
 	err := t.conn.

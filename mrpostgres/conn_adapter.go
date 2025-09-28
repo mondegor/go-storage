@@ -40,7 +40,7 @@ type (
 		Database        string
 		Username        string
 		Password        string
-		MaxPoolSize     uint64
+		MaxPoolSize     int
 		MaxConnLifetime time.Duration
 		MaxConnIdleTime time.Duration
 		ConnTimeout     time.Duration
@@ -93,8 +93,8 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 		return err
 	}
 
-	if opts.MaxPoolSize > math.MaxInt32 {
-		return errors.New("max pool size exceeded")
+	if opts.MaxPoolSize < 1 || opts.MaxPoolSize > math.MaxInt32 {
+		return errors.New("max pool size is incorrect")
 	}
 
 	cfg.MaxConns = int32(opts.MaxPoolSize)

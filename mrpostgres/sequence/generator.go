@@ -18,7 +18,7 @@ type (
 	// Generator - генератор последовательностей (на основе postgres).
 	Generator struct {
 		client                  mrstorage.DBConnManager
-		maxIDsOneQuery          uint64
+		maxIDsOneQuery          int
 		sqlGeneratorSequenceID  string
 		sqlGeneratorSequenceIDs string
 	}
@@ -53,7 +53,7 @@ func (g Generator) Next(ctx context.Context) (nextID uint64, err error) {
 }
 
 // MultiNext - возвращает нужное кол-во идентификаторов, но без гарантии непрерывности.
-func (g Generator) MultiNext(ctx context.Context, count uint64) (nextIDs []uint64, err error) {
+func (g Generator) MultiNext(ctx context.Context, count int) (nextIDs []uint64, err error) {
 	if count < 2 {
 		if count == 0 {
 			return nil, mr.ErrInternal.Wrap(errors.New("count must be greater than zero"))
@@ -77,7 +77,7 @@ func (g Generator) MultiNext(ctx context.Context, count uint64) (nextIDs []uint6
 		batches++
 	}
 
-	for i := uint64(1); i <= batches; i++ {
+	for i := 1; i <= batches; i++ {
 		if i == batches && rest > 0 {
 			idsOneQuery = rest
 		}
@@ -114,7 +114,7 @@ func (g Generator) MultiNext(ctx context.Context, count uint64) (nextIDs []uint6
 		}
 	}
 
-	if count != uint64(len(nextIDs)) {
+	if count != len(nextIDs) {
 		return nil, mr.ErrStorageFetchDataFailed.Wrap(fmt.Errorf("expected next ids %d, got %d", count, len(nextIDs)))
 	}
 

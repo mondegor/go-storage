@@ -21,9 +21,9 @@ type (
 	// содержатся пронумерованные аргументы (например, используется, для множественной вставки в INSERT запросах).
 	SQL struct {
 		buf           writer
-		countArgs     uint64
+		countArgs     int
 		linePrefix    string
-		lineMiddle    map[uint64]string
+		lineMiddle    map[int]string
 		linePostfix   string
 		argsSeparator string
 		lineSeparator string
@@ -69,9 +69,10 @@ func New(buf writer, opts ...Option) *SQL {
 }
 
 // WriteFirstLine - добавляет первую линию с аргументами.
+// Параметр argumentNumber является необязательным, если он меньше или равен нулю, то он будет приравнен к 1.
 // Пример: '($1, $2, $3, NOW())'.
-func (s *SQL) WriteFirstLine(argumentNumber ...uint64) (nextArgument uint64) {
-	if len(argumentNumber) == 0 {
+func (s *SQL) WriteFirstLine(argumentNumber ...int) (nextArgument int) {
+	if len(argumentNumber) == 0 || argumentNumber[0] < 1 {
 		nextArgument = 1
 	} else {
 		nextArgument = argumentNumber[0]
@@ -81,21 +82,26 @@ func (s *SQL) WriteFirstLine(argumentNumber ...uint64) (nextArgument uint64) {
 }
 
 // WriteNextLine - добавляет запятую и следующую линию с аргументами.
+// Если argumentNumber меньше или равен нулю, то он будет приравнен к 1.
 // Пример: ', ($1, $2, $3, NOW())'.
-func (s *SQL) WriteNextLine(argumentNumber uint64) (nextArgument uint64) {
+func (s *SQL) WriteNextLine(argumentNumber int) (nextArgument int) {
+	if argumentNumber < 1 {
+		argumentNumber = 1
+	}
+
 	s.buf.WriteString(s.lineSeparator)
 
 	return s.writeLine(argumentNumber)
 }
 
-func (s *SQL) writeLine(argumentNumber uint64) (nextArgumentNumber uint64) {
+func (s *SQL) writeLine(argumentNumber int) (nextArgumentNumber int) {
 	s.buf.WriteString(s.linePrefix)
 
 	// зная, что s.countArgs всегда > 0, последний аргумент обрабатывается отдельно
 	// чтобы не использовать дополнительную проверку внутри цикла
-	for i := uint64(0); i < s.countArgs-1; i++ {
+	for i := 0; i < s.countArgs-1; i++ {
 		s.buf.WriteByte('$')
-		s.buf.WriteString(strconv.FormatUint(argumentNumber+i, 10))
+		s.buf.WriteString(strconv.FormatInt(int64(argumentNumber+i), 10))
 
 		if middle, ok := s.lineMiddle[i+1]; ok {
 			s.buf.WriteString(middle)
@@ -107,7 +113,7 @@ func (s *SQL) writeLine(argumentNumber uint64) (nextArgumentNumber uint64) {
 	argumentNumber += s.countArgs - 1
 
 	s.buf.WriteByte('$')
-	s.buf.WriteString(strconv.FormatUint(argumentNumber, 10))
+	s.buf.WriteString(strconv.FormatInt(int64(argumentNumber), 10))
 
 	s.buf.WriteString(s.linePostfix)
 
