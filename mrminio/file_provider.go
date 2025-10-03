@@ -9,7 +9,6 @@ import (
 	"path"
 
 	"github.com/minio/minio-go/v7"
-	"github.com/mondegor/go-sysmess/mrdto"
 	"github.com/mondegor/go-sysmess/mrerr/mr"
 	"github.com/mondegor/go-sysmess/mrlib/casttype"
 	"github.com/mondegor/go-sysmess/mrtype"
@@ -39,7 +38,7 @@ func NewFileProvider(conn *ConnAdapter, bucketName string) *FileProvider {
 }
 
 // Info - comment method.
-func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrdto.FileInfo, error) {
+func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileInfo, error) {
 	fp.traceCmd(ctx, "Info", filePath)
 
 	info, err := fp.conn.StatObject(
@@ -49,12 +48,12 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrdto.FileIn
 		minio.StatObjectOptions{},
 	)
 	if err != nil {
-		return mrdto.FileInfo{}, fp.wrapError(err)
+		return mrtype.FileInfo{}, fp.wrapError(err)
 	}
 
 	fileInfo, err := fp.getFileInfo(&info)
 	if err != nil {
-		return mrdto.FileInfo{}, fp.wrapError(err)
+		return mrtype.FileInfo{}, fp.wrapError(err)
 	}
 
 	return fileInfo, nil
@@ -168,17 +167,17 @@ func (fp *FileProvider) openObject(ctx context.Context, filePath string) (*minio
 	)
 }
 
-func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) (mrdto.FileInfo, error) {
+func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) (mrtype.FileInfo, error) {
 	contentType, err := fp.getContentType(info.ContentType, info.Key)
 	if err != nil {
-		return mrdto.FileInfo{}, err
+		return mrtype.FileInfo{}, err
 	}
 
 	if info.Size < 0 {
-		return mrdto.FileInfo{}, mr.ErrValidateFileSize.New()
+		return mrtype.FileInfo{}, mr.ErrValidateFileSize.New()
 	}
 
-	return mrdto.FileInfo{
+	return mrtype.FileInfo{
 		ContentType:  contentType,
 		OriginalName: fp.parseOriginalName(info.Metadata.Get("Content-Disposition")),
 		Name:         path.Base(info.Key),

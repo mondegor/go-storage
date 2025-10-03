@@ -65,7 +65,7 @@ func (t *MinioTester) Destroy(ctx context.Context) {
 }
 
 func newMinio(ctx context.Context, dsn string, mimeTypes *extfile.MimeTypeList) (*mrminio.ConnAdapter, error) {
-	conn := mrminio.New(false, mimeTypes, noptracer.NewTracer())
+	conn := mrminio.New(false, mimeTypes, noptracer.New())
 	opts := mrminio.Options{
 		DSN:      dsn,
 		User:     minioUser,

@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/mondegor/go-sysmess/mrlog/litelog"
+	"github.com/mondegor/go-sysmess/mrlog"
 	"github.com/mondegor/go-sysmess/mrlog/slog"
 	"github.com/mondegor/go-sysmess/mrtype"
 	"github.com/mondegor/go-sysmess/mrtype/enums"
@@ -15,10 +15,9 @@ import (
 )
 
 func main() {
-	l, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
-	logger := litelog.NewLogger(l)
+	logger, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
 
-	logger.Info("SAMPLE1:")
+	mrlog.Info(logger, "SAMPLE1:")
 	orderByBuilder := part.NewSQLOrderByBuilder(
 		mrtype.SortParams{
 			FieldName: "id",
@@ -35,9 +34,9 @@ func main() {
 		},
 	)
 
-	logger.Info("generated sql", "value", orderBy.String())
+	mrlog.Info(logger, "generated sql", "value", orderBy.String())
 
-	logger.Info("SAMPLE2:")
+	mrlog.Info(logger, "SAMPLE2:")
 	orderByBuilder = part.NewSQLOrderByBuilder(
 		mrtype.SortParams{
 			FieldName: "id",
@@ -47,9 +46,9 @@ func main() {
 
 	orderBy = orderByBuilder.Build(nil) // return default value
 
-	logger.Info("generated sql", "value", orderBy.String())
+	mrlog.Info(logger, "generated sql", "value", orderBy.String())
 
-	logger.Info("SAMPLE3:")
+	mrlog.Info(logger, "SAMPLE3:")
 	type OrderedStruct struct {
 		ID        string    `sort:"id"`
 		Caption   string    `sort:"caption"`
@@ -58,13 +57,13 @@ func main() {
 		IsRemoved bool `sort:"isRemoved"`
 	}
 
-	meta, _ := mrsql.NewEntityMetaOrderBy(l, OrderedStruct{})
-	logger.Info("caption is registered?", "value", meta.CheckField("caption"))
-	logger.Info("NotSorted is registered?", "value", meta.CheckField("NotSorted"))
+	meta, _ := mrsql.NewEntityMetaOrderBy(logger, OrderedStruct{})
+	mrlog.Info(logger, "caption is registered?", "value", meta.HasField("caption"))
+	mrlog.Info(logger, "NotSorted is registered?", "value", meta.HasField("NotSorted"))
 
 	orderByBuilder = part.NewSQLOrderByBuilder(meta.DefaultSort())
 
 	orderBy = orderByBuilder.Build(nil) // return default value
 
-	logger.Info("generated sql", "value", orderBy.String())
+	mrlog.Info(logger, "generated sql", "value", orderBy.String())
 }

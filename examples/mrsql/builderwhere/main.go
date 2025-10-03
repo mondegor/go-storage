@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mondegor/go-sysmess/mrlib/casttype"
-	"github.com/mondegor/go-sysmess/mrlog/litelog"
+	"github.com/mondegor/go-sysmess/mrlog"
 	"github.com/mondegor/go-sysmess/mrlog/slog"
 	"github.com/mondegor/go-sysmess/mrtype"
 
@@ -14,8 +14,7 @@ import (
 )
 
 func main() {
-	l, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
-	logger := litelog.NewLogger(l)
+	logger, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
 
 	condBuilder := part.NewSQLConditionBuilder()
 
@@ -58,6 +57,6 @@ func main() {
 
 	cc, vv := partSql.WithStartArg(4).ToSQL()
 
-	logger.Info("generated sql", "value", cc)
-	logger.Info("generated args", "value", vv)
+	mrlog.Info(logger, "generated sql", "value", cc)
+	mrlog.Info(logger, "generated args", "value", vv)
 }

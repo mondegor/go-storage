@@ -993,8 +993,8 @@ github.com/moby/sys/userns v0.1.0 h1:tVLXkFOxVu9A64/yh59slHVv9ahO9UIev4JZusOLG/g
 github.com/moby/sys/userns v0.1.0/go.mod h1:IHUYgu/kao6N8YZlp9Cf444ySSvCmDlmzUcYfDHOl28=
 github.com/moby/term v0.5.0 h1:xt8Q1nalod/v7BqbG21f8mQPqH+xAaC9C3N3wfWbVP0=
 github.com/moby/term v0.5.0/go.mod h1:8FzsFHVUBGZdbDsJw/ot+X+d5HLUbvklYLJ9uGfcI3Y=
-github.com/mondegor/go-sysmess v0.15.4-0.20250929224048-b99af89abbd4 h1:+XLM5r0vtaIy0aznmTrmWwDgrSGmJ81Fmwc1oBiYcms=
-github.com/mondegor/go-sysmess v0.15.4-0.20250929224048-b99af89abbd4/go.mod h1:vw452qgNo9O3iqUxCEyuewVq4IR+BPG89KQnK+bVrZQ=
+github.com/mondegor/go-sysmess v0.15.4-0.20251003061202-c81b6ea107cc h1:PZsnr7eU2iUSP7so6nouRTxATmB5T03gY1oQHgZImbk=
+github.com/mondegor/go-sysmess v0.15.4-0.20251003061202-c81b6ea107cc/go.mod h1:vw452qgNo9O3iqUxCEyuewVq4IR+BPG89KQnK+bVrZQ=
 github.com/morikuni/aec v1.0.0 h1:nP9CBfwrvYnBRgY6qfDQkygYDmYwOilePFkwzv4dU8A=
 github.com/morikuni/aec v1.0.0/go.mod h1:BbKIizmSmc5MMPqRYbxO4ZU0S0+P200+tUnFx7PXmsc=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=

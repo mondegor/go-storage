@@ -72,7 +72,7 @@ func (t *RedisTester) Destroy(ctx context.Context) {
 }
 
 func newRedis(ctx context.Context, dsn string) (*mrredis.ConnAdapter, error) {
-	conn := mrredis.New(noptracer.NewTracer())
+	conn := mrredis.New(noptracer.New())
 	opts := mrredis.Options{
 		DSN:      dsn,
 		Password: redisPassword,

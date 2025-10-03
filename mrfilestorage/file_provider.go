@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mondegor/go-sysmess/mrdto"
 	"github.com/mondegor/go-sysmess/mrerr/mr"
 	"github.com/mondegor/go-sysmess/mrlib/casttype"
 	"github.com/mondegor/go-sysmess/mrtrace"
@@ -42,21 +41,21 @@ func NewFileProvider(fs *FileSystem, tracer mrtrace.Tracer, rootDir string) *Fil
 }
 
 // Info - comment method.
-func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrdto.FileInfo, error) {
+func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileInfo, error) {
 	fp.traceCmd(ctx, "Info", filePath)
 
 	if err := fp.checkFilePath(filePath); err != nil {
-		return mrdto.FileInfo{}, err
+		return mrtype.FileInfo{}, err
 	}
 
 	fi, err := os.Stat(fp.rootDir + filePath)
 	if err != nil {
-		return mrdto.FileInfo{}, fp.wrapError(err)
+		return mrtype.FileInfo{}, fp.wrapError(err)
 	}
 
 	fileInfo, err := fp.getFileInfo(filePath, fi)
 	if err != nil {
-		return mrdto.FileInfo{}, fp.wrapError(err)
+		return mrtype.FileInfo{}, fp.wrapError(err)
 	}
 
 	return fileInfo, nil
@@ -177,17 +176,17 @@ func (fp *FileProvider) openFile(_ context.Context, filePath string) (*os.File, 
 	return os.Open(fp.rootDir + filePath)
 }
 
-func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) (mrdto.FileInfo, error) {
+func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) (mrtype.FileInfo, error) {
 	contentType, err := fp.fs.MimeTypes().ContentTypeByExt(path.Ext(filePath))
 	if err != nil {
-		return mrdto.FileInfo{}, err
+		return mrtype.FileInfo{}, err
 	}
 
 	if fileInfo.Size() < 0 {
-		return mrdto.FileInfo{}, mr.ErrValidateFileSize.New()
+		return mrtype.FileInfo{}, mr.ErrValidateFileSize.New()
 	}
 
-	return mrdto.FileInfo{
+	return mrtype.FileInfo{
 		ContentType: contentType,
 		Name:        fileInfo.Name(),
 		Path:        filePath,

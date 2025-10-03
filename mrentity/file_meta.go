@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/mondegor/go-sysmess/mrdto"
 	"github.com/mondegor/go-sysmess/mrerr/mr"
 	"github.com/mondegor/go-sysmess/mrlib/copyptr"
+	"github.com/mondegor/go-sysmess/mrtype"
 )
 
 type (
@@ -58,8 +58,8 @@ func (e FileMeta) Value() (driver.Value, error) {
 
 // FileMetaToInfo - преобразование данных файла предназначенных
 // для хранилища в формат данных для передачи клиенту.
-func FileMetaToInfo(meta FileMeta) mrdto.FileInfo {
-	return mrdto.FileInfo{
+func FileMetaToInfo(meta FileMeta) mrtype.FileInfo {
+	return mrtype.FileInfo{
 		ContentType: meta.ContentType,
 		// OriginalName: meta.OriginalName,
 		// Name:         path.Base(meta.Path),
@@ -71,7 +71,7 @@ func FileMetaToInfo(meta FileMeta) mrdto.FileInfo {
 }
 
 // FileMetaToInfoPointer - аналог FileMetaToInfo, но принимает и возвращает указатель.
-func FileMetaToInfoPointer(meta *FileMeta) *mrdto.FileInfo {
+func FileMetaToInfoPointer(meta *FileMeta) *mrtype.FileInfo {
 	if meta == nil {
 		return nil
 	}

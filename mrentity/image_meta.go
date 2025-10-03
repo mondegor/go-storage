@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/mondegor/go-sysmess/mrdto"
 	"github.com/mondegor/go-sysmess/mrerr/mr"
 	"github.com/mondegor/go-sysmess/mrlib/copyptr"
+	"github.com/mondegor/go-sysmess/mrtype"
 )
 
 type (
@@ -60,8 +60,8 @@ func (e ImageMeta) Value() (driver.Value, error) {
 
 // ImageMetaToInfo - преобразование данных изображения предназначенных
 // для хранилища в формат данных для передачи клиенту.
-func ImageMetaToInfo(meta ImageMeta) mrdto.ImageInfo {
-	return mrdto.ImageInfo{
+func ImageMetaToInfo(meta ImageMeta) mrtype.ImageInfo {
+	return mrtype.ImageInfo{
 		ContentType: meta.ContentType,
 		// OriginalName: meta.OriginalName,
 		// Name:         path.Base(meta.Path),
@@ -75,7 +75,7 @@ func ImageMetaToInfo(meta ImageMeta) mrdto.ImageInfo {
 }
 
 // ImageMetaToInfoPointer - аналог ImageMetaToInfo, но принимает и возвращает указатель.
-func ImageMetaToInfoPointer(meta *ImageMeta) *mrdto.ImageInfo {
+func ImageMetaToInfoPointer(meta *ImageMeta) *mrtype.ImageInfo {
 	if meta == nil {
 		return nil
 	}

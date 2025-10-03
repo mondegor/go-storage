@@ -7,8 +7,8 @@ import (
 
 	"github.com/mondegor/go-sysmess/mrerr"
 	"github.com/mondegor/go-sysmess/mrlog"
-	"github.com/mondegor/go-sysmess/mrlog/litelog"
 	"github.com/mondegor/go-sysmess/mrlog/slog"
+	"github.com/mondegor/go-sysmess/mrtrace/logtracer"
 
 	"github.com/mondegor/go-storage/mrredis"
 )
@@ -16,10 +16,9 @@ import (
 func main() {
 	mrerr.InitDefaultOptions(mrerr.DefaultOptionsHandler())
 
-	l, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
-	logger := litelog.NewLogger(l)
+	logger, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
 
-	logger.Info("Create redis connection")
+	mrlog.Info(logger, "Create redis connection")
 
 	opts := mrredis.Options{
 		Host:         "127.0.0.1",
@@ -30,24 +29,22 @@ func main() {
 	}
 
 	ctx := context.Background()
-	redisAdapter := mrredis.New(mrlog.NewDebugTracer(l))
+	redisAdapter := mrredis.New(logtracer.New(logger))
 
 	if err := redisAdapter.Connect(ctx, opts); err != nil {
-		logger.Error("redisAdapter.Connect()", "error", err) // mrlog.Fatal
-		os.Exit(1)
+		mrlog.Fatal(logger, "redisAdapter.Connect()", "error", err) // mrlog.Fatal
 	}
 
 	defer redisAdapter.Close()
 
 	redisCli, err := redisAdapter.Cli()
 	if err != nil {
-		logger.Error("redisAdapter.Cli()", "error", err) // mrlog.Fatal
-		os.Exit(1)
+		mrlog.Fatal(logger, "redisAdapter.Cli()", "error", err) // mrlog.Fatal
 	}
 
 	key := "my-test-key"
 	redisCli.Set(ctx, key, "my-test-value", 1*time.Second)
 	value := redisCli.Get(ctx, key).Val()
 
-	logger.Info("value from redis by key", "key", key, "value", value)
+	mrlog.Info(logger, "value from redis by key", "key", key, "value", value)
 }

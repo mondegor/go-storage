@@ -96,8 +96,8 @@ func NewEntityMetaOrderBy(logger mrlog.Logger, entity any) (*EntityMetaOrderBy, 
 	return &meta, nil
 }
 
-// CheckField - сообщает, зарегистрировано ли указанное поле в распарсенной структуре.
-func (m *EntityMetaOrderBy) CheckField(name string) bool {
+// HasField - сообщает, зарегистрировано ли указанное поле в распарсенной структуре.
+func (m *EntityMetaOrderBy) HasField(name string) bool {
 	_, ok := m.fieldMap[name]
 
 	return ok

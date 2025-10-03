@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/mondegor/go-sysmess/mrlog/litelog"
+	"github.com/mondegor/go-sysmess/mrlog"
 	"github.com/mondegor/go-sysmess/mrlog/slog"
 
 	"github.com/mondegor/go-storage/mrpostgres/builder/part"
@@ -11,8 +11,7 @@ import (
 )
 
 func main() {
-	l, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
-	logger := litelog.NewLogger(l)
+	logger, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
 
 	condBuilder := part.NewSQLConditionBuilder()
 
@@ -38,6 +37,6 @@ func main() {
 	joinedParts := condBuilder.BuildAnd(partFunc1, partFunc2).WithStartArg(5)
 	cc, vv := joinedParts.ToSQL()
 
-	logger.Info("generated sql", "value", cc)
-	logger.Info("generated args", "value", vv)
+	mrlog.Info(logger, "generated sql", "value", cc)
+	mrlog.Info(logger, "generated args", "value", vv)
 }
