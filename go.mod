@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/minio/minio-go/v7 v7.0.81
-	github.com/mondegor/go-sysmess v0.15.4-0.20251003061202-c81b6ea107cc
+	github.com/mondegor/go-sysmess v0.15.4-0.20251004084206-a6c3849a18a2
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/v9 v9.7.0
