@@ -1,14 +1,15 @@
-package mrredislock
+package redislocker
 
 import (
 	"context"
 	"time"
 
 	"github.com/bsm/redislock"
-	"github.com/mondegor/go-sysmess/mrlock"
 	"github.com/mondegor/go-sysmess/mrlog"
 	"github.com/mondegor/go-sysmess/mrtrace"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/mondegor/go-storage/mrlock"
 )
 
 // https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html
@@ -30,7 +31,11 @@ type (
 )
 
 // NewLockerAdapter - создаёт объект LockerAdapter.
-func NewLockerAdapter(conn redis.UniversalClient, logger mrlog.Logger, tracer mrtrace.Tracer) *LockerAdapter {
+func NewLockerAdapter(
+	conn redis.UniversalClient,
+	logger mrlog.Logger,
+	tracer mrtrace.Tracer,
+) *LockerAdapter {
 	return &LockerAdapter{
 		lock:   redislock.New(conn),
 		logger: logger,

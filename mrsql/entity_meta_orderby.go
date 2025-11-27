@@ -9,7 +9,7 @@ import (
 	"github.com/mondegor/go-sysmess/mrerr/mr"
 	"github.com/mondegor/go-sysmess/mrlog"
 	"github.com/mondegor/go-sysmess/mrtype"
-	"github.com/mondegor/go-sysmess/mrtype/enums"
+	"github.com/mondegor/go-sysmess/mrtype/sortdirection"
 )
 
 const (
@@ -30,7 +30,7 @@ type (
 	parsedTagSort struct {
 		SortName      string
 		IsDefault     bool
-		SortDirection enums.SortDirection
+		SortDirection sortdirection.Enum
 	}
 )
 
@@ -151,11 +151,11 @@ func parseTagSort(rvt reflect.Type, value string, canBeDefault bool) (parsedTagS
 	tagSort := parsedTagSort{
 		SortName:      parsed[0],
 		IsDefault:     isDefault,
-		SortDirection: enums.SortDirectionASC,
+		SortDirection: sortdirection.ASC,
 	}
 
 	if count > 2 {
-		sortDirection, err := enums.ParseSortDirection(strings.ToUpper(parsed[2]))
+		sortDirection, err := sortdirection.Parse(strings.ToUpper(parsed[2]))
 		if err != nil {
 			return errFunc("the third parameter can only be equal to 'asc' or 'desc'")
 		}

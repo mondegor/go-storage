@@ -2,7 +2,7 @@ package mrstorage
 
 import (
 	"github.com/mondegor/go-sysmess/mrtype"
-	"github.com/mondegor/go-sysmess/mrtype/enums"
+	"github.com/mondegor/go-sysmess/mrtype/sortdirection"
 )
 
 type (
@@ -87,7 +87,7 @@ type (
 	// SQLOrderByHelper - помощник для построения выражений используемых в конструкции ORDER BY.
 	SQLOrderByHelper interface {
 		JoinComma(fields ...SQLPartFunc) SQLPartFunc
-		Field(name string, direction enums.SortDirection) SQLPartFunc
+		Field(name string, direction sortdirection.Enum) SQLPartFunc
 	}
 
 	// SQLLimitBuilder - строитель условий используемых в конструкции LIMIT.

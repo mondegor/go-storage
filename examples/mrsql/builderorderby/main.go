@@ -7,7 +7,7 @@ import (
 	"github.com/mondegor/go-sysmess/mrlog"
 	"github.com/mondegor/go-sysmess/mrlog/slog"
 	"github.com/mondegor/go-sysmess/mrtype"
-	"github.com/mondegor/go-sysmess/mrtype/enums"
+	"github.com/mondegor/go-sysmess/mrtype/sortdirection"
 
 	"github.com/mondegor/go-storage/mrpostgres/builder/part"
 	"github.com/mondegor/go-storage/mrsql"
@@ -21,15 +21,15 @@ func main() {
 	orderByBuilder := part.NewSQLOrderByBuilder(
 		mrtype.SortParams{
 			FieldName: "id",
-			Direction: enums.SortDirectionDESC,
+			Direction: sortdirection.DESC,
 		},
 	)
 
 	orderBy := orderByBuilder.BuildFunc(
 		func(o mrstorage.SQLOrderByHelper) mrstorage.SQLPartFunc {
 			return o.JoinComma(
-				o.Field("caption", enums.SortDirectionASC),
-				o.Field("createdAt", enums.SortDirectionDESC),
+				o.Field("caption", sortdirection.ASC),
+				o.Field("createdAt", sortdirection.DESC),
 			)
 		},
 	)
@@ -40,7 +40,7 @@ func main() {
 	orderByBuilder = part.NewSQLOrderByBuilder(
 		mrtype.SortParams{
 			FieldName: "id",
-			Direction: enums.SortDirectionDESC,
+			Direction: sortdirection.DESC,
 		},
 	)
 

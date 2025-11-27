@@ -6,10 +6,11 @@ require (
 	github.com/bsm/redislock v0.9.4
 	github.com/go-testfixtures/testfixtures/v3 v3.18.0
 	github.com/golang-migrate/migrate/v4 v4.19.0
+	github.com/golang/mock v1.7.0-rc.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/minio/minio-go/v7 v7.0.95
-	github.com/mondegor/go-sysmess v0.15.4-0.20251004151425-a65b179b860a
+	github.com/mondegor/go-sysmess v0.15.4-0.20251127192116-b080be08e2d3
 	github.com/prometheus/client_golang v1.23.2
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/v9 v9.14.0
@@ -48,7 +49,6 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goccy/go-yaml v1.18.0 // indirect
-	github.com/golang/mock v1.7.0-rc.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
