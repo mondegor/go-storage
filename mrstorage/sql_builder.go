@@ -19,7 +19,6 @@ type (
 		WithPrefix(sql string) SQLPart
 		WithStartArg(number int) SQLPart
 		Empty() bool
-		String() string
 		ToSQL() (sql string, args []any)
 	}
 

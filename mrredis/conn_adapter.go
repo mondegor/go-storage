@@ -68,7 +68,7 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	if opts.DSN != "" {
 		parsedOpts, err := redis.ParseURL(opts.DSN)
 		if err != nil {
-			return fmt.Errorf("error parsing redis DSN %s: %w", opts.DSN, err)
+			return fmt.Errorf("error parsing redis DSN '%s': %w", opts.DSN, err)
 		}
 
 		addr = parsedOpts.Addr

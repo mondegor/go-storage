@@ -34,7 +34,8 @@ func main() {
 		},
 	)
 
-	mrlog.Info(logger, "generated sql", "value", orderBy.String())
+	value, _ := orderBy.ToSQL()
+	mrlog.Info(logger, "generated sql", "value", value)
 
 	mrlog.Info(logger, "SAMPLE2:")
 	orderByBuilder = part.NewSQLOrderByBuilder(
@@ -46,7 +47,8 @@ func main() {
 
 	orderBy = orderByBuilder.Build(nil) // return default value
 
-	mrlog.Info(logger, "generated sql", "value", orderBy.String())
+	value, _ = orderBy.ToSQL()
+	mrlog.Info(logger, "generated sql", "value", value)
 
 	mrlog.Info(logger, "SAMPLE3:")
 	type OrderedStruct struct {
@@ -65,5 +67,6 @@ func main() {
 
 	orderBy = orderByBuilder.Build(nil) // return default value
 
-	mrlog.Info(logger, "generated sql", "value", orderBy.String())
+	value, _ = orderBy.ToSQL()
+	mrlog.Info(logger, "generated sql", "value", value)
 }

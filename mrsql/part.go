@@ -1,9 +1,6 @@
 package mrsql
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/mondegor/go-storage/mrstorage"
 )
 
@@ -51,17 +48,6 @@ func (p *Part) WithStartArg(number int) mrstorage.SQLPart {
 // Empty - сообщает, отсутствует ли функция для формирования части SQL.
 func (p *Part) Empty() bool {
 	return p.partFunc == nil
-}
-
-// String - возвращает часть SQL в виде строки без аргументов (только если есть уверенность, что аргументы не использовались).
-func (p *Part) String() string {
-	sql, args := p.ToSQL()
-
-	if len(args) > 0 {
-		log.Print(fmt.Errorf("Part.String(): '%s' has %d args", sql, len(args)).Error())
-	}
-
-	return sql
 }
 
 // ToSQL - возвращает часть SQL в виде строки и отдельно используемые аргументы.

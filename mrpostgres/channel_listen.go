@@ -34,7 +34,7 @@ func (rc *ReceiverChannels) Find(name string) (<-chan struct{}, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("no such channel with name '%s'", name)
+	return nil, fmt.Errorf("no such channel (name='%s')", name)
 }
 
 // MustFind - comment method.
@@ -150,7 +150,7 @@ func (p *ProcessWaitForNotification) listen(ctx context.Context) error {
 
 	for name := range p.listenerChannelMap {
 		if _, err := conn.Exec(ctx, "LISTEN "+pgx.Identifier{name}.Sanitize()); err != nil {
-			return fmt.Errorf("unable to start listening channel %s: %w", name, err)
+			return fmt.Errorf("unable to start listening channel '%s': %w", name, err)
 		}
 	}
 
@@ -165,12 +165,18 @@ func (p *ProcessWaitForNotification) listen(ctx context.Context) error {
 			// поэтому нет смысла отправлять повторное событие
 			select {
 			case ch <- struct{}{}:
-				p.logger.Debug(ctx, fmt.Sprintf("Received notification: PID=%d, Channel=%s, Payload=%s", note.PID, note.Channel, note.Payload))
+				p.logger.Debug(ctx, fmt.Sprintf("Received notification: PID=%d, Channel='%s', Payload='%s'", note.PID, note.Channel, note.Payload))
 			default:
-				p.logger.Info(ctx, fmt.Sprintf("Double notification: PID=%d, Channel=%s, Payload=%s [skipped]", note.PID, note.Channel, note.Payload))
+				p.logger.Info(ctx, fmt.Sprintf("Double notification: PID=%d, Channel='%s', Payload='%s' [skipped]", note.PID, note.Channel, note.Payload))
 			}
 		} else {
-			p.logger.Warn(ctx, fmt.Sprintf("Unknown channel: PID=%d, Channel=%s, Payload=%s", note.PID, note.Channel, note.Payload))
+			p.logger.Warn(
+				ctx,
+				"Unknown channel",
+				"pid", note.PID,
+				"channel", note.Channel,
+				"payload", note.Payload,
+			)
 		}
 
 		select {

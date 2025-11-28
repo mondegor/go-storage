@@ -85,7 +85,7 @@ func NewEntityMetaUpdate(logger mrlog.Logger, entity any) (*EntityMetaUpdate, er
 			logger.Warn(
 				context.Background(),
 				"check field type warning, skipped",
-				"error", fmt.Errorf("field %s of type %s is not supported", rvt.Field(i).Name, fieldType.Kind()),
+				"error", fmt.Errorf("field is not supported (field='%s', type='%s')", rvt.Field(i).Name, fieldType.Kind()),
 			)
 
 			continue

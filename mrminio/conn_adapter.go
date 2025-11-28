@@ -109,7 +109,7 @@ func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string) (bool, 
 	}
 
 	if !c.createBuckets {
-		return false, fmt.Errorf("bucket with name '%s' not exists", bucketName)
+		return false, fmt.Errorf("bucket not exists (name='%s')", bucketName)
 	}
 
 	err = c.conn.MakeBucket(

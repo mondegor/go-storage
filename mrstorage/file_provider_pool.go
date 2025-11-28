@@ -28,7 +28,7 @@ func NewFileProviderPool() *FileProviderPool {
 // Register - регистрирует провайдера по его имени.
 func (p *FileProviderPool) Register(name string, provider FileProvider) error {
 	if _, ok := p.providers[name]; ok {
-		return mr.ErrInternal.Wrap(fmt.Errorf("file provider '%s' is already registered", name))
+		return mr.ErrInternal.Wrap(fmt.Errorf("file provider is already registered (name='%s')", name))
 	}
 
 	p.providers[name] = provider
@@ -42,7 +42,7 @@ func (p *FileProviderPool) ProviderAPI(name string) (FileProviderAPI, error) {
 		return provider, nil
 	}
 
-	return nil, mr.ErrInternal.Wrap(fmt.Errorf("file provider '%s' is not registered", name))
+	return nil, mr.ErrInternal.Wrap(fmt.Errorf("file provider is not registered (name='%s')", name))
 }
 
 // Ping - сообщает, установлено ли соединение и является ли оно стабильным для всех зарегистрированных провайдеров.
@@ -62,7 +62,7 @@ func (p *FileProviderPool) Close() error {
 
 	for name, provider := range p.providers {
 		if providerErr := provider.Close(); providerErr != nil {
-			errs = append(errs, fmt.Errorf("provider '%s' close error: %w", name, providerErr))
+			errs = append(errs, fmt.Errorf("close provider error (name='%s'): %w", name, providerErr))
 		}
 	}
 

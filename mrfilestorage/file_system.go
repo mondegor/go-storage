@@ -41,7 +41,7 @@ func (f *FileSystem) InitRootDir(path string) (bool, error) {
 	}
 
 	if !f.createDirs {
-		return false, mr.ErrInternal.Wrap(fmt.Errorf("root dir '%s' not exists", path))
+		return false, mr.ErrInternal.Wrap(fmt.Errorf("root dir not exists (dir='%s')", path))
 	}
 
 	if err = os.Mkdir(path, f.dirMode); err != nil {
