@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 
+	"github.com/mondegor/go-sysmess/mrerr/mr"
+
 	"github.com/mondegor/go-storage/mrstorage"
 )
 
@@ -34,12 +36,17 @@ func (re FieldUpdater[RowID, FieldValue]) Fetch(ctx context.Context, id RowID) (
 
 // Update - обновляет значение поля указанной записи в таблице.
 func (re FieldUpdater[RowID, FieldValue]) Update(ctx context.Context, id RowID, value FieldValue) error {
-	return re.fetcher.client.Conn(ctx).Exec(
+	err := re.fetcher.client.Conn(ctx).Exec(
 		ctx,
 		re.sqlUpdateValue,
 		id,
 		value,
 	)
+	if err != nil && mr.ErrStorageRowsNotAffected.Is(err) {
+		return mr.ErrStorageNoRowFound.Wrap(err)
+	}
+
+	return err
 }
 
 func prepareSQLUpdateFieldValue(tableName, fieldKeyName, fieldName, fieldDeletedName string) string {
