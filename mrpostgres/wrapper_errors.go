@@ -36,7 +36,9 @@ func wrapErrorCommandTag(commandTag pgconn.CommandTag, err error) error {
 	}
 
 	if commandTag.RowsAffected() < 1 {
-		return mr.ErrStorageRowsNotAffected
+		if commandTag.Update() || commandTag.Delete() {
+			return mr.ErrStorageRowsNotAffected
+		}
 	}
 
 	return nil
