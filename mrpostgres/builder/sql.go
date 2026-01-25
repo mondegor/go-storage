@@ -25,18 +25,20 @@ type (
 
 // NewSQL - создаёт объект SQL.
 func NewSQL(opts ...Option) *SQL {
-	b := &SQL{
-		set:       part.NewSQLSetBuilder(nil), // WARNING: по умолчанию EntityMeta не указано
-		condition: part.NewSQLConditionBuilder(),
-		orderBy:   part.NewSQLOrderByBuilder(mrtype.SortParams{}), // сортировка по умолчанию отсутствует
-		limit:     part.NewSQLLimitBuilder(defaultLimitMaxSize),
+	o := options{
+		sql: &SQL{
+			set:       part.NewSQLSetBuilder(nil), // WARNING: по умолчанию EntityMeta не указано
+			condition: part.NewSQLConditionBuilder(),
+			orderBy:   part.NewSQLOrderByBuilder(mrtype.SortParams{}), // сортировка по умолчанию отсутствует
+			limit:     part.NewSQLLimitBuilder(defaultLimitMaxSize),
+		},
 	}
 
 	for _, opt := range opts {
-		opt(b)
+		opt(&o)
 	}
 
-	return b
+	return o.sql
 }
 
 // Set - возвращает объект для создания части SQL используемой в UPDATE SET (field = $1, ...).

@@ -33,20 +33,13 @@ type (
 		WriteByte(value byte) error
 		WriteString(value string) (int, error)
 	}
-
-	sql struct {
-		p         *SQL
-		lineStart string
-		lineEnd   string
-	}
 )
 
 // New - создаёт объект SQL.
 func New(buf writer, opts ...Option) *SQL {
-	ws := sql{
-		p: &SQL{
+	o := options{
+		sql: &SQL{
 			buf:           buf,
-			countArgs:     defaultCountArgs,
 			linePrefix:    defaultLinePrefix,
 			lineMiddle:    nil,
 			linePostfix:   defaultLinePostfix,
@@ -58,14 +51,18 @@ func New(buf writer, opts ...Option) *SQL {
 	}
 
 	for _, opt := range opts {
-		opt(&ws)
+		opt(&o)
+	}
+
+	if o.sql.countArgs < 1 {
+		o.sql.countArgs = defaultCountArgs
 	}
 
 	// расставляются начальная и завершающая строки
-	ws.p.linePrefix = ws.lineStart + ws.p.linePrefix
-	ws.p.linePostfix += ws.lineEnd
+	o.sql.linePrefix = o.lineStart + o.sql.linePrefix
+	o.sql.linePostfix += o.lineEnd
 
-	return ws.p
+	return o.sql
 }
 
 // WriteFirstLine - добавляет первую линию с аргументами.

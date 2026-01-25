@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	defaultMaxIDsOneQuery = 1024
+	defaultMaxIDsOneQuery = 1000
 )
 
 type (
@@ -24,18 +24,23 @@ type (
 
 // NewGenerator - создаёт объект Generator.
 func NewGenerator(client mrstorage.DBConnManager, sequenceName string, opts ...Option) *Generator {
-	g := &Generator{
-		client:                  client,
-		maxIDsOneQuery:          defaultMaxIDsOneQuery,
-		sqlGeneratorSequenceID:  `SELECT nextval('` + sequenceName + `');`,
-		sqlGeneratorSequenceIDs: `SELECT nextval('` + sequenceName + `') FROM generate_series(1, $1);`,
+	o := options{
+		generator: &Generator{
+			client:                  client,
+			sqlGeneratorSequenceID:  `SELECT nextval('` + sequenceName + `');`,
+			sqlGeneratorSequenceIDs: `SELECT nextval('` + sequenceName + `') FROM generate_series(1, $1);`,
+		},
 	}
 
 	for _, opt := range opts {
-		opt(g)
+		opt(&o)
 	}
 
-	return g
+	if o.generator.maxIDsOneQuery < 1 {
+		o.generator.maxIDsOneQuery = defaultMaxIDsOneQuery
+	}
+
+	return o.generator
 }
 
 // Next - возвращает следующий свободный ID.

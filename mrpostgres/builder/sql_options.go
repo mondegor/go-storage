@@ -9,27 +9,31 @@ import (
 
 type (
 	// Option - настройка объекта SQL.
-	Option func(b *SQL)
+	Option func(o *options)
+
+	options struct {
+		sql *SQL
+	}
 )
 
 // WithSQLSetMetaEntity - устанавливает для SQL метаинформацию загруженную из тегов структуры.
 func WithSQLSetMetaEntity(value *mrsql.EntityMetaUpdate) Option {
-	return func(b *SQL) {
-		b.set = part.NewSQLSetBuilder(value)
+	return func(o *options) {
+		o.sql.set = part.NewSQLSetBuilder(value)
 	}
 }
 
 // WithSQLOrderByDefaultSort - устанавливает опцию сортировка по умолчанию.
 func WithSQLOrderByDefaultSort(value mrtype.SortParams) Option {
-	return func(b *SQL) {
-		b.orderBy = part.NewSQLOrderByBuilder(value)
+	return func(o *options) {
+		o.sql.orderBy = part.NewSQLOrderByBuilder(value)
 	}
 }
 
 // WithSQLLimitMaxSize - устанавливает для SQL опцию максимального кол-во строк,
 // которое может быть выбрано за одни запрос.
 func WithSQLLimitMaxSize(value uint64) Option {
-	return func(b *SQL) {
-		b.limit = part.NewSQLLimitBuilder(value)
+	return func(o *options) {
+		o.sql.limit = part.NewSQLLimitBuilder(value)
 	}
 }
