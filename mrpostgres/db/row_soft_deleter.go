@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 
 	"github.com/mondegor/go-storage/mrstorage"
 )
@@ -34,8 +34,8 @@ func (re RowSoftDeleter[RowID]) Delete(ctx context.Context, id RowID) error {
 		re.sqlSoftDeleteRow,
 		id,
 	)
-	if err != nil && mr.ErrStorageRowsNotAffected.Is(err) {
-		return mr.ErrStorageNoRowFound.Wrap(err)
+	if err != nil && errors.Is(err, errors.ErrEventStorageRowsNotAffected) {
+		return errors.ErrEventStorageNoRowFound
 	}
 
 	return err

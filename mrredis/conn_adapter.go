@@ -2,11 +2,10 @@ package mrredis
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 	"github.com/mondegor/go-sysmess/mrtrace"
 	"github.com/redis/go-redis/v9"
 )
@@ -49,7 +48,7 @@ func New(tracer mrtrace.Tracer) *ConnAdapter {
 // Connect - создаёт соединение с указанными опциями.
 func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	if c.conn != nil {
-		return mr.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
+		return errors.ErrInternalStorageConnectionIsAlreadyCreated.New("source", connectionName)
 	}
 
 	var (
@@ -97,22 +96,29 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 // Ping - сообщает, установлено ли соединение и является ли оно стабильным.
 func (c *ConnAdapter) Ping(ctx context.Context) error {
 	if c.conn == nil {
-		return mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
 	}
 
 	ping := c.conn.Ping(ctx)
 
 	if err := ping.Err(); err != nil {
-		return mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return errors.ErrSystemStorageConnectionFailed.Wrap(err, "source", connectionName)
 	}
 
 	if ping.Val() != "PONG" {
-		return mr.ErrStorageQueryFailed.Wrap(errors.New("redis unexpected ping response"))
+		return errors.ErrInternalStorageQueryFailed.WithDetails(
+			"unexpected ping response",
+			"source", connectionName,
+		)
 	}
 
 	get := c.conn.Get(ctx, testKey)
 	if err := get.Err(); err != nil && !errors.Is(err, redis.Nil) {
-		return mr.ErrStorageQueryFailed.Wrap(err)
+		return errors.ErrInternalStorageQueryFailed.Wrap(
+			err,
+			"source", connectionName,
+			"test_key", testKey,
+		)
 	}
 
 	return nil
@@ -121,7 +127,7 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 // Cli - возвращается нативный объект, с которым работает данный адаптер.
 func (c *ConnAdapter) Cli() (redis.UniversalClient, error) {
 	if c.conn == nil {
-		return nil, mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return nil, errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
 	}
 
 	return c.conn, nil
@@ -130,11 +136,11 @@ func (c *ConnAdapter) Cli() (redis.UniversalClient, error) {
 // Close - закрывает текущее соединение.
 func (c *ConnAdapter) Close() error {
 	if c.conn == nil {
-		return mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
 	}
 
 	if err := c.conn.Close(); err != nil {
-		return mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return errors.ErrSystemStorageFailedToClose.Wrap(err, "source", connectionName)
 	}
 
 	c.conn = nil

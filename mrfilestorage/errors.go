@@ -1,6 +1,8 @@
 package mrfilestorage
 
-import "github.com/mondegor/go-sysmess/mrerr"
+import (
+	"github.com/mondegor/go-sysmess/errors"
+)
 
-// ErrInvalidPath - invalid path.
-var ErrInvalidPath = mrerr.NewKindInternal("invalid path: '{Path}'")
+// ErrInternalInvalidPath - invalid path (attrs: path).
+var ErrInternalInvalidPath = errors.NewInternalProto("invalid path")

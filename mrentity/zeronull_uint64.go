@@ -3,7 +3,7 @@ package mrentity
 import (
 	"database/sql/driver"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 )
 
 type (
@@ -33,7 +33,10 @@ func (e *ZeronullUint64) Scan(value any) error {
 
 	if val, ok := value.(int64); ok {
 		if val < 0 {
-			return mr.ErrInternalInvalidType.New("int64 < 0", "int64 >= 0")
+			return errors.ErrInternalInvalidType.New(
+				"type", "int64 < 0",
+				"expected", "int64 >= 0",
+			)
 		}
 
 		*e = ZeronullUint64(val)
@@ -43,7 +46,10 @@ func (e *ZeronullUint64) Scan(value any) error {
 
 	if val, ok := value.(int32); ok {
 		if val < 0 {
-			return mr.ErrInternalInvalidType.New("int32 < 0", "int32 >= 0")
+			return errors.ErrInternalInvalidType.New(
+				"type", "int32 < 0",
+				"expected", "int32 >= 0",
+			)
 		}
 
 		*e = ZeronullUint64(val)
@@ -51,7 +57,10 @@ func (e *ZeronullUint64) Scan(value any) error {
 		return nil
 	}
 
-	return mr.ErrInternalTypeAssertion.New("ZeronullUint64", value)
+	return errors.ErrInternalTypeAssertion.New(
+		"type", "ZeronullUint64",
+		"value", value,
+	)
 }
 
 // Value implements the driver.Valuer interface.

@@ -27,7 +27,7 @@ func NewRowExistsChecker[RowID any](
 }
 
 // IsExist - сообщает, существует ли запись по указанному значению поля в таблице.
-// result: nil - exists, ErrStorageNoRowFound - not exists, error - query error
+// result: nil - exists, errors.ErrEventStorageNoRowFound - not exists, error - query error
 func (re RowExistsChecker[RowID]) IsExist(ctx context.Context, id RowID) error {
 	var value uint64
 

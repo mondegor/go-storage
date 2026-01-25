@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
-	"github.com/mondegor/go-sysmess/mrlib/copyptr"
+	"github.com/mondegor/go-sysmess/errors"
 	"github.com/mondegor/go-sysmess/mrtype"
+	"github.com/mondegor/go-sysmess/util/copyptr"
 )
 
 type (
@@ -40,13 +40,20 @@ func (e *ImageMeta) Scan(value any) error {
 
 	if val, ok := value.(string); ok {
 		if err := json.Unmarshal([]byte(val), e); err != nil {
-			return mr.ErrInternalTypeAssertion.Wrap(err, "ImageMeta", value)
+			return errors.ErrInternalTypeAssertion.Wrap(
+				err,
+				"type", "ImageMeta",
+				"value", value,
+			)
 		}
 
 		return nil
 	}
 
-	return mr.ErrInternalTypeAssertion.New("ImageMeta", value)
+	return errors.ErrInternalTypeAssertion.New(
+		"type", "ImageMeta",
+		"value", value,
+	)
 }
 
 // Value implements the driver.Valuer interface.

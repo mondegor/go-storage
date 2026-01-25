@@ -11,7 +11,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // WARNING: используется в migrate.NewWithDatabaseInstance
 	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/mondegor/go-sysmess/mrlog/slog/nopslog"
+	"github.com/mondegor/go-sysmess/mrlog"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrpostgres"
@@ -64,7 +64,7 @@ func NewPostgresTester(t *testing.T, dbSchemas, excludedTables []string) *Postgr
 		container:         container,
 		truncateCondition: prepareTruncateCondition(dbSchemas, excludedTables),
 		conn:              conn,
-		connManager:       mrpostgres.NewConnManager(conn, nopslog.New()),
+		connManager:       mrpostgres.NewConnManager(conn, mrlog.NopLogger()),
 	}
 }
 

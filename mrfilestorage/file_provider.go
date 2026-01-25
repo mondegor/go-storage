@@ -2,17 +2,16 @@ package mrfilestorage
 
 import (
 	"context"
-	"errors"
 	"io"
 	"os"
 	"path"
 	"strings"
 	"sync"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
-	"github.com/mondegor/go-sysmess/mrlib/casttype"
+	"github.com/mondegor/go-sysmess/errors"
 	"github.com/mondegor/go-sysmess/mrtrace"
 	"github.com/mondegor/go-sysmess/mrtype"
+	"github.com/mondegor/go-sysmess/util/casttype"
 )
 
 const (
@@ -153,7 +152,7 @@ func (fp *FileProvider) Ping(ctx context.Context) error {
 			return fp.wrapError(err)
 		}
 	} else if err = dst.Close(); err != nil {
-		return fp.wrapError(err)
+		return errors.ErrSystemStorageFailedToClose.Wrap(err, "source_test_file", testFile)
 	}
 
 	if err := os.Remove(fp.rootDir + testFile); err != nil {
@@ -183,7 +182,10 @@ func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) (mrty
 	}
 
 	if fileInfo.Size() < 0 {
-		return mrtype.FileInfo{}, mr.ErrValidateFileSize.New()
+		return mrtype.FileInfo{}, errors.NewInternalError(
+			"file size is negative",
+			"file", filePath,
+		)
 	}
 
 	return mrtype.FileInfo{
@@ -199,12 +201,12 @@ func (fp *FileProvider) checkFilePath(filePath string) error {
 	length := len(filePath)
 
 	if length < 3 {
-		return ErrInvalidPath.New(filePath)
+		return ErrInternalInvalidPath.New("path", filePath)
 	}
 
 	for i := 1; i < length; i++ {
 		if filePath[i-1] == '.' && filePath[i] == '.' {
-			return ErrInvalidPath.New(filePath)
+			return ErrInternalInvalidPath.New("path", filePath)
 		}
 	}
 

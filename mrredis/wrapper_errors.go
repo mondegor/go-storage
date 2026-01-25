@@ -3,16 +3,16 @@ package mrredis
 import (
 	"context"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 	"github.com/redis/go-redis/v9"
 )
 
 func (c *ConnAdapter) wrapError(err error) error {
 	if err == redis.Nil { //nolint:errorlint
-		return mr.ErrStorageNoRowFound.Wrap(err)
+		return errors.ErrEventStorageNoRowFound
 	}
 
-	return mr.ErrStorageQueryFailed.Wrap(err)
+	return errors.ErrInternalStorageQueryFailed.Wrap(err, "source", connectionName)
 }
 
 func (c *ConnAdapter) traceCmd(ctx context.Context, command, key string, data any) {

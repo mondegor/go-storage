@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 	"github.com/mondegor/go-sysmess/mrlog"
 	"github.com/mondegor/go-sysmess/mrtype"
 	"github.com/mondegor/go-sysmess/mrtype/sortdirection"
@@ -37,14 +37,17 @@ type (
 // NewEntityMetaOrderBy - создаёт объект EntityMetaOrderBy.
 func NewEntityMetaOrderBy(logger mrlog.Logger, entity any) (*EntityMetaOrderBy, error) {
 	rvt := reflect.TypeOf(entity)
-	logger = logger.WithAttrs("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaOrderBy, rvt.String()))
+	logger = mrlog.WithAttrs(logger, "object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaOrderBy, rvt.String()))
 
 	for rvt.Kind() == reflect.Pointer {
 		rvt = rvt.Elem()
 	}
 
 	if rvt.Kind() != reflect.Struct {
-		return nil, mr.ErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
+		return nil, errors.ErrInternalInvalidType.New(
+			"type", rvt.Kind(),
+			"expected", reflect.Struct,
+		)
 	}
 
 	var debugInfo []string
@@ -78,7 +81,7 @@ func NewEntityMetaOrderBy(logger mrlog.Logger, entity any) (*EntityMetaOrderBy, 
 
 		meta.fieldMap[parsed.SortName] = true
 
-		if logger.Enabled(mrlog.LevelDebug) {
+		if mrlog.DebugEnabled(logger) {
 			debugInfo = append(
 				debugInfo,
 				fmt.Sprintf(

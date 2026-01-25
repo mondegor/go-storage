@@ -2,16 +2,15 @@ package mrminio
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"math"
 	"path"
 
 	"github.com/minio/minio-go/v7"
-	"github.com/mondegor/go-sysmess/mrerr/mr"
-	"github.com/mondegor/go-sysmess/mrlib/casttype"
+	"github.com/mondegor/go-sysmess/errors"
 	"github.com/mondegor/go-sysmess/mrtype"
+	"github.com/mondegor/go-sysmess/util/casttype"
 )
 
 // https://min.io/docs/minio/linux/developers/go/API.html
@@ -174,7 +173,10 @@ func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) (mrtype.FileInfo, er
 	}
 
 	if info.Size < 0 {
-		return mrtype.FileInfo{}, mr.ErrValidateFileSize.New()
+		return mrtype.FileInfo{}, errors.NewInternalError(
+			"file size is negative",
+			"file", info.Key,
+		)
 	}
 
 	return mrtype.FileInfo{

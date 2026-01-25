@@ -15,18 +15,18 @@ type (
 )
 
 // NewLoggerAdapter - создаёт объект LoggerAdapter.
-func NewLoggerAdapter(l mrlog.Logger) *LoggerAdapter {
+func NewLoggerAdapter(logger mrlog.Logger) *LoggerAdapter {
 	return &LoggerAdapter{
-		logger: l,
+		logger: logger,
 	}
 }
 
 // Printf - выводит лог информацию о миграции БД.
-func (a *LoggerAdapter) Printf(format string, v ...any) {
-	a.logger.Info(context.Background(), strings.TrimSpace(format), v...)
+func (l *LoggerAdapter) Printf(format string, v ...any) {
+	l.logger.Info(context.Background(), strings.TrimSpace(format), v...)
 }
 
 // Verbose - возвращает можно ли выводить лог миграций БД.
-func (a *LoggerAdapter) Verbose() bool {
-	return a.logger.Enabled(mrlog.LevelInfo)
+func (l *LoggerAdapter) Verbose() bool {
+	return mrlog.InfoEnabled(l.logger)
 }

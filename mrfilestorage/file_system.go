@@ -1,13 +1,11 @@
 package mrfilestorage
 
 import (
-	"errors"
-	"fmt"
 	"os"
 	"strings"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
-	"github.com/mondegor/go-sysmess/mrlib/extfile"
+	"github.com/mondegor/go-sysmess/errors"
+	"github.com/mondegor/go-sysmess/util/mime"
 )
 
 type (
@@ -15,12 +13,12 @@ type (
 	FileSystem struct {
 		dirMode    os.FileMode
 		createDirs bool // if not exists
-		mimeTypes  *extfile.MimeTypeList
+		mimeTypes  *mime.TypeList
 	}
 )
 
 // New - создаёт объект FileSystem.
-func New(dirMode os.FileMode, createDirs bool, mimeTypes *extfile.MimeTypeList) *FileSystem {
+func New(dirMode os.FileMode, createDirs bool, mimeTypes *mime.TypeList) *FileSystem {
 	return &FileSystem{
 		dirMode:    dirMode,
 		mimeTypes:  mimeTypes,
@@ -34,18 +32,18 @@ func (f *FileSystem) InitRootDir(path string) (bool, error) {
 
 	if !errors.Is(err, os.ErrNotExist) {
 		if err != nil {
-			return false, mr.ErrInternal.Wrap(err)
+			return false, errors.WrapInternalError(err, "InitRootDir:os.Stat failed")
 		}
 
 		return false, nil
 	}
 
 	if !f.createDirs {
-		return false, mr.ErrInternal.Wrap(fmt.Errorf("root dir not exists (dir='%s')", path))
+		return false, errors.NewInternalError("root dir not exists", "dir", path)
 	}
 
 	if err = os.Mkdir(path, f.dirMode); err != nil {
-		return false, mr.ErrInternal.Wrap(err)
+		return false, errors.WrapInternalError(err, "InitRootDir:os.Mkdir failed")
 	}
 
 	return true, nil
@@ -54,14 +52,14 @@ func (f *FileSystem) InitRootDir(path string) (bool, error) {
 // CreateDirIfNotExists - comment method.
 func (f *FileSystem) CreateDirIfNotExists(rootDir, dirPath string) error {
 	if _, err := os.Stat(rootDir); err != nil {
-		return mr.ErrInternal.Wrap(err)
+		return errors.WrapInternalError(err, "CreateDirIfNotExists:os.Stat rootDir failed")
 	}
 
 	dirPath = strings.TrimRight(rootDir, "/") + "/" + strings.Trim(dirPath, "/")
 
 	if _, err := os.Stat(dirPath); !errors.Is(err, os.ErrNotExist) {
 		if err != nil {
-			return mr.ErrInternal.Wrap(err)
+			return errors.WrapInternalError(err, "CreateDirIfNotExists:os.Stat dirPath failed")
 		}
 
 		return nil
@@ -71,6 +69,6 @@ func (f *FileSystem) CreateDirIfNotExists(rootDir, dirPath string) error {
 }
 
 // MimeTypes - comment method.
-func (f *FileSystem) MimeTypes() *extfile.MimeTypeList {
+func (f *FileSystem) MimeTypes() *mime.TypeList {
 	return f.mimeTypes
 }

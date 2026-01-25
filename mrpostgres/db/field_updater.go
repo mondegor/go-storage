@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 
 	"github.com/mondegor/go-storage/mrstorage"
 )
@@ -29,7 +29,7 @@ func NewFieldUpdater[RowID, FieldValue any](
 }
 
 // Fetch - возвращает значение поля для указанной записи в таблице.
-// result: nil - exists, ErrStorageNoRowFound - not exists, error - query error.
+// result: nil - exists, errors.ErrEventStorageNoRowFound - not exists, error - query error.
 func (re FieldUpdater[RowID, FieldValue]) Fetch(ctx context.Context, id RowID) (FieldValue, error) {
 	return re.fetcher.Fetch(ctx, id)
 }
@@ -42,8 +42,8 @@ func (re FieldUpdater[RowID, FieldValue]) Update(ctx context.Context, id RowID, 
 		id,
 		value,
 	)
-	if err != nil && mr.ErrStorageRowsNotAffected.Is(err) {
-		return mr.ErrStorageNoRowFound.Wrap(err)
+	if err != nil && errors.Is(err, errors.ErrEventStorageRowsNotAffected) {
+		return errors.ErrEventStorageNoRowFound
 	}
 
 	return err

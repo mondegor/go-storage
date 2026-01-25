@@ -2,10 +2,8 @@ package sequence
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 
 	"github.com/mondegor/go-storage/mrstorage"
 )
@@ -56,7 +54,7 @@ func (g Generator) Next(ctx context.Context) (nextID uint64, err error) {
 func (g Generator) MultiNext(ctx context.Context, count int) (nextIDs []uint64, err error) {
 	if count < 2 {
 		if count == 0 {
-			return nil, mr.ErrInternal.Wrap(errors.New("count must be greater than zero"))
+			return nil, errors.NewInternalError("count must be greater than zero")
 		}
 
 		nextID, err := g.Next(ctx)
@@ -115,7 +113,12 @@ func (g Generator) MultiNext(ctx context.Context, count int) (nextIDs []uint64, 
 	}
 
 	if count != len(nextIDs) {
-		return nil, mr.ErrStorageFetchDataFailed.Wrap(fmt.Errorf("expected next ids %d, got %d", count, len(nextIDs)))
+		return nil, errors.ErrInternalStorageFetchDataFailed.WithDetails(
+			"count != len(nextIDs)",
+			"count", count,
+			"actual", len(nextIDs),
+			"source", "mrpostgres.SequenceGenerator",
+		)
 	}
 
 	return nextIDs, nil

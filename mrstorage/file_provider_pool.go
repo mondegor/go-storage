@@ -2,10 +2,8 @@ package mrstorage
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 )
 
 type (
@@ -28,7 +26,10 @@ func NewFileProviderPool() *FileProviderPool {
 // Register - регистрирует провайдера по его имени.
 func (p *FileProviderPool) Register(name string, provider FileProvider) error {
 	if _, ok := p.providers[name]; ok {
-		return mr.ErrInternal.Wrap(fmt.Errorf("file provider is already registered (name='%s')", name))
+		return errors.NewInternalError(
+			"file provider is already registered",
+			"name", name,
+		)
 	}
 
 	p.providers[name] = provider
@@ -42,14 +43,17 @@ func (p *FileProviderPool) ProviderAPI(name string) (FileProviderAPI, error) {
 		return provider, nil
 	}
 
-	return nil, mr.ErrInternal.Wrap(fmt.Errorf("file provider is not registered (name='%s')", name))
+	return nil, errors.NewInternalError(
+		"file provider is not registered",
+		"name", name,
+	)
 }
 
 // Ping - сообщает, установлено ли соединение и является ли оно стабильным для всех зарегистрированных провайдеров.
 func (p *FileProviderPool) Ping(ctx context.Context) error {
 	for name, provider := range p.providers {
 		if err := provider.Ping(ctx); err != nil {
-			return ErrFileProviderPingError.Wrap(err, name)
+			return ErrSystemFileProviderPingError.Wrap(err, "provider", name)
 		}
 	}
 
@@ -62,15 +66,15 @@ func (p *FileProviderPool) Close() error {
 
 	for name, provider := range p.providers {
 		if providerErr := provider.Close(); providerErr != nil {
-			errs = append(errs, fmt.Errorf("close provider error (name='%s'): %w", name, providerErr))
+			errs = append(
+				errs,
+				errors.ErrSystemStorageFailedToClose.Wrap(providerErr, "source_provider", name),
+			)
 		}
 	}
 
 	if len(errs) > 0 {
-		return mr.ErrInternalFailedToClose.Wrap(
-			errors.Join(errs...),
-			"source", "file provider pool",
-		)
+		return errors.Join(errs...)
 	}
 
 	return nil

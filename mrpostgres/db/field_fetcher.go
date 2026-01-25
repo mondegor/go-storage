@@ -29,7 +29,7 @@ func NewFieldFetcher[RowID, FieldValue any](
 }
 
 // Fetch - возвращает значение поля для указанной записи в таблице.
-// result: nil - exists, ErrStorageNoRowFound - not exists, error - query error.
+// result: nil - exists, errors.ErrEventStorageNoRowFound - not exists, error - query error.
 func (re FieldFetcher[RowID, FieldValue]) Fetch(ctx context.Context, id RowID) (FieldValue, error) {
 	var value FieldValue
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 
-	"github.com/mondegor/go-sysmess/mrerr"
 	"github.com/mondegor/go-sysmess/mrlog"
 	"github.com/mondegor/go-sysmess/mrlog/slog"
 
@@ -12,8 +11,6 @@ import (
 )
 
 func main() {
-	mrerr.InitDefaultOptions(mrerr.DefaultOptionsHandler())
-
 	logger, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
 
 	mrlog.Info(logger, "Create rabbitmq connection")
@@ -29,7 +26,7 @@ func main() {
 	rabbitAdapter := mrrabbitmq.New()
 
 	if err := rabbitAdapter.Connect(ctx, opts); err != nil {
-		mrlog.Fatal(logger, "rabbitAdapter.Connect()", "error", err) // mrlog.Fatal
+		mrlog.Fatal(logger, "rabbitAdapter.Connect()", "error", err)
 	}
 
 	defer rabbitAdapter.Close()
@@ -38,12 +35,12 @@ func main() {
 
 	rabbitCli, err := rabbitAdapter.Cli()
 	if err != nil {
-		mrlog.Fatal(logger, "rabbitAdapter.Cli()", "error", err) // mrlog.Fatal
+		mrlog.Fatal(logger, "rabbitAdapter.Cli()", "error", err)
 	}
 
 	rabbitChannel, err := rabbitCli.Channel()
 	if err != nil {
-		mrlog.Fatal(logger, "rabbitCli.Channel()", "error", err) // mrlog.Fatal
+		mrlog.Fatal(logger, "rabbitCli.Channel()", "error", err)
 	}
 
 	defer rabbitChannel.Close()
@@ -57,6 +54,6 @@ func main() {
 		nil,             // args
 	)
 	if err != nil {
-		mrlog.Fatal(logger, "rabbitChannel.QueueDeclare()", "error", err) // mrlog.Fatal
+		mrlog.Fatal(logger, "rabbitChannel.QueueDeclare()", "error", err)
 	}
 }

@@ -4,10 +4,10 @@ import (
 	"os"
 
 	"github.com/google/uuid"
-	"github.com/mondegor/go-sysmess/mrlib/casttype"
 	"github.com/mondegor/go-sysmess/mrlog"
 	"github.com/mondegor/go-sysmess/mrlog/slog"
 	"github.com/mondegor/go-sysmess/mrtype"
+	"github.com/mondegor/go-sysmess/util/casttype"
 
 	"github.com/mondegor/go-storage/mrpostgres/builder/part"
 	"github.com/mondegor/go-storage/mrstorage"

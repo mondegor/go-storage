@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 	"github.com/mondegor/go-sysmess/mrlog"
 )
 
@@ -40,14 +40,17 @@ var regexpDbName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 // NewEntityMetaUpdate - создаёт объект EntityMetaUpdate.
 func NewEntityMetaUpdate(logger mrlog.Logger, entity any) (*EntityMetaUpdate, error) {
 	rvt := reflect.TypeOf(entity)
-	logger = logger.WithAttrs("object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaUpdate, rvt.String()))
+	logger = mrlog.WithAttrs(logger, "object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaUpdate, rvt.String()))
 
 	for rvt.Kind() == reflect.Pointer {
 		rvt = rvt.Elem()
 	}
 
 	if rvt.Kind() != reflect.Struct {
-		return nil, mr.ErrInternalInvalidType.New(rvt.Kind().String(), reflect.Struct.String())
+		return nil, errors.ErrInternalInvalidType.New(
+			"type", rvt.Kind(),
+			"expected", reflect.Struct,
+		)
 	}
 
 	var debugInfo []string
@@ -97,7 +100,7 @@ func NewEntityMetaUpdate(logger mrlog.Logger, entity any) (*EntityMetaUpdate, er
 			dbName:    dbName,
 		}
 
-		if logger.Enabled(mrlog.LevelDebug) {
+		if mrlog.DebugEnabled(logger) {
 			debugInfo = append(
 				debugInfo,
 				fmt.Sprintf(
@@ -154,11 +157,17 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 	}
 
 	if !rv.IsValid() {
-		return nil, nil, mr.ErrInternal.New("reflect.entity", rv)
+		return nil, nil, errors.NewInternalError(
+			"reflect field is invalid",
+			"entity", rv,
+		)
 	}
 
 	if rv.Type().String() != m.structName {
-		return nil, nil, mr.ErrInternalInvalidType.New(rv.Type().String(), m.structName)
+		return nil, nil, errors.ErrInternalInvalidType.New(
+			"type", rv.Type(),
+			"expected", m.structName,
+		)
 	}
 
 	fields := make([]string, 0, len(m.fieldsInfo))
@@ -168,7 +177,10 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 		field := rv.Field(i)
 
 		if !field.IsValid() {
-			return nil, nil, mr.ErrInternal.New("reflect.field", field)
+			return nil, nil, errors.NewInternalError(
+				"reflect field is invalid",
+				"field", field,
+			)
 		}
 
 		if info.isPointer {
@@ -198,7 +210,10 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 
 			value, ok := v.(time.Time)
 			if !ok {
-				return nil, nil, mr.ErrInternal.New("reflect.field.struct", field)
+				return nil, nil, errors.NewInternalError(
+					"reflect field is unknown struct",
+					"field", field,
+				)
 			}
 
 			if !info.isPointer && value.IsZero() {
@@ -206,7 +221,10 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 			}
 
 		default:
-			return nil, nil, mr.ErrInternal.New("reflect.field.undefined", field)
+			return nil, nil, errors.NewInternalError(
+				"reflect field is undefined",
+				"field", field,
+			)
 		}
 
 		fields = append(fields, info.dbName)

@@ -2,14 +2,13 @@ package mrpostgres
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 
 	"github.com/mondegor/go-storage/mrstorage"
 )
@@ -57,7 +56,7 @@ func New() *ConnAdapter {
 // Connect - создаёт пул соединений с указанными опциями.
 func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	if c.pool != nil {
-		return mr.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
+		return errors.ErrInternalStorageConnectionIsAlreadyCreated.New("source", connectionName)
 	}
 
 	if opts.DSN == "" {
@@ -110,7 +109,7 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
-		return mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return errors.ErrSystemStorageConnectionFailed.Wrap(err, "source", connectionName)
 	}
 
 	c.pool = pool
@@ -121,11 +120,11 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 // Ping - проверяет работоспособность пула соединений.
 func (c *ConnAdapter) Ping(ctx context.Context) error {
 	if c.pool == nil {
-		return mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
 	}
 
 	if err := c.pool.Ping(ctx); err != nil {
-		return mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return errors.ErrSystemStorageConnectionFailed.Wrap(err, "source", connectionName)
 	}
 
 	var maxValue uint64
@@ -143,7 +142,7 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 func (c *ConnAdapter) HijackConn(ctx context.Context) (*pgx.Conn, error) {
 	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
-		return nil, mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return nil, errors.ErrSystemStorageConnectionFailed.Wrap(err, "source", connectionName)
 	}
 
 	return conn.Hijack(), nil
@@ -152,7 +151,7 @@ func (c *ConnAdapter) HijackConn(ctx context.Context) (*pgx.Conn, error) {
 // Cli - возвращается нативный объект, с которым работает данный адаптер.
 func (c *ConnAdapter) Cli() (*pgxpool.Pool, error) {
 	if c.pool == nil {
-		return nil, mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return nil, errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
 	}
 
 	return c.pool, nil
@@ -161,7 +160,7 @@ func (c *ConnAdapter) Cli() (*pgxpool.Pool, error) {
 // Close - закрывает пул соединений.
 func (c *ConnAdapter) Close() error {
 	if c.pool == nil {
-		return mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
 	}
 
 	c.pool.Close()

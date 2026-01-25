@@ -1,6 +1,8 @@
 package mrstorage
 
-import "github.com/mondegor/go-sysmess/mrerr"
+import (
+	"github.com/mondegor/go-sysmess/errors"
+)
 
-// ErrFileProviderPingError - file provider ping error.
-var ErrFileProviderPingError = mrerr.NewKindSystem("file provider ping error: '{Name}'")
+// ErrSystemFileProviderPingError - file provider ping error (attr: provider).
+var ErrSystemFileProviderPingError = errors.NewSystemProto("file provider ping error")

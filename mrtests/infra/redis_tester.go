@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mondegor/go-sysmess/mrtrace/noptracer"
+	"github.com/mondegor/go-sysmess/mrtrace"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrredis"
@@ -72,7 +72,7 @@ func (t *RedisTester) Destroy(ctx context.Context) {
 }
 
 func newRedis(ctx context.Context, dsn string) (*mrredis.ConnAdapter, error) {
-	conn := mrredis.New(noptracer.New())
+	conn := mrredis.New(mrtrace.NopTracer())
 	opts := mrredis.Options{
 		DSN:      dsn,
 		Password: redisPassword,

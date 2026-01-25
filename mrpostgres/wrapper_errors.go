@@ -1,33 +1,30 @@
 package mrpostgres
 
 import (
-	"errors"
-
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 )
 
 func wrapError(err error) error {
 	if err.Error() == "unexpected EOF" {
-		return mr.ErrInternalUnexpectedEOF.New()
+		return errors.ErrSystemStorageUnexpectedEOF.New("source", connectionName)
 	}
 
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
+	if e := (*pgconn.PgError)(nil); errors.As(err, &e) {
 		// Severity: ERROR; Code: 42601; Message syntax error at or near "item_status"
 		//           ERROR: invalid input syntax for type uuid: \"some-string\" (SQLSTATE 22P02)
-		return mr.ErrStorageQueryFailed.Wrap(err)
+		return errors.ErrInternalStorageQueryFailed.Wrap(err, "source", connectionName)
 	}
 
-	return mr.ErrInternal.Wrap(err)
+	return errors.WrapInternalError(err, "failed", "source", connectionName)
 }
 
 func wrapErrorFetchDataFailed(err error) error {
 	if err.Error() == "unexpected EOF" {
-		return mr.ErrInternalUnexpectedEOF.New()
+		return errors.ErrSystemStorageUnexpectedEOF.New("source", connectionName)
 	}
 
-	return mr.ErrStorageFetchDataFailed.Wrap(err)
+	return errors.ErrInternalStorageFetchDataFailed.Wrap(err, "source", connectionName)
 }
 
 func wrapErrorCommandTag(commandTag pgconn.CommandTag, err error) error {
@@ -37,7 +34,7 @@ func wrapErrorCommandTag(commandTag pgconn.CommandTag, err error) error {
 
 	if commandTag.RowsAffected() < 1 {
 		if commandTag.Update() || commandTag.Delete() {
-			return mr.ErrStorageRowsNotAffected
+			return errors.ErrEventStorageRowsNotAffected
 		}
 	}
 

@@ -1,10 +1,8 @@
 package mrpostgres
 
 import (
-	"errors"
-
 	"github.com/jackc/pgx/v5"
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 )
 
 type (
@@ -17,11 +15,14 @@ type (
 func (qr *queryRow) Scan(dest ...any) error {
 	if err := qr.row.Scan(dest...); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return mr.ErrStorageNoRowFound.Wrap(err)
+			return errors.ErrEventStorageNoRowFound
 		}
 
 		if errors.Is(err, pgx.ErrTooManyRows) {
-			return mr.ErrStorageFetchDataFailed.Wrap(err)
+			return errors.ErrInternalStorageFetchDataFailed.WithDetails(
+				"too many rows",
+				"source", connectionName,
+			)
 		}
 
 		return wrapError(err)
