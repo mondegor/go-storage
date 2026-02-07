@@ -5,16 +5,31 @@ type (
 	Option func(o *options)
 
 	options struct {
-		sql       *SQL
+		sql       *sql
 		lineStart string
 		lineEnd   string
 	}
 )
 
-// WithCountArgs - устанавливает количество аргументов на одну строку (запись).
-func WithCountArgs(value int) Option {
+// WithCountLineArgs - устанавливает количество аргументов на одну строку (запись).
+func WithCountLineArgs(value int) Option {
 	return func(o *options) {
 		o.sql.countArgs = value
+	}
+}
+
+// WithLineSeparator - устанавливает разделитель между сточками.
+func WithLineSeparator(value string) Option {
+	return func(o *options) {
+		o.sql.lineSeparator = value
+	}
+}
+
+// WithArgsSeparator - устанавливает разделитель между аргументами.
+// Внимание: он вставляется только между аргументами, у которых промежуток пустой.
+func WithArgsSeparator(value string) Option {
+	return func(o *options) {
+		o.sql.argsSeparator = value
 	}
 }
 
@@ -32,42 +47,13 @@ func WithLineEnd(value string) Option {
 	}
 }
 
-// WithLinePrefix - устанавливает префикс, который будет поставлен
-// перед первым аргументом, но после начинающей скобочки.
-func WithLinePrefix(value string) Option {
+// WithLine - заполняет промежутки указанными значениями между аргументами
+// начиная с левой стороны первого аргумента, их может быть указано на 1 больше кол-ва аргументов.
+// В значениях вставляемых между элементами необходимо не забывать про разделитель lineSeparator.
+// Допустимо указывать значения меньше кол-ва аргументов, тогда оставшиеся значения
+// заменятся на разделитель lineSeparator где это нужно.
+func WithLine(spans ...string) Option {
 	return func(o *options) {
-		o.sql.linePrefix = value
-	}
-}
-
-// WithLineMiddle - устанавливает строки после номеров аргументов,
-// где map[int]string - номер аргумента (за исключением последнего) - устанавливаемое значение сразу после этого аргумента.
-// При этом нужно устанавливать запятую, разделяющие аргументы.
-func WithLineMiddle(value map[int]string) Option {
-	return func(o *options) {
-		o.sql.lineMiddle = value
-	}
-}
-
-// WithLinePostfix - устанавливает постфикс, который будет поставлен сразу
-// после последнего аргумента, но до завершающей скобочки.
-func WithLinePostfix(value string) Option {
-	return func(o *options) {
-		o.sql.linePostfix = value
-	}
-}
-
-// WithArgsSeparator - устанавливает разделитель между аргументами.
-// Внимание: он работает только для аргументов, которых нет в lineMiddle.
-func WithArgsSeparator(value string) Option {
-	return func(o *options) {
-		o.sql.argsSeparator = value
-	}
-}
-
-// WithLineSeparator - устанавливает разделитель между линиями.
-func WithLineSeparator(value string) Option {
-	return func(o *options) {
-		o.sql.lineSeparator = value
+		o.sql.lineSpans = spans
 	}
 }

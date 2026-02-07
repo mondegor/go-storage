@@ -55,8 +55,8 @@ type (
 		listenerChannelMap map[string]chan struct{}
 		reconnectDelay     time.Duration
 
-		wgMain sync.WaitGroup
-		done   chan struct{}
+		wg   sync.WaitGroup
+		done chan struct{}
 
 		ReceiverChannels ReceiverChannels
 	}
@@ -76,8 +76,8 @@ func NewProcessWaitForNotification(
 		listenerChannelMap: listenerChannelMap,
 		reconnectDelay:     reconnectDelay,
 
-		wgMain: sync.WaitGroup{},
-		done:   make(chan struct{}),
+		wg:   sync.WaitGroup{},
+		done: make(chan struct{}),
 
 		ReceiverChannels: receiverChannels,
 	}
@@ -95,23 +95,33 @@ func (p *ProcessWaitForNotification) ReadyTimeout() time.Duration {
 
 // Start - comment struct.
 func (p *ProcessWaitForNotification) Start(ctx context.Context, ready func()) error {
-	p.wgMain.Add(1)
-	defer p.wgMain.Done()
+	p.wg.Add(1)
+	defer p.wg.Done()
 
 	p.logger.Debug(ctx, "Starting the WaitForNotification...")
 	defer p.logger.Debug(ctx, "The WaitForNotification has been stopped")
+
+	ctxListen, cancel := context.WithCancel(ctx)
+
+	go func() {
+		select {
+		case <-p.done:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
 
 	if ready != nil {
 		ready()
 	}
 
 	for {
-		if err := p.listen(ctx); err != nil {
-			if errors.Is(err, ctx.Err()) {
+		if err := p.listen(ctxListen); err != nil {
+			if errors.Is(err, ctxListen.Err()) {
 				return nil
 			}
 
-			p.logger.Error(ctx, "ProcessWaitForNotification.listen", "error", err)
+			p.logger.Error(ctxListen, "ProcessWaitForNotification.listen", "error", err)
 		} else {
 			return nil
 		}
@@ -124,6 +134,8 @@ func (p *ProcessWaitForNotification) Start(ctx context.Context, ready func()) er
 		case <-p.done:
 			return nil
 		case <-ctx.Done():
+			p.logger.Debug(ctx, "The WaitForNotification detected context 'Done'", "error", ctx.Err())
+
 			return nil
 		case <-time.After(p.reconnectDelay):
 		}
@@ -135,7 +147,7 @@ func (p *ProcessWaitForNotification) Shutdown(ctx context.Context) error {
 	p.logger.Info(ctx, "Shutting down the WaitForNotification...")
 	close(p.done)
 
-	p.wgMain.Wait()
+	p.wg.Wait()
 	p.logger.Info(ctx, "The WaitForNotification has been shut down")
 
 	return nil
@@ -180,7 +192,7 @@ func (p *ProcessWaitForNotification) listen(ctx context.Context) error {
 		}
 
 		select {
-		case <-p.done:
+		case <-ctx.Done():
 			return nil
 		default:
 		}

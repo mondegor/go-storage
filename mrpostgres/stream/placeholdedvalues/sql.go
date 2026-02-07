@@ -2,6 +2,7 @@
 package placeholdedvalues
 
 import (
+	"io"
 	"strconv"
 )
 
@@ -10,8 +11,6 @@ const (
 	defaultCountArgs     = 1
 	defaultLineStart     = "("
 	defaultLineEnd       = ")"
-	defaultLinePrefix    = ""
-	defaultLinePostfix   = ""
 	defaultArgsSeparator = ", "
 	defaultLineSeparator = ", "
 )
@@ -19,30 +18,24 @@ const (
 type (
 	// SQL - объект позволяет формировать повторяющиеся последовательности, в которых
 	// содержатся пронумерованные аргументы (например, используется, для множественной вставки в INSERT запросах).
-	SQL struct {
-		buf           writer
-		countArgs     int
-		linePrefix    string
-		lineMiddle    map[int]string
-		linePostfix   string
-		argsSeparator string
-		lineSeparator string
+	SQL interface {
+		CountLineArgs() int
+		WriteFirstLine(w io.StringWriter, argumentNumber ...int) (nextArgument int)
+		WriteNextLine(w io.StringWriter, argumentNumber int) (nextArgument int)
 	}
 
-	writer interface {
-		WriteByte(value byte) error
-		WriteString(value string) (int, error)
+	sql struct {
+		countArgs     int
+		lineSpans     []string
+		argsSeparator string
+		lineSeparator string
 	}
 )
 
 // New - создаёт объект SQL.
-func New(buf writer, opts ...Option) *SQL {
+func New(opts ...Option) SQL {
 	o := options{
-		sql: &SQL{
-			buf:           buf,
-			linePrefix:    defaultLinePrefix,
-			lineMiddle:    nil,
-			linePostfix:   defaultLinePostfix,
+		sql: &sql{
 			argsSeparator: defaultArgsSeparator,
 			lineSeparator: defaultLineSeparator,
 		},
@@ -58,61 +51,75 @@ func New(buf writer, opts ...Option) *SQL {
 		o.sql.countArgs = defaultCountArgs
 	}
 
-	// расставляются начальная и завершающая строки
-	o.sql.linePrefix = o.lineStart + o.sql.linePrefix
-	o.sql.linePostfix += o.lineEnd
+	switch {
+	// кол-во промежутков между элементами не должно быть больше o.sql.countArgs+1
+	case len(o.sql.lineSpans) > o.sql.countArgs+1:
+		o.sql.lineSpans = o.sql.lineSpans[: o.sql.countArgs+1 : o.sql.countArgs+1]
+
+	// если промежутков вообще не было указано
+	case len(o.sql.lineSpans) == 0:
+		o.sql.lineSpans = make([]string, o.sql.countArgs+1)
+	// иначе промежутки указаны, но их не больше чем аргументов
+	default:
+		// расширение массива промежутков до нужного кол-ва
+		for i := len(o.sql.lineSpans); i < o.sql.countArgs+1; i++ {
+			o.sql.lineSpans = append(o.sql.lineSpans, "")
+		}
+	}
+
+	// вставка разделителя в пустые промежутки (кроме первого и последнего)
+	for i := 1; i < len(o.sql.lineSpans)-1; i++ {
+		if o.sql.lineSpans[i] == "" {
+			o.sql.lineSpans[i] = o.sql.argsSeparator
+		}
+	}
+
+	// гарантируется, что кол-во элементов в o.sql.lineSpans более 1
+	o.sql.lineSpans[0] = o.lineStart + o.sql.lineSpans[0]
+	o.sql.lineSpans[len(o.sql.lineSpans)-1] += o.lineEnd
 
 	return o.sql
+}
+
+// CountLineArgs - возвращает кол-во аргументов в линии.
+func (s *sql) CountLineArgs() int {
+	return s.countArgs
 }
 
 // WriteFirstLine - добавляет первую линию с аргументами.
 // Параметр argumentNumber является необязательным, если он меньше или равен нулю, то он будет приравнен к 1.
 // Пример: '($1, $2, $3, NOW())'.
-func (s *SQL) WriteFirstLine(argumentNumber ...int) (nextArgument int) {
+func (s *sql) WriteFirstLine(w io.StringWriter, argumentNumber ...int) (nextArgument int) {
 	if len(argumentNumber) == 0 || argumentNumber[0] < 1 {
 		nextArgument = 1
 	} else {
 		nextArgument = argumentNumber[0]
 	}
 
-	return s.writeLine(nextArgument)
+	return s.writeLine(w, nextArgument)
 }
 
 // WriteNextLine - добавляет запятую и следующую линию с аргументами.
 // Если argumentNumber меньше или равен нулю, то он будет приравнен к 1.
 // Пример: ', ($1, $2, $3, NOW())'.
-func (s *SQL) WriteNextLine(argumentNumber int) (nextArgument int) {
+func (s *sql) WriteNextLine(w io.StringWriter, argumentNumber int) (nextArgument int) {
 	if argumentNumber < 1 {
 		argumentNumber = 1
 	}
 
-	s.buf.WriteString(s.lineSeparator)
+	w.WriteString(s.lineSeparator)
 
-	return s.writeLine(argumentNumber)
+	return s.writeLine(w, argumentNumber)
 }
 
-func (s *SQL) writeLine(argumentNumber int) (nextArgumentNumber int) {
-	s.buf.WriteString(s.linePrefix)
+func (s *sql) writeLine(w io.StringWriter, argumentNumber int) (nextArgumentNumber int) {
+	w.WriteString(s.lineSpans[0])
 
-	// зная, что s.countArgs всегда > 0, последний аргумент обрабатывается отдельно
-	// чтобы не использовать дополнительную проверку внутри цикла
-	for i := 0; i < s.countArgs-1; i++ {
-		s.buf.WriteByte('$')
-		s.buf.WriteString(strconv.FormatInt(int64(argumentNumber+i), 10))
-
-		if middle, ok := s.lineMiddle[i+1]; ok {
-			s.buf.WriteString(middle)
-		} else {
-			s.buf.WriteString(s.argsSeparator)
-		}
+	for i := 0; i < s.countArgs; i++ {
+		w.WriteString("$")
+		w.WriteString(strconv.FormatInt(int64(argumentNumber+i), 10))
+		w.WriteString(s.lineSpans[i+1])
 	}
-
-	argumentNumber += s.countArgs - 1
-
-	s.buf.WriteByte('$')
-	s.buf.WriteString(strconv.FormatInt(int64(argumentNumber), 10))
-
-	s.buf.WriteString(s.linePostfix)
 
 	return argumentNumber + 1
 }
