@@ -64,7 +64,7 @@ func NewEntityMetaOrderBy(logger mrlog.Logger, entity any) (*EntityMetaOrderBy, 
 			continue
 		}
 
-		parsed, err := parseTagSort(rvt, sort, meta.defaultSort.FieldName == "")
+		parsed, err := parseTagSort(rvt, sort, meta.defaultSort.Column == "")
 		if err != nil {
 			logger.Warn(context.Background(), "parse tag sort warning, skipped")
 
@@ -74,7 +74,7 @@ func NewEntityMetaOrderBy(logger mrlog.Logger, entity any) (*EntityMetaOrderBy, 
 		var extMessage string
 
 		if parsed.IsDefault {
-			meta.defaultSort.FieldName = parsed.SortName
+			meta.defaultSort.Column = parsed.SortName
 			meta.defaultSort.Direction = parsed.SortDirection
 			extMessage = ", default"
 		}
@@ -99,8 +99,8 @@ func NewEntityMetaOrderBy(logger mrlog.Logger, entity any) (*EntityMetaOrderBy, 
 	return &meta, nil
 }
 
-// HasField - сообщает, зарегистрировано ли указанное поле в распарсенной структуре.
-func (m *EntityMetaOrderBy) HasField(name string) bool {
+// HasColumn - сообщает, зарегистрировано ли указанное поле в распарсенной структуре.
+func (m *EntityMetaOrderBy) HasColumn(name string) bool {
 	_, ok := m.fieldMap[name]
 
 	return ok

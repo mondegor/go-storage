@@ -20,7 +20,7 @@ func main() {
 	mrlog.Info(logger, "SAMPLE1:")
 	orderByBuilder := part.NewSQLOrderByBuilder(
 		mrtype.SortParams{
-			FieldName: "id",
+			Column:    "id",
 			Direction: sortdirection.DESC,
 		},
 	)
@@ -40,7 +40,7 @@ func main() {
 	mrlog.Info(logger, "SAMPLE2:")
 	orderByBuilder = part.NewSQLOrderByBuilder(
 		mrtype.SortParams{
-			FieldName: "id",
+			Column:    "id",
 			Direction: sortdirection.DESC,
 		},
 	)
@@ -60,8 +60,8 @@ func main() {
 	}
 
 	meta, _ := mrsql.NewEntityMetaOrderBy(logger, OrderedStruct{})
-	mrlog.Info(logger, "caption is registered?", "value", meta.HasField("caption"))
-	mrlog.Info(logger, "NotSorted is registered?", "value", meta.HasField("NotSorted"))
+	mrlog.Info(logger, "caption is registered?", "value", meta.HasColumn("caption"))
+	mrlog.Info(logger, "NotSorted is registered?", "value", meta.HasColumn("NotSorted"))
 
 	orderByBuilder = part.NewSQLOrderByBuilder(meta.DefaultSort())
 

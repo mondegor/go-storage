@@ -27,7 +27,7 @@ func NewRowExistsChecker[RowID any](
 }
 
 // IsExist - сообщает, существует ли запись по указанному значению поля в таблице.
-// result: nil - exists, errors.ErrEventStorageNoRowFound - not exists, error - query error
+// result: nil - exists, errors.ErrEventStorageNoRecordFound - not exists, error - query error
 func (re RowExistsChecker[RowID]) IsExist(ctx context.Context, id RowID) error {
 	var value uint64
 
@@ -56,5 +56,5 @@ func prepareSQLCheckRowExists(tableName, fieldKeyName, fieldDeletedName string) 
             ` + tableName + `
         WHERE
             ` + fieldKeyName + ` = $1` + where + `
-        LIMIT 1;`
+        FETCH FIRST 1 ROW ONLY;`
 }

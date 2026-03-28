@@ -9,7 +9,7 @@ import (
 
 func (c *ConnAdapter) wrapError(err error) error {
 	if err == redis.Nil { //nolint:errorlint
-		return errors.ErrEventStorageNoRowFound
+		return errors.ErrEventStorageNoRecordFound
 	}
 
 	return errors.ErrInternalStorageQueryFailed.Wrap(err, "source", connectionName)

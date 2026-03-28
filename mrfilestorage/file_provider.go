@@ -9,8 +9,8 @@ import (
 	"sync"
 
 	"github.com/mondegor/go-sysmess/errors"
+	"github.com/mondegor/go-sysmess/mrmodel"
 	"github.com/mondegor/go-sysmess/mrtrace"
-	"github.com/mondegor/go-sysmess/mrtype"
 	"github.com/mondegor/go-sysmess/util/casttype"
 )
 
@@ -40,46 +40,46 @@ func NewFileProvider(fs *FileSystem, tracer mrtrace.Tracer, rootDir string) *Fil
 }
 
 // Info - comment method.
-func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileInfo, error) {
+func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrmodel.FileInfo, error) {
 	fp.traceCmd(ctx, "Info", filePath)
 
 	if err := fp.checkFilePath(filePath); err != nil {
-		return mrtype.FileInfo{}, err
+		return mrmodel.FileInfo{}, err
 	}
 
 	fi, err := os.Stat(fp.rootDir + filePath)
 	if err != nil {
-		return mrtype.FileInfo{}, fp.wrapError(err)
+		return mrmodel.FileInfo{}, fp.wrapError(err)
 	}
 
 	fileInfo, err := fp.getFileInfo(filePath, fi)
 	if err != nil {
-		return mrtype.FileInfo{}, fp.wrapError(err)
+		return mrmodel.FileInfo{}, fp.wrapError(err)
 	}
 
 	return fileInfo, nil
 }
 
 // Download - comment method.
-func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.File, error) {
+func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrmodel.File, error) {
 	fp.traceCmd(ctx, "Download", filePath)
 
 	fd, err := fp.openFile(ctx, filePath)
 	if err != nil {
-		return mrtype.File{}, fp.wrapError(err)
+		return mrmodel.File{}, fp.wrapError(err)
 	}
 
 	fi, err := fd.Stat()
 	if err != nil {
-		return mrtype.File{}, fp.wrapError(err)
+		return mrmodel.File{}, fp.wrapError(err)
 	}
 
 	fileInfo, err := fp.getFileInfo(filePath, fi)
 	if err != nil {
-		return mrtype.File{}, fp.wrapError(err)
+		return mrmodel.File{}, fp.wrapError(err)
 	}
 
-	return mrtype.File{
+	return mrmodel.File{
 		FileInfo: fileInfo,
 		Body:     fd,
 	}, nil
@@ -98,7 +98,7 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 }
 
 // Upload - comment method.
-func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
+func (fp *FileProvider) Upload(ctx context.Context, file mrmodel.File) error {
 	fp.traceCmd(ctx, "Upload", file.Path)
 
 	if err := fp.checkFilePath(file.Path); err != nil {
@@ -175,24 +175,24 @@ func (fp *FileProvider) openFile(_ context.Context, filePath string) (*os.File, 
 	return os.Open(fp.rootDir + filePath)
 }
 
-func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) (mrtype.FileInfo, error) {
+func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) (mrmodel.FileInfo, error) {
 	contentType, err := fp.fs.MimeTypes().ContentTypeByExt(path.Ext(filePath))
 	if err != nil {
-		return mrtype.FileInfo{}, err
+		return mrmodel.FileInfo{}, err
 	}
 
 	if fileInfo.Size() < 0 {
-		return mrtype.FileInfo{}, errors.NewInternalError(
+		return mrmodel.FileInfo{}, errors.NewInternalError(
 			"file size is negative",
 			"file", filePath,
 		)
 	}
 
-	return mrtype.FileInfo{
+	return mrmodel.FileInfo{
 		ContentType: contentType,
 		Name:        fileInfo.Name(),
 		Path:        filePath,
-		Size:        uint64(fileInfo.Size()), //nolint:gosec
+		Size:        fileInfo.Size(),
 		UpdatedAt:   casttype.TimeToPointer(fileInfo.ModTime()),
 	}, nil
 }

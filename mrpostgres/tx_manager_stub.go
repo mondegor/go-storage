@@ -1,6 +1,10 @@
 package mrpostgres
 
-import "context"
+import (
+	"context"
+
+	"github.com/mondegor/go-storage/mrstorage"
+)
 
 type (
 	// TxManagerStub - фиктивный менеджер транзакций, который
@@ -14,6 +18,6 @@ func NewTxManagerStub() *TxManagerStub {
 }
 
 // Do - запускает работу без использования транзакции.
-func (m *TxManagerStub) Do(ctx context.Context, job func(ctx context.Context) error) error {
+func (m *TxManagerStub) Do(ctx context.Context, job func(ctx context.Context) error, _ ...mrstorage.TxOption) error {
 	return job(ctx)
 }

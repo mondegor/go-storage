@@ -15,7 +15,7 @@ type (
 func (qr *queryRow) Scan(dest ...any) error {
 	if err := qr.row.Scan(dest...); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return errors.ErrEventStorageNoRowFound
+			return errors.ErrEventStorageNoRecordFound
 		}
 
 		if errors.Is(err, pgx.ErrTooManyRows) {
@@ -25,7 +25,7 @@ func (qr *queryRow) Scan(dest ...any) error {
 			)
 		}
 
-		return wrapError(err)
+		return wrapErrorFetchDataFailed(err)
 	}
 
 	return nil

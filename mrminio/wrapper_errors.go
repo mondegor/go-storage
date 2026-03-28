@@ -11,7 +11,7 @@ func (fp *FileProvider) wrapError(err error) error {
 	if e := (*minio.ErrorResponse)(nil); errors.As(err, &e) {
 		// The specified key does not exist.
 		if e.Code == "NoSuchKey" {
-			return errors.ErrEventStorageNoRowFound
+			return errors.ErrEventStorageNoRecordFound
 		}
 
 		return errors.ErrInternalStorageQueryFailed.Wrap(err, "source_provider", providerName)

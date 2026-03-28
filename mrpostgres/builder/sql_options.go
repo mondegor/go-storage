@@ -32,7 +32,7 @@ func WithSQLOrderByDefaultSort(value mrtype.SortParams) Option {
 
 // WithSQLLimitMaxSize - устанавливает для SQL опцию максимального кол-во строк,
 // которое может быть выбрано за одни запрос.
-func WithSQLLimitMaxSize(value uint64) Option {
+func WithSQLLimitMaxSize(value int) Option {
 	return func(o *options) {
 		o.sql.limit = part.NewSQLLimitBuilder(value)
 	}

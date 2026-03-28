@@ -12,7 +12,7 @@ type (
 	// DBTxManager - менеджер транзакций, позволяет исполнять
 	// несколько независимых запросов в рамках одной транзакции.
 	DBTxManager interface {
-		Do(ctx context.Context, job func(ctx context.Context) error) error
+		Do(ctx context.Context, job func(ctx context.Context) error, opts ...TxOption) error
 	}
 
 	// DBConn - соединение с БД с возможностью выполнения запросов.

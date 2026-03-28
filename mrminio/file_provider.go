@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"math"
 	"path"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/mondegor/go-sysmess/errors"
-	"github.com/mondegor/go-sysmess/mrtype"
+	"github.com/mondegor/go-sysmess/mrmodel"
 	"github.com/mondegor/go-sysmess/util/casttype"
 )
 
@@ -37,7 +36,7 @@ func NewFileProvider(conn *ConnAdapter, bucketName string) *FileProvider {
 }
 
 // Info - comment method.
-func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileInfo, error) {
+func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrmodel.FileInfo, error) {
 	fp.traceCmd(ctx, "Info", filePath)
 
 	info, err := fp.conn.StatObject(
@@ -47,39 +46,39 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrtype.FileI
 		minio.StatObjectOptions{},
 	)
 	if err != nil {
-		return mrtype.FileInfo{}, fp.wrapError(err)
+		return mrmodel.FileInfo{}, fp.wrapError(err)
 	}
 
 	fileInfo, err := fp.getFileInfo(&info)
 	if err != nil {
-		return mrtype.FileInfo{}, fp.wrapError(err)
+		return mrmodel.FileInfo{}, fp.wrapError(err)
 	}
 
 	return fileInfo, nil
 }
 
 // Download - comment method.
-func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.File, error) {
+func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrmodel.File, error) {
 	fp.traceCmd(ctx, "Download", filePath)
 
 	object, err := fp.openObject(ctx, filePath)
 	if err != nil {
-		return mrtype.File{}, fp.wrapError(err)
+		return mrmodel.File{}, fp.wrapError(err)
 	}
 
 	info, err := object.Stat()
 	if err != nil {
 		object.Close()
 
-		return mrtype.File{}, fp.wrapError(err)
+		return mrmodel.File{}, fp.wrapError(err)
 	}
 
 	fileInfo, err := fp.getFileInfo(&info)
 	if err != nil {
-		return mrtype.File{}, fp.wrapError(err)
+		return mrmodel.File{}, fp.wrapError(err)
 	}
 
-	return mrtype.File{
+	return mrmodel.File{
 		FileInfo: fileInfo,
 		Body:     object,
 	}, nil
@@ -104,14 +103,10 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 }
 
 // Upload - comment method.
-func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
+func (fp *FileProvider) Upload(ctx context.Context, file mrmodel.File) error {
 	fp.traceCmd(ctx, "Upload", file.Path)
 
-	if file.Size > math.MaxInt64 {
-		return errors.New("file size too big")
-	}
-
-	fileSize := int64(file.Size) //nolint:gosec
+	fileSize := file.Size
 
 	if fileSize == 0 {
 		fileSize = -1 // -1 - calculating size
@@ -166,25 +161,25 @@ func (fp *FileProvider) openObject(ctx context.Context, filePath string) (*minio
 	)
 }
 
-func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) (mrtype.FileInfo, error) {
+func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) (mrmodel.FileInfo, error) {
 	contentType, err := fp.getContentType(info.ContentType, info.Key)
 	if err != nil {
-		return mrtype.FileInfo{}, err
+		return mrmodel.FileInfo{}, err
 	}
 
 	if info.Size < 0 {
-		return mrtype.FileInfo{}, errors.NewInternalError(
+		return mrmodel.FileInfo{}, errors.NewInternalError(
 			"file size is negative",
 			"file", info.Key,
 		)
 	}
 
-	return mrtype.FileInfo{
+	return mrmodel.FileInfo{
 		ContentType:  contentType,
 		OriginalName: fp.parseOriginalName(info.Metadata.Get("Content-Disposition")),
 		Name:         path.Base(info.Key),
 		Path:         info.Key,
-		Size:         uint64(info.Size),
+		Size:         info.Size,
 		UpdatedAt:    casttype.TimeToPointer(info.LastModified),
 	}, nil
 }

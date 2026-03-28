@@ -89,15 +89,6 @@ func (b *SQLSetBuilder) BuildFunc(fn func(s mrstorage.SQLSetHelper) mrstorage.SQ
 	return b.createPart(nil)
 }
 
-// HelpFunc - создаёт независимую часть SQL, которая может быть использована при создании других частей SQL.
-func (b *SQLSetBuilder) HelpFunc(fn func(s mrstorage.SQLSetHelper) mrstorage.SQLPartFunc) mrstorage.SQLPartFunc {
-	if fn != nil {
-		return fn(b.helper)
-	}
-
-	return nil
-}
-
 func (b *SQLSetBuilder) createPart(part mrstorage.SQLPartFunc) mrstorage.SQLPart {
 	return mrsql.NewPart(startArgumentNumber, part)
 }

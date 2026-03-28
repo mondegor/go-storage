@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/mondegor/go-sysmess/errors"
-	"github.com/mondegor/go-sysmess/mrtype"
+	"github.com/mondegor/go-sysmess/mrmodel"
 	"github.com/mondegor/go-sysmess/util/copyptr"
 )
 
@@ -16,9 +16,9 @@ type (
 		Path         string     `json:"path,omitempty"`
 		ContentType  string     `json:"type,omitempty"`
 		OriginalName string     `json:"origin,omitempty"`
-		Width        uint64     `json:"width,omitempty"`
-		Height       uint64     `json:"height,omitempty"`
-		Size         uint64     `json:"size,omitempty"`
+		Width        int32      `json:"width,omitempty"`
+		Height       int32      `json:"height,omitempty"`
+		Size         int64      `json:"size,omitempty"`
 		CreatedAt    *time.Time `json:"created,omitempty"`
 		UpdatedAt    *time.Time `json:"updated,omitempty"`
 	}
@@ -67,8 +67,8 @@ func (e ImageMeta) Value() (driver.Value, error) {
 
 // ImageMetaToInfo - преобразование данных изображения предназначенных
 // для хранилища в формат данных для передачи клиенту.
-func ImageMetaToInfo(meta ImageMeta) mrtype.ImageInfo {
-	return mrtype.ImageInfo{
+func ImageMetaToInfo(meta ImageMeta) mrmodel.ImageInfo {
+	return mrmodel.ImageInfo{
 		ContentType: meta.ContentType,
 		// OriginalName: meta.OriginalName,
 		// Name:         path.Base(meta.Path),
@@ -82,7 +82,7 @@ func ImageMetaToInfo(meta ImageMeta) mrtype.ImageInfo {
 }
 
 // ImageMetaToInfoPointer - аналог ImageMetaToInfo, но принимает и возвращает указатель.
-func ImageMetaToInfoPointer(meta *ImageMeta) *mrtype.ImageInfo {
+func ImageMetaToInfoPointer(meta *ImageMeta) *mrmodel.ImageInfo {
 	if meta == nil {
 		return nil
 	}

@@ -10,7 +10,7 @@ import (
 
 func (fp *FileProvider) wrapError(err error) error {
 	if errors.Is(err, os.ErrNotExist) {
-		return errors.ErrEventStorageNoRowFound
+		return errors.ErrEventStorageNoRecordFound
 	}
 
 	if e := (*fs.PathError)(nil); errors.As(err, &e) {

@@ -22,8 +22,8 @@ func NewSQLOrderByBuilder(defaultSort mrtype.SortParams) *SQLOrderByBuilder {
 		helper: helper.NewSQLOrderBy(),
 	}
 
-	if defaultSort.FieldName != "" {
-		b.defaultPartFunc = b.helper.Field(defaultSort.FieldName, defaultSort.Direction)
+	if defaultSort.Column != "" {
+		b.defaultPartFunc = b.helper.Field(defaultSort.Column, defaultSort.Direction)
 	}
 
 	return b
@@ -66,21 +66,6 @@ func (b *SQLOrderByBuilder) BuildFunc(fn func(o mrstorage.SQLOrderByHelper) mrst
 	}
 
 	return b.createPart(b.defaultPartFunc)
-}
-
-// HelpFunc - создаёт независимую часть SQL, которая может быть использована при создании других частей SQL.
-func (b *SQLOrderByBuilder) HelpFunc(fn func(o mrstorage.SQLOrderByHelper) mrstorage.SQLPartFunc) mrstorage.SQLPartFunc {
-	var partFunc mrstorage.SQLPartFunc
-
-	if fn != nil {
-		partFunc = fn(b.helper)
-	}
-
-	if partFunc != nil {
-		return partFunc
-	}
-
-	return b.defaultPartFunc
 }
 
 func (b *SQLOrderByBuilder) createPart(part mrstorage.SQLPartFunc) mrstorage.SQLPart {

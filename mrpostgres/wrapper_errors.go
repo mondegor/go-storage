@@ -6,22 +6,37 @@ import (
 )
 
 func wrapError(err error) error {
-	if err.Error() == "unexpected EOF" {
-		return errors.ErrSystemStorageUnexpectedEOF.New("source", connectionName)
-	}
+	if ok, wrappedErr := wrapPgError(err); ok {
+		if wrappedErr != nil {
+			return wrappedErr
+		}
 
-	if e := (*pgconn.PgError)(nil); errors.As(err, &e) {
-		// Severity: ERROR; Code: 42601; Message syntax error at or near "item_status"
-		//           ERROR: invalid input syntax for type uuid: \"some-string\" (SQLSTATE 22P02)
 		return errors.ErrInternalStorageQueryFailed.Wrap(err, "source", connectionName)
 	}
 
 	return errors.WrapInternalError(err, "failed", "source", connectionName)
 }
 
-func wrapErrorFetchDataFailed(err error) error {
+func wrapPgError(err error) (ok bool, wrappedErr error) {
+	if e := (*pgconn.PgError)(nil); errors.As(err, &e) {
+		// Code: 23505 duplicate key value violates unique constraint
+		if e.Code == "23505" {
+			return true, errors.ErrInternalStorageDuplicateKeyViolation.Wrap(err)
+		}
+
+		return true, nil
+	}
+
 	if err.Error() == "unexpected EOF" {
-		return errors.ErrSystemStorageUnexpectedEOF.New("source", connectionName)
+		return true, errors.ErrSystemStorageUnexpectedEOF.New("source", connectionName)
+	}
+
+	return false, nil
+}
+
+func wrapErrorFetchDataFailed(err error) error {
+	if _, wrappedErr := wrapPgError(err); wrappedErr != nil {
+		return wrappedErr
 	}
 
 	return errors.ErrInternalStorageFetchDataFailed.Wrap(err, "source", connectionName)
@@ -34,7 +49,7 @@ func wrapErrorCommandTag(commandTag pgconn.CommandTag, err error) error {
 
 	if commandTag.RowsAffected() < 1 {
 		if commandTag.Update() || commandTag.Delete() {
-			return errors.ErrEventStorageRowsNotAffected
+			return errors.ErrEventStorageRecordsNotAffected
 		}
 	}
 

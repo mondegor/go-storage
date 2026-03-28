@@ -34,8 +34,8 @@ func (re RowSoftDeleter[RowID]) Delete(ctx context.Context, id RowID) error {
 		re.sqlSoftDeleteRow,
 		id,
 	)
-	if err != nil && errors.Is(err, errors.ErrEventStorageRowsNotAffected) {
-		return errors.ErrEventStorageNoRowFound
+	if err != nil && errors.Is(err, errors.ErrEventStorageRecordsNotAffected) {
+		return errors.ErrEventStorageNoRecordFound
 	}
 
 	return err

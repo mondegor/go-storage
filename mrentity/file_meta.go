@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/mondegor/go-sysmess/errors"
-	"github.com/mondegor/go-sysmess/mrtype"
+	"github.com/mondegor/go-sysmess/mrmodel"
 	"github.com/mondegor/go-sysmess/util/copyptr"
 )
 
@@ -16,7 +16,7 @@ type (
 		Path         string     `json:"path,omitempty"`
 		ContentType  string     `json:"type,omitempty"`
 		OriginalName string     `json:"origin,omitempty"`
-		Size         uint64     `json:"size,omitempty"`
+		Size         int64      `json:"size,omitempty"`
 		CreatedAt    *time.Time `json:"created,omitempty"`
 		UpdatedAt    *time.Time `json:"updated,omitempty"`
 	}
@@ -65,8 +65,8 @@ func (e FileMeta) Value() (driver.Value, error) {
 
 // FileMetaToInfo - преобразование данных файла предназначенных
 // для хранилища в формат данных для передачи клиенту.
-func FileMetaToInfo(meta FileMeta) mrtype.FileInfo {
-	return mrtype.FileInfo{
+func FileMetaToInfo(meta FileMeta) mrmodel.FileInfo {
+	return mrmodel.FileInfo{
 		ContentType: meta.ContentType,
 		// OriginalName: meta.OriginalName,
 		// Name:         path.Base(meta.Path),
@@ -78,7 +78,7 @@ func FileMetaToInfo(meta FileMeta) mrtype.FileInfo {
 }
 
 // FileMetaToInfoPointer - аналог FileMetaToInfo, но принимает и возвращает указатель.
-func FileMetaToInfoPointer(meta *FileMeta) *mrtype.FileInfo {
+func FileMetaToInfoPointer(meta *FileMeta) *mrmodel.FileInfo {
 	if meta == nil {
 		return nil
 	}

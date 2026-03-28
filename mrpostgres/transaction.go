@@ -6,11 +6,13 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/mondegor/go-storage/mrstorage"
+	"github.com/mondegor/go-storage/mrstorage/txisolevel"
 )
 
 type (
 	transaction struct {
-		tx pgx.Tx
+		tx       pgx.Tx
+		isoLevel txisolevel.Enum
 	}
 )
 
@@ -36,4 +38,16 @@ func (t *transaction) QueryRow(ctx context.Context, sql string, args ...any) mrs
 // Exec - отправляет SQL запрос к БД и исполняет его.
 func (t *transaction) Exec(ctx context.Context, sql string, args ...any) error {
 	return wrapErrorCommandTag(t.tx.Exec(ctx, sql, args...))
+}
+
+func mappingTxPgxOptions(o mrstorage.TxOptions) (opts pgx.TxOptions) {
+	switch o.IsoLevel {
+	case txisolevel.Serializable:
+		opts.IsoLevel = pgx.Serializable
+	case txisolevel.RepeatableRead:
+		opts.IsoLevel = pgx.RepeatableRead
+	default:
+	}
+
+	return opts
 }

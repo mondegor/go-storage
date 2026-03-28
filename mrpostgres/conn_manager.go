@@ -8,6 +8,7 @@ import (
 	"github.com/mondegor/go-sysmess/mrlog"
 
 	"github.com/mondegor/go-storage/mrstorage"
+	"github.com/mondegor/go-storage/mrstorage/txisolevel"
 )
 
 // ConnManager - менеджер транзакций.
@@ -17,7 +18,7 @@ type (
 		logger mrlog.Logger
 	}
 
-	ctxTransactionKey struct{}
+	ctxTxKey struct{}
 )
 
 // NewConnManager - создаёт объект ConnManager.
@@ -30,7 +31,7 @@ func NewConnManager(conn *ConnAdapter, logger mrlog.Logger) *ConnManager {
 
 // Conn - возвращает соединение с PostgreSQL или транзакцию, если она была открыта.
 func (m *ConnManager) Conn(ctx context.Context) mrstorage.DBConn {
-	if tx, ok := ctx.Value(ctxTransactionKey{}).(*transaction); ok {
+	if tx, ok := ctx.Value(ctxTxKey{}).(*transaction); ok {
 		return tx
 	}
 
@@ -44,12 +45,29 @@ func (m *ConnManager) ConnAdapter() *ConnAdapter {
 
 // Do - запускает задачу с запросом в транзакции.
 // Пытается запустить в текущей транзакции, если ее нет, создает новую транзакцию.
-func (m *ConnManager) Do(ctx context.Context, job func(ctx context.Context) error) error {
-	if _, ok := ctx.Value(ctxTransactionKey{}).(*transaction); ok {
+func (m *ConnManager) Do(ctx context.Context, job func(ctx context.Context) error, opts ...mrstorage.TxOption) error {
+	o := mrstorage.TxOptions{
+		IsoLevel: txisolevel.ReadCommitted, // TODO: перенести в настройки по умолчанию для менеджера соединения
+	}
+
+	for _, opt := range opts {
+		opt(&o)
+	}
+
+	if tx, ok := ctx.Value(ctxTxKey{}).(*transaction); ok {
+		if o.IsoLevel > tx.isoLevel {
+			m.logger.Warn(
+				ctx,
+				"unexpected increase isolation level",
+				"expected", tx.isoLevel,
+				"actual", o.IsoLevel,
+			)
+		}
+
 		return job(ctx)
 	}
 
-	pgxTx, err := m.conn.pool.Begin(ctx)
+	pgxTx, err := m.conn.pool.BeginTx(ctx, mappingTxPgxOptions(o))
 	if err != nil {
 		return wrapError(err)
 	}
@@ -70,7 +88,14 @@ func (m *ConnManager) Do(ctx context.Context, job func(ctx context.Context) erro
 		m.logger.Warn(ctx, "call tx.Rollback")
 	}()
 
-	ctx = context.WithValue(ctx, ctxTransactionKey{}, &transaction{tx: pgxTx})
+	ctx = context.WithValue(
+		ctx,
+		ctxTxKey{},
+		&transaction{
+			tx:       pgxTx,
+			isoLevel: o.IsoLevel,
+		},
+	)
 
 	if err = job(ctx); err != nil {
 		return err

@@ -19,71 +19,84 @@ type (
 )
 
 // NewSQLCondition - создаёт объект SQLCondition.
-func NewSQLCondition() *SQLCondition {
-	return &SQLCondition{}
+func NewSQLCondition() SQLCondition {
+	return SQLCondition{}
 }
 
 // JoinAnd - возвращает указанные SQL условия соединённые оператором AND.
-func (h *SQLCondition) JoinAnd(parts ...mrstorage.SQLPartFunc) mrstorage.SQLPartFunc {
+func (h SQLCondition) JoinAnd(parts ...mrstorage.SQLPartFunc) mrstorage.SQLPartFunc {
 	return h.join(" AND ", parts)
 }
 
 // JoinOr - возвращает указанные SQL условия соединённые оператором OR.
-func (h *SQLCondition) JoinOr(parts ...mrstorage.SQLPartFunc) mrstorage.SQLPartFunc {
+func (h SQLCondition) JoinOr(parts ...mrstorage.SQLPartFunc) mrstorage.SQLPartFunc {
 	return h.join(" OR ", parts)
 }
 
-// Expr - возвращает простое условие, например: "field_name BETWEEN 1000 AND 2000".
+// Expr - возвращает или простое условие, например: "field_name BETWEEN 1000 AND 2000",
+// или условие с аргументами, например: "UPPER(field_name) = %s".
 // Но если выражение пустое, то возвращается nil.
-func (h *SQLCondition) Expr(expr string) mrstorage.SQLPartFunc {
+func (h SQLCondition) Expr(expr string, values ...any) mrstorage.SQLPartFunc {
 	if expr == "" {
 		return nil
 	}
 
-	return func(_ int) (string, []any) {
-		return expr, nil
-	}
-}
+	switch len(values) {
+	case 0:
+		return func(_ int) (string, []any) {
+			return expr, nil
+		}
 
-// ExprWithValue - возвращает условие с аргументом, например: "UPPER(field_name) = %s".
-func (h *SQLCondition) ExprWithValue(expr string, value any) mrstorage.SQLPartFunc {
-	return func(argumentNumber int) (string, []any) {
-		return fmt.Sprintf(expr, "$"+strconv.Itoa(argumentNumber)), []any{value}
+	case 1:
+		return func(argumentNumber int) (string, []any) {
+			return fmt.Sprintf(expr, "$"+strconv.Itoa(argumentNumber)), values
+		}
+
+	default:
+		return func(argumentNumber int) (string, []any) {
+			args := make([]any, len(values))
+
+			for i := range values {
+				args[i] = "$" + strconv.Itoa(argumentNumber+i)
+			}
+
+			return fmt.Sprintf(expr, args...), values
+		}
 	}
 }
 
 // Equal - возвращает строгое условие равенства.
-func (h *SQLCondition) Equal(field string, value any) mrstorage.SQLPartFunc {
+func (h SQLCondition) Equal(field string, value any) mrstorage.SQLPartFunc {
 	return h.makeCompare(field, value, "=")
 }
 
 // NotEqual - возвращает строгое условие неравенства.
-func (h *SQLCondition) NotEqual(field string, value any) mrstorage.SQLPartFunc {
+func (h SQLCondition) NotEqual(field string, value any) mrstorage.SQLPartFunc {
 	return h.makeCompare(field, value, "<>")
 }
 
 // Less - возвращает строгое условие меньше.
-func (h *SQLCondition) Less(field string, value any) mrstorage.SQLPartFunc {
+func (h SQLCondition) Less(field string, value any) mrstorage.SQLPartFunc {
 	return h.makeCompare(field, value, "<")
 }
 
 // LessOrEqual - возвращает строгое условие меньше равно.
-func (h *SQLCondition) LessOrEqual(field string, value any) mrstorage.SQLPartFunc {
+func (h SQLCondition) LessOrEqual(field string, value any) mrstorage.SQLPartFunc {
 	return h.makeCompare(field, value, "<=")
 }
 
 // Greater - возвращает строгое условие больше.
-func (h *SQLCondition) Greater(field string, value any) mrstorage.SQLPartFunc {
+func (h SQLCondition) Greater(field string, value any) mrstorage.SQLPartFunc {
 	return h.makeCompare(field, value, ">")
 }
 
 // GreaterOrEqual - возвращает строгое условие больше или равно.
-func (h *SQLCondition) GreaterOrEqual(field string, value any) mrstorage.SQLPartFunc {
+func (h SQLCondition) GreaterOrEqual(field string, value any) mrstorage.SQLPartFunc {
 	return h.makeCompare(field, value, ">=")
 }
 
-// FilterEqual - возвращает условие равенства UUID если значение не пустое, иначе возвращается nil.
-func (h *SQLCondition) FilterEqual(field string, value any) mrstorage.SQLPartFunc {
+// FilterEqual - возвращает условие равенства если значение не пустое, иначе возвращается nil.
+func (h SQLCondition) FilterEqual(field string, value any) mrstorage.SQLPartFunc {
 	rv := reflect.ValueOf(value)
 
 	if !rv.IsValid() || rv.IsZero() {
@@ -94,7 +107,7 @@ func (h *SQLCondition) FilterEqual(field string, value any) mrstorage.SQLPartFun
 }
 
 // FilterEqualString - возвращает условие равенства строки если значение не пустое, иначе возвращается nil.
-func (h *SQLCondition) FilterEqualString(field, value string) mrstorage.SQLPartFunc {
+func (h SQLCondition) FilterEqualString(field, value string) mrstorage.SQLPartFunc {
 	if value == "" {
 		return nil
 	}
@@ -103,7 +116,7 @@ func (h *SQLCondition) FilterEqualString(field, value string) mrstorage.SQLPartF
 }
 
 // FilterEqualInt64 - возвращает условие равенства целого числа если значение не пустое, иначе возвращается nil.
-func (h *SQLCondition) FilterEqualInt64(field string, value, empty int64) mrstorage.SQLPartFunc {
+func (h SQLCondition) FilterEqualInt64(field string, value, empty int64) mrstorage.SQLPartFunc {
 	if value == empty {
 		return nil
 	}
@@ -112,7 +125,7 @@ func (h *SQLCondition) FilterEqualInt64(field string, value, empty int64) mrstor
 }
 
 // FilterEqualBool - возвращает условие равенства bool если значение не nil, иначе возвращается nil.
-func (h *SQLCondition) FilterEqualBool(field string, value *bool) mrstorage.SQLPartFunc {
+func (h SQLCondition) FilterEqualBool(field string, value *bool) mrstorage.SQLPartFunc {
 	if value == nil {
 		return nil
 	}
@@ -120,13 +133,22 @@ func (h *SQLCondition) FilterEqualBool(field string, value *bool) mrstorage.SQLP
 	return h.makeCompare(field, *value, "=")
 }
 
-// FilterLike - возвращает условие LIKE если значение не пустое, иначе возвращается nil.
-func (h *SQLCondition) FilterLike(field, value string) mrstorage.SQLPartFunc {
-	return h.FilterLikeFields([]string{field}, value)
+// FilterLike - возвращает условие LIKE %$1% если значение не пустое, иначе возвращается nil.
+func (h SQLCondition) FilterLike(field, value string) mrstorage.SQLPartFunc {
+	return h.filterLikeFields([]string{field}, value, false)
 }
 
-// FilterLikeFields - возвращает условие LIKE для нескольких полей если значение не пустое, иначе возвращается nil.
-func (h *SQLCondition) FilterLikeFields(fields []string, value string) mrstorage.SQLPartFunc {
+// FilterLikePrefix - возвращает условие LIKE $1% если значение не пустое, иначе возвращается nil.
+func (h SQLCondition) FilterLikePrefix(field, value string) mrstorage.SQLPartFunc {
+	return h.filterLikeFields([]string{field}, value, true)
+}
+
+// FilterLikeFields - возвращает условие LIKE %$1% OR %$2% ... для нескольких полей если значение не пустое, иначе возвращается nil.
+func (h SQLCondition) FilterLikeFields(fields []string, value string) mrstorage.SQLPartFunc {
+	return h.filterLikeFields(fields, value, false)
+}
+
+func (h SQLCondition) filterLikeFields(fields []string, value string, prefix bool) mrstorage.SQLPartFunc {
 	if value == "" {
 		return nil
 	}
@@ -144,7 +166,13 @@ func (h *SQLCondition) FilterLikeFields(fields []string, value string) mrstorage
 			}
 
 			buf.WriteString(fields[i])
-			buf.WriteString(" LIKE '%%' || $")
+
+			if prefix {
+				buf.WriteString(" LIKE $")
+			} else {
+				buf.WriteString(" LIKE '%%' || $")
+			}
+
 			buf.WriteString(strconv.Itoa(argumentNumber))
 			buf.WriteString(" || '%%'")
 		}
@@ -155,8 +183,27 @@ func (h *SQLCondition) FilterLikeFields(fields []string, value string) mrstorage
 	}
 }
 
+// FilterInArray - возвращает условие поиска указанных подстрок в поле являющимся json массивом.
+func (h SQLCondition) FilterInArray(jsonField string, values any) mrstorage.SQLPartFunc {
+	rv := reflect.ValueOf(values)
+
+	if !rv.IsValid() || rv.IsZero() {
+		return nil
+	}
+
+	if rv.Kind() == reflect.Slice {
+		if rv.Len() == 0 {
+			return nil
+		}
+
+		return h.makeCompare(jsonField, values, "?&")
+	}
+
+	return h.makeCompare(jsonField, values, "?")
+}
+
 // FilterRangeInt64 - возвращает интервальное условие для целых чисел если значения Min, Max не пустые, иначе возвращается nil.
-func (h *SQLCondition) FilterRangeInt64(field string, value mrtype.RangeInt64, empty int64) mrstorage.SQLPartFunc {
+func (h SQLCondition) FilterRangeInt64(field string, value mrtype.RangeInt64, empty int64) mrstorage.SQLPartFunc {
 	if value.Min != empty {
 		if value.Max != empty {
 			if value.Min > value.Max {
@@ -169,7 +216,9 @@ func (h *SQLCondition) FilterRangeInt64(field string, value mrtype.RangeInt64, e
 		}
 
 		return h.makeCompare(field, value.Min, ">=")
-	} else if value.Max != empty {
+	}
+
+	if value.Max != empty {
 		return h.makeCompare(field, value.Max, "<=")
 	}
 
@@ -177,7 +226,7 @@ func (h *SQLCondition) FilterRangeInt64(field string, value mrtype.RangeInt64, e
 }
 
 // FilterRangeFloat64 - возвращает интервальное условие для вещественных чисел если значения Min, Max не пустые, иначе возвращается nil.
-func (h *SQLCondition) FilterRangeFloat64(field string, value mrtype.RangeFloat64, empty, qualityThreshold float64) mrstorage.SQLPartFunc {
+func (h SQLCondition) FilterRangeFloat64(field string, value mrtype.RangeFloat64, empty, qualityThreshold float64) mrstorage.SQLPartFunc {
 	if !xmath.EqualFloat(value.Min, empty, qualityThreshold) {
 		if !xmath.EqualFloat(value.Max, empty, qualityThreshold) {
 			if value.Min > value.Max {
@@ -191,7 +240,9 @@ func (h *SQLCondition) FilterRangeFloat64(field string, value mrtype.RangeFloat6
 		}
 
 		return h.makeCompare(field, value.Min-qualityThreshold, ">=")
-	} else if value.Max != empty {
+	}
+
+	if value.Max != empty {
 		return h.makeCompare(field, value.Max+qualityThreshold, "<=")
 	}
 
@@ -200,7 +251,7 @@ func (h *SQLCondition) FilterRangeFloat64(field string, value mrtype.RangeFloat6
 
 // FilterAnyOf - возвращает условие (= ANY), которое проверяет, чтобы хотя бы один элемент из списка был равен значению указанного поля.
 // Параметр 'values' поддерживает только слайсы с хотя бы одним значением, иначе вернётся nil.
-func (h *SQLCondition) FilterAnyOf(field string, values any) mrstorage.SQLPartFunc {
+func (h SQLCondition) FilterAnyOf(field string, values any) mrstorage.SQLPartFunc {
 	rv := reflect.ValueOf(values)
 
 	if rv.Kind() != reflect.Slice || rv.Len() == 0 {
@@ -213,48 +264,14 @@ func (h *SQLCondition) FilterAnyOf(field string, values any) mrstorage.SQLPartFu
 	}
 }
 
-// FilterInOf - возвращает условие (IN), которое проверяет, чтобы хотя бы один элемент из списка был равен значению указанного поля.
-// Параметр 'values' support only slices else the func returns nil.
-func (h *SQLCondition) FilterInOf(field string, values any) mrstorage.SQLPartFunc {
-	rv := reflect.ValueOf(values)
-
-	if rv.Kind() != reflect.Slice || rv.Len() == 0 {
-		return nil
-	}
-
-	args := make([]any, rv.Len())
-
-	for i := 0; i < len(args); i++ {
-		args[i] = rv.Index(i).Interface()
-	}
-
-	// sample: field_name IN($1, $2, ...)
-	return func(argumentNumber int) (string, []any) {
-		var buf strings.Builder
-
-		buf.Grow(len(field) + 4 + 3*len(args)) // len(field) + " IN(" + "$N," * len(args) - 1
-		buf.WriteString(field)
-		buf.WriteString(" IN(")
-
-		for i := range args {
-			if i > 0 {
-				buf.WriteByte(',')
-			}
-
-			buf.WriteByte('$')
-			buf.WriteString(strconv.Itoa(argumentNumber + i))
-		}
-
-		buf.WriteByte(')')
-
-		return buf.String(), args
-	}
-}
-
-func (h *SQLCondition) join(separator string, conditions []mrstorage.SQLPartFunc) mrstorage.SQLPartFunc {
+func (h SQLCondition) join(separator string, conditions []mrstorage.SQLPartFunc) mrstorage.SQLPartFunc {
 	conditions = mrsql.SQLPartFuncRemoveNil(conditions)
 
-	if len(conditions) == 0 {
+	if len(conditions) < 2 {
+		if len(conditions) == 1 {
+			return conditions[0]
+		}
+
 		return nil
 	}
 
@@ -284,7 +301,7 @@ func (h *SQLCondition) join(separator string, conditions []mrstorage.SQLPartFunc
 	}
 }
 
-func (h *SQLCondition) makeCompare(field string, value any, sign string) mrstorage.SQLPartFunc {
+func (h SQLCondition) makeCompare(field string, value any, sign string) mrstorage.SQLPartFunc {
 	return func(argumentNumber int) (string, []any) {
 		return field + " " + sign + " $" + strconv.Itoa(argumentNumber), []any{value}
 	}

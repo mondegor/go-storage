@@ -9,7 +9,7 @@ import (
 type (
 	// SQLConditionBuilder - объект для создания части SQL используемой в WHERE, JOIN (field = $1 AND ...).
 	SQLConditionBuilder struct {
-		helper *helper.SQLCondition
+		helper helper.SQLCondition
 	}
 )
 
@@ -37,15 +37,6 @@ func (b *SQLConditionBuilder) BuildFunc(fn func(c mrstorage.SQLConditionHelper) 
 	}
 
 	return b.createPart(nil)
-}
-
-// HelpFunc - создаёт независимую часть SQL, которая может быть использована при создании других частей SQL.
-func (b *SQLConditionBuilder) HelpFunc(fn func(c mrstorage.SQLConditionHelper) mrstorage.SQLPartFunc) mrstorage.SQLPartFunc {
-	if fn != nil {
-		return fn(b.helper)
-	}
-
-	return nil
 }
 
 func (b *SQLConditionBuilder) createPart(part mrstorage.SQLPartFunc) mrstorage.SQLPart {

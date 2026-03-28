@@ -30,7 +30,7 @@ func NewFieldWithVersionUpdater[RowID any, VersionValue constraints.Integer, Fie
 }
 
 // Fetch - возвращает значение поля для указанной записи в таблице.
-// result: nil - exists, errors.ErrEventStorageNoRowFound - not exists, error - query error.
+// result: nil - exists, errors.ErrEventStorageNoRecordFound - not exists, error - query error.
 func (re FieldWithVersionUpdater[RowID, VersionValue, FieldValue]) Fetch(ctx context.Context, id RowID) (FieldValue, error) {
 	return re.fetcher.Fetch(ctx, id)
 }
