@@ -1,15 +1,16 @@
 package txisolevel
 
-// Уровни изоляции транзакции.
+// Уровни изоляции транзакций в БД.
+// Определяют степень видимости изменений, внесённых другими транзакциями.
 const (
-	ReadUncommitted Enum = iota + 1 // read uncommitted
-	ReadCommitted                   // read committed
-	RepeatableRead                  // repeatable read
-	Serializable                    // serializable
+	ReadUncommitted Enum = iota + 1 // read uncommitted - самый низкий уровень, возможны "грязные" чтения
+	ReadCommitted                   // read committed - чтение только зафиксированных данных (по умолчанию)
+	RepeatableRead                  // repeatable read - гарантия повторного чтения без изменений
+	Serializable                    // serializable - полная изоляция, последовательное выполнение
 )
 
 type (
-	// Enum - перечисление элементов.
+	// Enum - перечисление уровней изоляции транзакций.
 	Enum uint8
 )
 
@@ -20,7 +21,11 @@ var enumKeys = map[Enum]string{ //nolint:gochecknoglobals
 	Serializable:    "SERIALIZABLE",
 }
 
-// String - возвращает значение в виде строки.
+// String - возвращает строковое представление уровня изоляции.
 func (e Enum) String() string {
-	return enumKeys[e]
+	if v, ok := enumKeys[e]; ok {
+		return v
+	}
+
+	return "UNKNOWN"
 }

@@ -9,20 +9,22 @@ import (
 )
 
 const (
+	// defaultMaxIDsOneQuery - максимальное количество ID, получаемых за один запрос по умолчанию.
 	defaultMaxIDsOneQuery = 1000
 )
 
 type (
-	// Generator - генератор последовательностей (на основе postgres).
+	// Generator - генератор последовательностей на основе PostgreSQL.
+	// Использует функции nextval() для получения уникальных ID из последовательностей БД.
 	Generator struct {
-		client                  mrstorage.DBConnManager
-		maxIDsOneQuery          int
-		sqlGeneratorSequenceID  string
-		sqlGeneratorSequenceIDs string
+		client                  mrstorage.DBConnManager // client - менеджер подключений к БД
+		maxIDsOneQuery          int                     // maxIDsOneQuery - максимальное количество ID за один запрос
+		sqlGeneratorSequenceID  string                  // sqlGeneratorSequenceID - SQL-запрос для получения одного ID
+		sqlGeneratorSequenceIDs string                  // sqlGeneratorSequenceIDs - SQL-запрос для получения нескольких ID
 	}
 )
 
-// NewGenerator - создаёт объект Generator.
+// NewGenerator - создаёт объект Generator для генерации уникальных ID из PostgreSQL-последовательности.
 func NewGenerator(client mrstorage.DBConnManager, sequenceName string, opts ...Option) *Generator {
 	o := options{
 		generator: &Generator{
@@ -43,7 +45,8 @@ func NewGenerator(client mrstorage.DBConnManager, sequenceName string, opts ...O
 	return o.generator
 }
 
-// Next - возвращает следующий свободный ID.
+// Next - возвращает следующий свободный ID из последовательности PostgreSQL.
+// Использует функцию nextval() для атомарного получения ID.
 func (g Generator) Next(ctx context.Context) (nextID uint64, err error) {
 	err = g.client.Conn(ctx).QueryRow(
 		ctx,
@@ -55,7 +58,9 @@ func (g Generator) Next(ctx context.Context) (nextID uint64, err error) {
 	return nextID, err
 }
 
-// MultiNext - возвращает нужное кол-во идентификаторов, но без гарантии непрерывности.
+// MultiNext - возвращает указанное количество идентификаторов из последовательности.
+// ID получаются пакетами (batch) для оптимизации запросов к БД.
+// Не гарантирует непрерывность последовательности (могут быть пропуски).
 func (g Generator) MultiNext(ctx context.Context, count int) (nextIDs []uint64, err error) {
 	if count < 2 {
 		if count == 0 {

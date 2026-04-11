@@ -5,7 +5,7 @@ import (
 )
 
 type (
-	// TxOption - настройка объекта TxOptions.
+	// TxOption - функция для настройки объекта TxOptions.
 	TxOption func(o *TxOptions)
 
 	// TxOptions - настройки для создания транзакции.
@@ -14,7 +14,7 @@ type (
 	}
 )
 
-// WithTxIsoLevel - устанавливает уровень изоляции для транзакции.
+// WithTxIsoLevel - устанавливает указанный уровень изоляции для транзакции.
 func WithTxIsoLevel(value txisolevel.Enum) TxOption {
 	return func(o *TxOptions) {
 		o.IsoLevel = value

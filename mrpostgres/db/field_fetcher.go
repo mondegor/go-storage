@@ -10,6 +10,7 @@ import (
 
 type (
 	// FieldFetcher - формирователь запроса для получения значения заданного поля таблицы.
+	// Поддерживает фильтрацию по полю мягкого удаления.
 	FieldFetcher[RowID, FieldValue any] struct {
 		client        mrstorage.DBConnManager
 		sqlFetchValue string
@@ -17,6 +18,12 @@ type (
 )
 
 // NewFieldFetcher - создаёт объект FieldFetcher.
+// Параметры:
+//   - client - менеджер подключений к БД;
+//   - tableName - имя таблицы для запроса;
+//   - fieldKeyName - имя ключевого поля для фильтрации;
+//   - fieldName - имя поля для выборки значения;
+//   - fieldDeletedName - имя поля мягкого удаления (может быть пустым).
 func NewFieldFetcher[RowID, FieldValue any](
 	client mrstorage.DBConnManager,
 	tableName, fieldKeyName, fieldName string,
@@ -29,7 +36,10 @@ func NewFieldFetcher[RowID, FieldValue any](
 }
 
 // Fetch - возвращает значение поля для указанной записи в таблице.
-// result: nil - exists, errors.ErrEventStorageNoRecordFound - not exists, error - query error.
+// Возвращаемые значения:
+//   - (value, nil) - запись найдена, значение получено;
+//   - (zero value, ErrEventStorageNoRecordFound) - запись не найдена;
+//   - (zero value, error) - ошибка выполнения запроса.
 func (re FieldFetcher[RowID, FieldValue]) Fetch(ctx context.Context, id RowID) (FieldValue, error) {
 	var value FieldValue
 

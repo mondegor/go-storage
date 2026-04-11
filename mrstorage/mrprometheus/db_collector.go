@@ -8,8 +8,8 @@ import (
 
 // go get -u github.com/prometheus/client_golang
 
-// DBCollector - представляет собой prometheus.Collector,
-// который собирает статистику получаемую из DBStatProvider.
+// DBCollector - Prometheus-коллектор для сбора статистики пула соединений с БД.
+// Получает метрики через DBStatProvider и экспортирует их для Prometheus.
 type (
 	DBCollector struct {
 		providerFunc func() mrstorage.DBStatProvider
@@ -29,7 +29,11 @@ type (
 	}
 )
 
-// NewDBCollector - создаёт объект DBCollector.
+// NewDBCollector - создаёт Prometheus-коллектор для сбора статистики пула соединений.
+// Параметры:
+//   - namespace - пространство имён для метрик (например: "myapp_db");
+//   - providerFunc - функция для получения провайдера статистики;
+//   - labels - дополнительные метки для всех метрик (например: "host", "database").
 func NewDBCollector(namespace string, providerFunc func() mrstorage.DBStatProvider, labels map[string]string) *DBCollector {
 	fqName := func(name string) string {
 		return prometheus.BuildFQName(namespace, "pool", name)
@@ -117,7 +121,7 @@ func (c *DBCollector) Describe(ch chan<- *prometheus.Desc) {
 	prometheus.DescribeByCollect(c, ch)
 }
 
-// Collect implements the prometheus.Collector interface.
+// Collect - implements the prometheus.Collector interface.
 func (c *DBCollector) Collect(metrics chan<- prometheus.Metric) {
 	statProvider := c.providerFunc()
 

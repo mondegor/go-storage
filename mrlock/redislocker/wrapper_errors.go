@@ -9,6 +9,7 @@ import (
 	"github.com/mondegor/go-storage/mrlock"
 )
 
+// wrapError - обёртывает ошибки Redis Locker в стандартные ошибки приложения.
 func (l *LockerAdapter) wrapError(err error, key string) error {
 	if errors.Is(err, redislock.ErrNotObtained) {
 		return mrlock.ErrSystemStorageLockKeyNotObtained.New(
@@ -31,6 +32,7 @@ func (l *LockerAdapter) wrapError(err error, key string) error {
 	)
 }
 
+// traceCmd - логирует выполняемую операцию блокировки для трассировки.
 func (l *LockerAdapter) traceCmd(ctx context.Context, command, key string) {
 	l.tracer.Trace(
 		ctx,

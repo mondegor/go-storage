@@ -7,23 +7,25 @@ import (
 )
 
 type (
-	// FileProviderPool - пул файловых провайдеров, позволяет
-	// хранить файловые провайдеры предназначенные для различных целей.
+	// FileProviderPool - пул файловых провайдеров.
+	// Позволяет хранить и управлять файловыми провайдерами для различных целей.
+	// Каждый провайдер регистрируется под уникальным именем.
 	FileProviderPool struct {
 		providers providerMap
 	}
 
+	// providerMap - внутренняя карта провайдеров (имя -> провайдер).
 	providerMap map[string]FileProvider
 )
 
-// NewFileProviderPool - создаёт объект FileProviderPool.
+// NewFileProviderPool - создаёт пустой пул файловых провайдеров.
 func NewFileProviderPool() *FileProviderPool {
 	return &FileProviderPool{
 		providers: make(providerMap),
 	}
 }
 
-// Register - регистрирует провайдера по его имени.
+// Register - регистрирует файловый провайдер под указанным именем.
 func (p *FileProviderPool) Register(name string, provider FileProvider) error {
 	if _, ok := p.providers[name]; ok {
 		return errors.NewInternalError(
@@ -37,7 +39,7 @@ func (p *FileProviderPool) Register(name string, provider FileProvider) error {
 	return nil
 }
 
-// ProviderAPI - возвращает API по имени провайдера или ошибку, если он не был найден.
+// ProviderAPI - возвращает API файлового провайдера по его имени.
 func (p *FileProviderPool) ProviderAPI(name string) (FileProviderAPI, error) {
 	if provider, ok := p.providers[name]; ok {
 		return provider, nil
@@ -49,7 +51,7 @@ func (p *FileProviderPool) ProviderAPI(name string) (FileProviderAPI, error) {
 	)
 }
 
-// Ping - сообщает, установлено ли соединение и является ли оно стабильным для всех зарегистрированных провайдеров.
+// Ping - проверяет работоспособность всех зарегистрированных файловых провайдеров.
 func (p *FileProviderPool) Ping(ctx context.Context) error {
 	for name, provider := range p.providers {
 		if err := provider.Ping(ctx); err != nil {
@@ -60,7 +62,7 @@ func (p *FileProviderPool) Ping(ctx context.Context) error {
 	return nil
 }
 
-// Close - закрывает текущие соединения всех зарегистрированных провайдеров.
+// Close - закрывает соединения всех зарегистрированных файловых провайдеров.
 func (p *FileProviderPool) Close() error {
 	var errs []error
 

@@ -1,9 +1,9 @@
 package mrsql
 
 type (
-	// DBTableInfo - информации о таблице БД.
+	// DBTableInfo - информация о таблице БД.
 	DBTableInfo struct {
-		Name       string
-		PrimaryKey string
+		Name       string // Name - имя таблицы в БД
+		PrimaryKey string // PrimaryKey - имя первичного ключа таблицы
 	}
 )

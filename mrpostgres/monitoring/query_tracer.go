@@ -8,13 +8,19 @@ import (
 	"github.com/mondegor/go-sysmess/mrtrace"
 )
 
-// QueryTracer - traces Query, QueryRow, and Exec.
+// QueryTracer - трассировщик SQL-запросов для библиотеки pgx.
+// Отслеживает начало выполнения запросов Query, QueryRow и Exec.
 type QueryTracer struct {
 	tracer mrtrace.Tracer
 	source string
 }
 
-// NewQueryTracer - создаёт объект QueryTracer.
+// NewQueryTracer - создаёт объект QueryTracer для трассировки SQL-запросов.
+// Параметры:
+//   - host - адрес сервера PostgreSQL;
+//   - port - порт сервера PostgreSQL;
+//   - database - имя БД;
+//   - tracer - трассировщик для логирования запросов.
 func NewQueryTracer(host, port, database string, tracer mrtrace.Tracer) *QueryTracer {
 	return &QueryTracer{
 		tracer: tracer,
@@ -22,7 +28,8 @@ func NewQueryTracer(host, port, database string, tracer mrtrace.Tracer) *QueryTr
 	}
 }
 
-// TraceQueryStart - вызывается в начале запросов: Query, QueryRow, and Exec.
+// TraceQueryStart - вызывается библиотекой pgx в начале выполнения SQL-запроса.
+// Логирует SQL-запрос (с нормализованными пробелами) и первые 16 аргументов.
 func (t *QueryTracer) TraceQueryStart(ctx context.Context, _ *pgx.Conn, data pgx.TraceQueryStartData) context.Context {
 	const maxArgs = 16
 
@@ -41,7 +48,7 @@ func (t *QueryTracer) TraceQueryStart(ctx context.Context, _ *pgx.Conn, data pgx
 	return ctx
 }
 
-// TraceQueryEnd - вызывается в конце запросов: Query, QueryRow, and Exec.
+// TraceQueryEnd - вызывается библиотекой pgx в конце выполнения SQL-запроса.
 func (t *QueryTracer) TraceQueryEnd(_ context.Context, _ *pgx.Conn, _ pgx.TraceQueryEndData) {
 	// mrlog.Ctx(ctx).
 	//	Trace().

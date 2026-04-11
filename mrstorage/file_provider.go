@@ -8,19 +8,21 @@ import (
 )
 
 type (
-	// FileProvider - файловый провайдер.
+	// FileProvider - файловый провайдер для работы с хранилищами файлов.
+	// Объединяет управление соединением и API для операций с файлами.
 	FileProvider interface {
 		FileProviderConn
 		FileProviderAPI
 	}
 
-	// FileProviderConn - управление открытым соединением файлового провайдера.
+	// FileProviderConn - управление подключением файлового провайдера.
 	FileProviderConn interface {
 		Ping(ctx context.Context) error
 		Close() error
 	}
 
-	// FileProviderAPI - файловый провайдер с возможностью загрузки, скачивания, удаления файла.
+	// FileProviderAPI - API файлового провайдера для операций с файлами.
+	// Позволяет получать информацию, загружать, сохранять и удалять файлы.
 	FileProviderAPI interface {
 		Info(ctx context.Context, filePath string) (mrmodel.FileInfo, error)
 		Download(ctx context.Context, filePath string) (mrmodel.File, error)

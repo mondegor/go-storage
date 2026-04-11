@@ -16,7 +16,7 @@ type (
 	}
 )
 
-// Query - отправляет SQL запрос к БД и возвращает результат в виде списка записей.
+// Query - отправляет SQL-запрос в рамках транзакции и возвращает результат в виде списка записей.
 func (t *transaction) Query(ctx context.Context, sql string, args ...any) (mrstorage.DBQueryRows, error) {
 	rows, err := t.tx.Query(ctx, sql, args...)
 	if err != nil {
@@ -28,18 +28,19 @@ func (t *transaction) Query(ctx context.Context, sql string, args ...any) (mrsto
 	}, nil
 }
 
-// QueryRow - отправляет SQL запрос к БД и возвращает результат в виде одной записи.
+// QueryRow - отправляет SQL-запрос в рамках транзакции и возвращает результат в виде одной записи.
 func (t *transaction) QueryRow(ctx context.Context, sql string, args ...any) mrstorage.DBQueryRow {
 	return &queryRow{
 		row: t.tx.QueryRow(ctx, sql, args...),
 	}
 }
 
-// Exec - отправляет SQL запрос к БД и исполняет его.
+// Exec - отправляет SQL-запрос в рамках транзакции и исполняет его.
 func (t *transaction) Exec(ctx context.Context, sql string, args ...any) error {
 	return wrapErrorCommandTag(t.tx.Exec(ctx, sql, args...))
 }
 
+// mappingTxPgxOptions - преобразует внутренние настройки транзакции в настройки pgx.
 func mappingTxPgxOptions(o mrstorage.TxOptions) (opts pgx.TxOptions) {
 	switch o.IsoLevel {
 	case txisolevel.Serializable:

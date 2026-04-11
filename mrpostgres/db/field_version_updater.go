@@ -9,8 +9,9 @@ import (
 )
 
 type (
-	// FieldWithVersionUpdater - формирователь запроса для получения/обновления значения заданного поля таблицы.
-	// При каждом обновлении записи происходит увеличение её версии, которая сохраняется в специально заданном поле.
+	// FieldWithVersionUpdater - формирователь запроса для получения и обновления значения поля с контролем версий.
+	// При каждом обновлении увеличивает версию записи для предотвращения конфликтов параллельного изменения.
+	// Использует оптимистичную блокировку (optimistic locking).
 	FieldWithVersionUpdater[RowID any, VersionValue constraints.Integer, FieldValue any] struct {
 		fetcher        FieldFetcher[RowID, FieldValue]
 		sqlUpdateValue string
@@ -18,6 +19,13 @@ type (
 )
 
 // NewFieldWithVersionUpdater - создаёт объект FieldWithVersionUpdater.
+// Параметры:
+//   - client - менеджер подключений к БД;
+//   - tableName - имя таблицы для запроса;
+//   - fieldKeyName - имя ключевого поля для фильтрации;
+//   - fieldVersionName - имя поля для хранения версии записи;
+//   - fieldName - имя поля для чтения/обновления;
+//   - fieldDeletedName - имя поля мягкого удаления (может быть пустым).
 func NewFieldWithVersionUpdater[RowID any, VersionValue constraints.Integer, FieldValue any](
 	client mrstorage.DBConnManager,
 	tableName, fieldKeyName, fieldVersionName, fieldName string,
@@ -30,12 +38,15 @@ func NewFieldWithVersionUpdater[RowID any, VersionValue constraints.Integer, Fie
 }
 
 // Fetch - возвращает значение поля для указанной записи в таблице.
-// result: nil - exists, errors.ErrEventStorageNoRecordFound - not exists, error - query error.
+// Делегирует вызов внутреннему FieldFetcher.
 func (re FieldWithVersionUpdater[RowID, VersionValue, FieldValue]) Fetch(ctx context.Context, id RowID) (FieldValue, error) {
 	return re.fetcher.Fetch(ctx, id)
 }
 
-// Update - обновляет значение поля указанной записи в таблице и возвращает идентификатор её новой версии.
+// Update - обновляет значение поля указанной записи в таблице с проверкой версии.
+// Увеличивает версию записи на 1 и обновляет updated_at = NOW().
+// Если текущая версия не совпадает с ожидаемой, запись не будет обновлена (optimistic locking).
+// Возвращает новую версию записи или ошибку, если запись не найдена или версия устарела.
 func (re FieldWithVersionUpdater[RowID, VersionValue, FieldValue]) Update(
 	ctx context.Context,
 	id RowID,

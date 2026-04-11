@@ -7,8 +7,8 @@ import (
 )
 
 type (
-	// ColumnFetcher - формирователь запроса для получения списка значений
-	// заданного поля таблицы на основе фильтрации по другому заданному полю.
+	// ColumnFetcher - формирователь запроса для получения списка значений заданного поля таблицы.
+	// Фильтрует записи по значению другого поля и поддерживает мягкое удаление.
 	ColumnFetcher[FilterValue, FieldValue any] struct {
 		client         mrstorage.DBConnManager
 		sqlFetchColumn string
@@ -16,6 +16,12 @@ type (
 )
 
 // NewColumnFetcher - создаёт объект ColumnFetcher.
+// Параметры:
+//   - client - менеджер подключений к БД;
+//   - tableName - имя таблицы для запроса;
+//   - fieldKeyName - имя поля для фильтрации;
+//   - columnName - имя поля для выборки;
+//   - fieldDeletedName - имя поля мягкого удаления (может быть пустым).
 func NewColumnFetcher[FilterValue, FieldValue any](
 	client mrstorage.DBConnManager,
 	tableName, fieldKeyName, columnName string,
@@ -28,6 +34,7 @@ func NewColumnFetcher[FilterValue, FieldValue any](
 }
 
 // Fetch - возвращает список значений полей по указанному значению поля-фильтра.
+// Группирует результаты по columnName и сортирует по возрастанию.
 func (re ColumnFetcher[FilterValue, FieldValue]) Fetch(ctx context.Context, byValue FilterValue) ([]FieldValue, error) {
 	cursor, err := re.client.Conn(ctx).Query(
 		ctx,

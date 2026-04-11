@@ -18,6 +18,7 @@ import (
 // go get -u github.com/bsm/redislock
 
 const (
+	// lockerName - имя блокировщика для логирования и трассировки.
 	lockerName = "RedisLock"
 )
 
@@ -43,12 +44,14 @@ func NewLockerAdapter(
 	}
 }
 
-// Lock - comment method.
+// Lock - захватывает блокировку указанного ключа с временем жизни по умолчанию.
+// Возвращает функцию для освобождения блокировки.
 func (l *LockerAdapter) Lock(ctx context.Context, key string) (func(), error) {
 	return l.LockWithExpiry(ctx, key, 0)
 }
 
-// LockWithExpiry - if expiry = 0 then set expiry by default.
+// LockWithExpiry - захватывает блокировку указанного ключа с заданным временем жизни.
+// Возвращает функцию для освобождения блокировки.
 func (l *LockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry time.Duration) (func(), error) {
 	if expiry == 0 {
 		expiry = mrlock.DefaultExpiry

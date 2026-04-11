@@ -62,6 +62,28 @@ func TestSQLPartFuncRemoveNil(t *testing.T) {
 			},
 			wantLength: 1,
 		},
+		{
+			name: "test 6",
+			parts: []mrstorage.SQLPartFunc{
+				func(argumentNumber int) (sql string, args []any) { return "", nil },
+				nil,
+				func(argumentNumber int) (sql string, args []any) { return "", nil },
+				nil,
+				func(argumentNumber int) (sql string, args []any) { return "", nil },
+			},
+			wantLength: 3,
+		},
+		{
+			name: "test 7",
+			parts: []mrstorage.SQLPartFunc{
+				nil,
+				func(argumentNumber int) (sql string, args []any) { return "", nil },
+				nil,
+				func(argumentNumber int) (sql string, args []any) { return "", nil },
+				nil,
+			},
+			wantLength: 2,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

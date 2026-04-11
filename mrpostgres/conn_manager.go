@@ -11,13 +11,16 @@ import (
 	"github.com/mondegor/go-storage/mrstorage/txisolevel"
 )
 
-// ConnManager - менеджер транзакций.
+// ConnManager - менеджер подключений и транзакций PostgreSQL.
+// Позволяет выполнять запросы как в рамках транзакции, так и напрямую.
+// Автоматически определяет, находится ли код в контексте транзакции.
 type (
 	ConnManager struct {
 		conn   *ConnAdapter
 		logger mrlog.Logger
 	}
 
+	// ctxTxKey - ключ для хранения транзакции в контексте.
 	ctxTxKey struct{}
 )
 
@@ -29,7 +32,7 @@ func NewConnManager(conn *ConnAdapter, logger mrlog.Logger) *ConnManager {
 	}
 }
 
-// Conn - возвращает соединение с PostgreSQL или транзакцию, если она была открыта.
+// Conn - возвращает соединение с PostgreSQL или активную транзакцию из контекста.
 func (m *ConnManager) Conn(ctx context.Context) mrstorage.DBConn {
 	if tx, ok := ctx.Value(ctxTxKey{}).(*transaction); ok {
 		return tx
@@ -38,13 +41,16 @@ func (m *ConnManager) Conn(ctx context.Context) mrstorage.DBConn {
 	return m.conn
 }
 
-// ConnAdapter - возвращает соединение с PostgreSQL.
+// ConnAdapter - возвращает адаптер подключения к PostgreSQL.
 func (m *ConnManager) ConnAdapter() *ConnAdapter {
 	return m.conn
 }
 
-// Do - запускает задачу с запросом в транзакции.
-// Пытается запустить в текущей транзакции, если ее нет, создает новую транзакцию.
+// Do - выполняет работу в транзакции.
+// Если в контексте уже есть транзакция, выполняет работу в ней.
+// Иначе создаёт новую транзакцию с указанным уровнем изоляции (по умолчанию: ReadCommitted).
+// Автоматически выполняет Rollback при ошибке или panic для гарантии закрытия транзакции.
+// Предупреждает в логе при попытке повысить уровень изоляции во вложенной транзакции.
 func (m *ConnManager) Do(ctx context.Context, job func(ctx context.Context) error, opts ...mrstorage.TxOption) error {
 	o := mrstorage.TxOptions{
 		IsoLevel: txisolevel.ReadCommitted, // TODO: перенести в настройки по умолчанию для менеджера соединения

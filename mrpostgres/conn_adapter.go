@@ -16,44 +16,56 @@ import (
 // go get -u github.com/jackc/pgx/v5
 
 const (
+	// connectionName - имя подключения для логирования и трассировки.
 	connectionName = "Postgres"
-	driverName     = "postgres"
 
-	defaultMaxConns        = 4
+	// driverName - имя драйвера для формирования строки подключения.
+	driverName = "postgres"
+
+	// defaultMaxConns - максимальное количество соединений по умолчанию.
+	defaultMaxConns = 4
+
+	// defaultMaxConnLifetime - максимальное время жизни соединения по умолчанию.
 	defaultMaxConnLifetime = time.Hour
+
+	// defaultMaxConnIdleTime - максимальное время простоя соединения по умолчанию.
 	defaultMaxConnIdleTime = 30 * time.Minute
-	defaultConnTimeout     = 60 * time.Second
+
+	// defaultConnTimeout - таймаут подключения по умолчанию.
+	defaultConnTimeout = 60 * time.Second
 )
 
 type (
-	// ConnAdapter - адаптер для работы с Postgres клиентом.
+	// ConnAdapter - адаптер для работы с PostgreSQL через библиотеку pgx.
+	// Предоставляет методы для подключения, выполнения запросов и управления пулом соединений.
 	ConnAdapter struct {
 		pool *pgxpool.Pool
 	}
 
-	// Options - опции для создания соединения для ConnAdapter.
+	// Options - опции для создания соединения в ConnAdapter.
+	// Позволяет подключаться либо по DSN, либо по отдельным параметрам.
 	Options struct {
-		DSN             string // если указано, то Host, Port, Database, Username не используются, но Password более приоритетен если явно указан
-		Host            string
-		Port            string
-		Database        string
-		Username        string
-		Password        string
-		MaxPoolSize     int
-		MaxConnLifetime time.Duration
-		MaxConnIdleTime time.Duration
-		ConnTimeout     time.Duration
-		QueryTracer     pgx.QueryTracer
-		AfterConnect    func(ctx context.Context, conn *pgx.Conn) error
+		DSN             string                                          // DSN - строка подключения (если указана, Host, Port, Database, Username игнорируются)
+		Host            string                                          // Host - адрес сервера PostgreSQL
+		Port            string                                          // Port - порт сервера PostgreSQL
+		Database        string                                          // Database - имя БД
+		Username        string                                          // Username - имя пользователя для аутентификации
+		Password        string                                          // Password - пароль для аутентификации (переопределяет пароль из DSN, если указан)
+		MaxPoolSize     int                                             // MaxPoolSize - максимальный размер пула соединений (по умолчанию: 4)
+		MaxConnLifetime time.Duration                                   // MaxConnLifetime - максимальное время жизни соединения (по умолчанию: 1 час)
+		MaxConnIdleTime time.Duration                                   // MaxConnIdleTime - максимальное время простоя соединения (по умолчанию: 30 минут)
+		ConnTimeout     time.Duration                                   // ConnTimeout - таймаут подключения (по умолчанию: 60 секунд)
+		QueryTracer     pgx.QueryTracer                                 // QueryTracer - трассировщик SQL-запросов
+		AfterConnect    func(ctx context.Context, conn *pgx.Conn) error // AfterConnect - функция, вызываемая после каждого нового соединения
 	}
 )
 
-// New - создаёт объект ConnAdapter.
+// New - создаёт объект ConnAdapter без активного пула соединений.
 func New() *ConnAdapter {
 	return &ConnAdapter{}
 }
 
-// Connect - создаёт пул соединений с указанными опциями.
+// Connect - создаёт пул соединений PostgreSQL по указанным опциям.
 func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	if c.pool != nil {
 		return errors.ErrInternalStorageConnectionIsAlreadyCreated.New("source", connectionName)
@@ -117,7 +129,7 @@ func (c *ConnAdapter) Connect(ctx context.Context, opts Options) error {
 	return nil
 }
 
-// Ping - проверяет работоспособность пула соединений.
+// Ping - проверяет работоспособность пула соединений PostgreSQL.
 func (c *ConnAdapter) Ping(ctx context.Context) error {
 	if c.pool == nil {
 		return errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
@@ -137,8 +149,9 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 	return nil
 }
 
-// HijackConn - извлекает соединение из пула, которое будет использоваться
-// независимо от него и должно быть закрыто тем, кто вызвал данный метод.
+// HijackConn - извлекает соединение из пула для независимого использования.
+// Возвращённое соединение не управляется пулом и должно быть закрыто вызывающей стороной.
+// Полезно для длительного использования соединения (например: LISTEN/NOTIFY).
 func (c *ConnAdapter) HijackConn(ctx context.Context) (*pgx.Conn, error) {
 	conn, err := c.pool.Acquire(ctx)
 	if err != nil {
@@ -148,7 +161,7 @@ func (c *ConnAdapter) HijackConn(ctx context.Context) (*pgx.Conn, error) {
 	return conn.Hijack(), nil
 }
 
-// Cli - возвращается нативный объект, с которым работает данный адаптер.
+// Cli - возвращает нативный пул соединений pgx для прямого доступа к API.
 func (c *ConnAdapter) Cli() (*pgxpool.Pool, error) {
 	if c.pool == nil {
 		return nil, errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)

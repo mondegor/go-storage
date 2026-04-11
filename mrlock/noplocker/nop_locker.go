@@ -8,11 +8,14 @@ import (
 )
 
 const (
+	// lockerName - имя блокировщика для логирования и трассировки.
 	lockerName = "NopLocker"
 )
 
 type (
-	// Locker - заглушка реализующая интерфейс блокировщика указанного ключа.
+	// Locker - заглушка, реализующая интерфейс блокировщика ключа.
+	// Не выполняет реальной блокировки, только логирует операции через tracer.
+	// Полезен для тестирования и в средах, где блокировка не требуется.
 	Locker struct {
 		tracer tracer
 	}
@@ -22,7 +25,7 @@ type (
 	}
 )
 
-// New - создаёт объект Locker.
+// New - создаёт объект Locker-заглушку, не выполняющую реальной блокировки.
 func New(tracer tracer) *Locker {
 	return &Locker{
 		tracer: tracer,
@@ -49,6 +52,7 @@ func (l *Locker) LockWithExpiry(ctx context.Context, key string, expiry time.Dur
 	}, nil
 }
 
+// traceCmd - логирует выполняемую операцию блокировки для трассировки.
 func (l *Locker) traceCmd(ctx context.Context, command, key string) {
 	l.tracer.Trace(
 		ctx,

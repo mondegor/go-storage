@@ -11,7 +11,7 @@ type (
 	}
 )
 
-// Scan - comment method.
+// Scan - извлекает значения из одной записи результата запроса.
 func (qr *queryRow) Scan(dest ...any) error {
 	if err := qr.row.Scan(dest...); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

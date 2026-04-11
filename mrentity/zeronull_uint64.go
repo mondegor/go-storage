@@ -8,6 +8,7 @@ import (
 
 type (
 	// ZeronullUint64 - целочисленный тип для которого значение 0 в БД хранится как NULL.
+	// Реализует интерфейсы sql.Scanner и driver.Valuer.
 	ZeronullUint64 uint64
 )
 

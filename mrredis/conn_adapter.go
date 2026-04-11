@@ -13,39 +13,48 @@ import (
 // go get -u github.com/redis/go-redis/v9
 
 const (
+	// connectionName - имя подключения для логирования и трассировки.
 	connectionName = "Redis"
-	testKey        = "testKey-d6b6943c-e1b2-4625-b133-9805a5cf5f8d"
 
-	defaultReadTimeout  = 5 * time.Second
+	// testKey - ключ для проверки работоспособности соединения в методе Ping.
+	testKey = "testKey-d6b6943c-e1b2-4625-b133-9805a5cf5f8d"
+
+	// defaultReadTimeout - таймаут чтения из Redis по умолчанию.
+	defaultReadTimeout = 5 * time.Second
+
+	// defaultWriteTimeout - таймаут записи в Redis по умолчанию.
 	defaultWriteTimeout = 5 * time.Second
 )
 
 type (
 	// ConnAdapter - адаптер для работы с Redis клиентом.
+	// Предоставляет методы для подключения, выполнения команд (GET, SET, DELETE),
+	// проверки работоспособности и получения нативного клиента.
 	ConnAdapter struct {
 		conn   redis.UniversalClient
 		tracer mrtrace.Tracer
 	}
 
-	// Options - опции для создания соединения для ConnAdapter.
+	// Options - опции для создания соединения в ConnAdapter.
+	// Позволяет подключаться либо по DSN, либо по отдельным параметрам Host/Port.
 	Options struct {
-		DSN          string // если указано, то Host, Port не используются, но Password более приоритетен если явно указан
-		Host         string
-		Port         string
-		Password     string
-		ReadTimeout  time.Duration
-		WriteTimeout time.Duration
+		DSN          string        // DSN - строка подключения (если указана, Host и Port игнорируются)
+		Host         string        // Host - адрес сервера Redis (используется, если DSN не указан)
+		Port         string        // Port - порт сервера Redis (используется, если DSN не указан)
+		Password     string        // Password - пароль для аутентификации (переопределяет пароль из DSN, если указан)
+		ReadTimeout  time.Duration // ReadTimeout - таймаут чтения (по умолчанию: 5 секунд)
+		WriteTimeout time.Duration // WriteTimeout - таймаут записи (по умолчанию: 5 секунд)
 	}
 )
 
-// New - создаёт объект ConnAdapter.
+// New - создаёт объект ConnAdapter без активного соединения.
 func New(tracer mrtrace.Tracer) *ConnAdapter {
 	return &ConnAdapter{
 		tracer: tracer,
 	}
 }
 
-// Connect - создаёт соединение с указанными опциями.
+// Connect - устанавливает соединение с сервером Redis по указанным опциям.
 func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	if c.conn != nil {
 		return errors.ErrInternalStorageConnectionIsAlreadyCreated.New("source", connectionName)
@@ -93,7 +102,7 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	return nil
 }
 
-// Ping - сообщает, установлено ли соединение и является ли оно стабильным.
+// Ping - проверяет работоспособность соединения с Redis.
 func (c *ConnAdapter) Ping(ctx context.Context) error {
 	if c.conn == nil {
 		return errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
@@ -124,7 +133,7 @@ func (c *ConnAdapter) Ping(ctx context.Context) error {
 	return nil
 }
 
-// Cli - возвращается нативный объект, с которым работает данный адаптер.
+// Cli - возвращает нативный клиент Redis (redis.UniversalClient) для прямого доступа к API.
 func (c *ConnAdapter) Cli() (redis.UniversalClient, error) {
 	if c.conn == nil {
 		return nil, errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
@@ -133,7 +142,7 @@ func (c *ConnAdapter) Cli() (redis.UniversalClient, error) {
 	return c.conn, nil
 }
 
-// Close - закрывает текущее соединение.
+// Close - закрывает соединение с Redis и очищает ссылку на клиент.
 func (c *ConnAdapter) Close() error {
 	if c.conn == nil {
 		return errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)

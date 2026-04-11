@@ -15,18 +15,21 @@ import (
 )
 
 const (
+	// providerName - имя провайдера для логирования и трассировки.
 	providerName = "FileStorage"
-	testFile     = "testFile-d6b6943c-e1b2-4625-b133-9805a5cf5f8d"
+
+	// testFile - имя временного файла для проверки работоспособности хранилища в методе Ping.
+	testFile = "testFile-d6b6943c-e1b2-4625-b133-9805a5cf5f8d"
 )
 
 type (
-	// FileProvider - файловый провайдер, работающий с нативной файловой системой,
-	// позволяет читать, сохранять, удалять файлы.
+	// FileProvider - файловый провайдер, работающий с нативной файловой системой.
+	// Позволяет читать, сохранять, удалять файлы и проверять работоспособность хранилища.
 	FileProvider struct {
-		fs      *FileSystem
-		tracer  mrtrace.Tracer
-		rootDir string
-		muPing  sync.Mutex
+		fs      *FileSystem    // fs - объект для работы с файловой системой
+		tracer  mrtrace.Tracer // tracer - трассировщик для логирования операций
+		rootDir string         // rootDir - корневая директория хранилища (всегда заканчивается на "/")
+		muPing  sync.Mutex     // muPing - мьютекс для синхронизации метода Ping
 	}
 )
 
@@ -39,7 +42,7 @@ func NewFileProvider(fs *FileSystem, tracer mrtrace.Tracer, rootDir string) *Fil
 	}
 }
 
-// Info - comment method.
+// Info - возвращает метаинформацию о файле (размер, тип контента, даты).
 func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrmodel.FileInfo, error) {
 	fp.traceCmd(ctx, "Info", filePath)
 
@@ -60,7 +63,8 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrmodel.File
 	return fileInfo, nil
 }
 
-// Download - comment method.
+// Download - открывает файл и возвращает его метаинформацию вместе с содержимым.
+// Возвращаемая структура mrmodel.File включает тело файла (Body), которое нужно закрыть после использования.
 func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrmodel.File, error) {
 	fp.traceCmd(ctx, "Download", filePath)
 
@@ -85,7 +89,9 @@ func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrmodel.
 	}, nil
 }
 
-// DownloadFile - comment method.
+// DownloadFile - открывает файл и возвращает только его содержимое как io.ReadCloser.
+// В отличие от Download, не включает метаинформацию.
+// Вызывающая сторона обязана закрыть ReadCloser после использования.
 func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.ReadCloser, error) {
 	fp.traceCmd(ctx, "DownloadContent", filePath)
 
@@ -97,7 +103,8 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 	return fd, nil
 }
 
-// Upload - comment method.
+// Upload - сохраняет файл в хранилище.
+// Автоматически создаёт необходимые директории, если они не существуют.
 func (fp *FileProvider) Upload(ctx context.Context, file mrmodel.File) error {
 	fp.traceCmd(ctx, "Upload", file.Path)
 
@@ -125,7 +132,7 @@ func (fp *FileProvider) Upload(ctx context.Context, file mrmodel.File) error {
 	return nil
 }
 
-// Remove - comment method.
+// Remove - удаляет файл из хранилища.
 func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
 	fp.traceCmd(ctx, "Remove", filePath)
 
@@ -140,7 +147,9 @@ func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
 	return nil
 }
 
-// Ping - сообщает о возможности работы с файлами.
+// Ping - проверяет работоспособность файлового хранилища.
+// Создаёт временный файл и сразу удаляет его для проверки прав на запись.
+// Использует мьютекс для предотвращения одновременных проверок.
 func (fp *FileProvider) Ping(ctx context.Context) error {
 	fp.traceCmd(ctx, "Ping", testFile)
 
@@ -162,7 +171,8 @@ func (fp *FileProvider) Ping(ctx context.Context) error {
 	return nil
 }
 
-// Close - закрывает текущее соединение.
+// Close - закрывает провайдер и освобождает ресурсы.
+// Для FileProvider не требует дополнительных действий, возвращает nil.
 func (fp *FileProvider) Close() error {
 	return nil
 }

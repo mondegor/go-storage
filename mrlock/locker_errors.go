@@ -5,9 +5,11 @@ import (
 )
 
 var (
-	// ErrSystemStorageLockKeyNotObtained - lock key not obtained (ключ блокировки не удалось захватить).
+	// ErrSystemStorageLockKeyNotObtained - не удалось захватить ключ блокировки.
+	// Возникает, когда ключ уже заблокирован другим процессом или истёк срок предыдущей блокировки.
 	ErrSystemStorageLockKeyNotObtained = errors.NewSystemProto("lock key not obtained")
 
-	// ErrSystemStorageLockKeyNotHeld - lock key not held (ключ блокировки был освобождён ранее).
+	// ErrSystemStorageLockKeyNotHeld - ключ блокировки не принадлежит текущему владельцу.
+	// Возникает при попытке освободить ключ, который не был заблокирован текущим процессом.
 	ErrSystemStorageLockKeyNotHeld = errors.NewSystemProto("lock key not held")
 )

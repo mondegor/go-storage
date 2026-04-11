@@ -1,7 +1,8 @@
 package mrsql
 
-// MergeArgs - принимает список массивов,
-// формирует из них один линейный массив и возвращает его.
+// MergeArgs - объединяет несколько массивов аргументов в один линейный массив.
+// Оптимизировано: если передан один непустой массив, возвращает его без копирования.
+// Если все массивы пустые или nil, возвращает nil.
 func MergeArgs(args ...[]any) []any {
 	var total int
 
@@ -20,14 +21,14 @@ func MergeArgs(args ...[]any) []any {
 		}
 	}
 
-	mergedArgs := make([]any, total)
-	n := 0
+	mergedArgs := make([]any, 0, total)
 
 	for i := range args {
-		for j := range args[i] {
-			mergedArgs[n] = args[i][j]
-			n++
+		if len(args[i]) == 0 {
+			continue
 		}
+
+		mergedArgs = append(mergedArgs, args[i]...)
 	}
 
 	return mergedArgs

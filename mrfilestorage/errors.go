@@ -4,5 +4,5 @@ import (
 	"github.com/mondegor/go-sysmess/errors"
 )
 
-// ErrInternalInvalidPath - invalid path (attrs: path).
+// ErrInternalInvalidPath - недопустимый путь к файлу.
 var ErrInternalInvalidPath = errors.NewInternalProto("invalid path")

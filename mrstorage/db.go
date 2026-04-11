@@ -3,26 +3,31 @@ package mrstorage
 import "context"
 
 type (
-	// DBConnManager - менеджер соединений с БД.
-	DBConnManager interface {
-		Conn(ctx context.Context) DBConn
-		DBTxManager
-	}
-
-	// DBTxManager - менеджер транзакций, позволяет исполнять
-	// несколько независимых запросов в рамках одной транзакции.
+	// DBTxManager - менеджер транзакций.
+	// Позволяет выполнять несколько запросов в рамках одной транзакции.
 	DBTxManager interface {
 		Do(ctx context.Context, job func(ctx context.Context) error, opts ...TxOption) error
 	}
 
-	// DBConn - соединение с БД с возможностью выполнения запросов.
+	// DBConnManager - менеджер соединений с базой данных.
+	// Объединяет управление соединениями и транзакциями.
+	// Позволяет получать соединение как напрямую, так и в рамках транзакции.
+	DBConnManager interface {
+		DBTxManager
+
+		Conn(ctx context.Context) DBConn
+	}
+
+	// DBConn - соединение с базой данных для выполнения SQL-запросов.
+	// Поддерживает запросы с возвратом множества записей, одной записи и выполнение команд.
 	DBConn interface {
 		Query(ctx context.Context, sql string, args ...any) (DBQueryRows, error)
 		QueryRow(ctx context.Context, sql string, args ...any) DBQueryRow
 		Exec(ctx context.Context, sql string, args ...any) error
 	}
 
-	// DBQueryRows - результат запроса в виде списка записей.
+	// DBQueryRows - результат SQL-запроса в виде списка записей.
+	// Предоставляет методы для итерации по записям и их считывания.
 	DBQueryRows interface {
 		Next() bool
 		Scan(dest ...any) error
@@ -30,7 +35,7 @@ type (
 		Close()
 	}
 
-	// DBQueryRow - результат запроса состоящий из одной записи.
+	// DBQueryRow - результат SQL-запроса, состоящий из одной записи.
 	DBQueryRow interface {
 		Scan(dest ...any) error
 	}

@@ -13,34 +13,45 @@ import (
 )
 
 const (
-	// ModelNameEntityMetaUpdate - название сущности.
-	ModelNameEntityMetaUpdate = "EntityMetaUpdate"
+	// modelNameEntityMetaUpdate - имя сущности для логирования и сообщений об ошибках.
+	modelNameEntityMetaUpdate = "EntityMetaUpdate"
 
+	// fieldTagDBFieldName - имя тега для указания имени поля в БД.
 	fieldTagDBFieldName = "db"
+
+	// fieldTagFieldUpdate - имя тега для указания полей, доступных для обновления.
 	fieldTagFieldUpdate = "upd"
 )
 
 type (
 	// EntityMetaUpdate - объект для управления динамическим обновлением записей в БД.
-	// Информация об обновлении считывается из тегов структуры.
+	// Информация об обновлении считывается из тегов структуры:
+	//   - `db`: имя поля в БД, если в `upd` установлено значение "+";
+	//   - `upd`: иначе в самом теге `upd` должно быть указано имя поля в БД;
+	// Если в поле структуры нет нужного тега, то оно не используется.
 	EntityMetaUpdate struct {
 		structName string
 		fieldsInfo map[int]fieldInfo // field index -> fieldInfo
 	}
 
+	// fieldInfo - информация о поле структуры для обновления.
 	fieldInfo struct {
-		kind      reflect.Kind
-		isPointer bool
-		dbName    string
+		kind      reflect.Kind // kind - тип поля (int, string, time.Time и т.д.)
+		isPointer bool         // isPointer - является ли поле указателем
+		dbName    string       // dbName - имя поля в БД
 	}
 )
 
 var regexpDbName = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 
-// NewEntityMetaUpdate - создаёт объект EntityMetaUpdate.
+// NewEntityMetaUpdate - создаёт объект EntityMetaUpdate для управления обновлением записей.
+// Анализирует теги структуры entity и формирует карту полей для обновления.
+// Параметры:
+//   - logger - логгер для вывода информации о разборе тегов;
+//   - entity - структура для разбора (может быть указателем).
 func NewEntityMetaUpdate(logger mrlog.Logger, entity any) (*EntityMetaUpdate, error) {
 	rvt := reflect.TypeOf(entity)
-	logger = mrlog.WithAttrs(logger, "object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaUpdate, rvt.String()))
+	logger = mrlog.WithAttrs(logger, "object", fmt.Sprintf("[%s] %s", modelNameEntityMetaUpdate, rvt.String()))
 
 	for rvt.Kind() == reflect.Pointer {
 		rvt = rvt.Elem()
@@ -118,11 +129,12 @@ func NewEntityMetaUpdate(logger mrlog.Logger, entity any) (*EntityMetaUpdate, er
 	return &meta, nil
 }
 
+// parseTagUpdate - разбирает тег обновления поля структуры.
 func parseTagUpdate(rvt reflect.Type, value, dbName string) (string, error) {
 	errFunc := func(errString string) (string, error) {
 		return "", fmt.Errorf(
 			"[%s] %s: parse error in '%s': %s",
-			ModelNameEntityMetaUpdate,
+			modelNameEntityMetaUpdate,
 			rvt.String(),
 			value,
 			errString,
@@ -137,18 +149,18 @@ func parseTagUpdate(rvt reflect.Type, value, dbName string) (string, error) {
 		if !regexpDbName.MatchString(dbName) {
 			return errFunc(fmt.Sprintf("value '%s' from '%s' is incorrect", dbName, fieldTagDBFieldName))
 		}
-	} else if dbName == "" {
-		if !regexpDbName.MatchString(value) {
-			return errFunc("value is incorrect")
-		}
 
-		dbName = value
+		return dbName, nil
 	}
 
-	return dbName, nil
+	if !regexpDbName.MatchString(value) {
+		return errFunc(fmt.Sprintf("value '%s' from '%s' is incorrect", value, fieldTagFieldUpdate))
+	}
+
+	return value, nil
 }
 
-// FieldsForUpdate - возвращает список полей и их значения для использования их при формировании SQL запроса.
+// FieldsForUpdate - возвращает список полей и их значения для формирования SQL-запроса UPDATE.
 func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) {
 	rv := reflect.ValueOf(entity)
 
@@ -234,6 +246,12 @@ func (m *EntityMetaUpdate) FieldsForUpdate(entity any) ([]string, []any, error) 
 	return fields, args, nil
 }
 
+// checkEntityMetaUpdateFieldType - проверяет, поддерживается ли тип поля для обновления.
+// Поддерживаемые типы:
+//   - Примитивы: string, int*, uint*, float*, bool
+//   - Массивы: uuid.UUID
+//   - Слайсы: []byte
+//   - Структуры: time.Time
 func checkEntityMetaUpdateFieldType(fieldType reflect.Type) bool {
 	switch fieldType.Kind() {
 	case reflect.String,

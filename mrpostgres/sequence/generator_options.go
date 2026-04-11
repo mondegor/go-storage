@@ -1,7 +1,7 @@
 package sequence
 
 type (
-	// Option - настройка объекта Generator.
+	// Option - функция для настройки объекта Generator.
 	Option func(o *options)
 
 	options struct {
@@ -9,8 +9,8 @@ type (
 	}
 )
 
-// WithMaxIDsOneQuery - устанавливает максимально возможное
-// получение ID из последовательности за один запрос к БД.
+// WithMaxIDsOneQuery - устанавливает максимальное количество ID, получаемых за один запрос к БД.
+// Используется методом MultiNext для оптимизации получения большого количества ID.
 func WithMaxIDsOneQuery(value int) Option {
 	return func(o *options) {
 		o.generator.maxIDsOneQuery = value

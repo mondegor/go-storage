@@ -5,7 +5,8 @@ import (
 )
 
 type (
-	// DBStatProvider - провайдер статистики работы DB.
+	// DBStatProvider - провайдер статистики работы пула соединений с БД.
+	// Предоставляет метрики для мониторинга и сбора статистики (например: Prometheus).
 	DBStatProvider interface {
 		AcquireCount() int64
 		AcquireDuration() time.Duration

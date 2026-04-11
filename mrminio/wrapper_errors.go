@@ -7,6 +7,7 @@ import (
 	"github.com/mondegor/go-sysmess/errors"
 )
 
+// wrapError - обёртывает ошибки MinIO в стандартные ошибки приложения.
 func (fp *FileProvider) wrapError(err error) error {
 	if e := (*minio.ErrorResponse)(nil); errors.As(err, &e) {
 		// The specified key does not exist.
@@ -20,6 +21,7 @@ func (fp *FileProvider) wrapError(err error) error {
 	return errors.WrapInternalError(err, "failed", "source_provider", providerName)
 }
 
+// traceCmd - логирует выполняемую операцию для трассировки.
 func (fp *FileProvider) traceCmd(ctx context.Context, command, filePath string) {
 	fp.tracer.Trace(
 		ctx,

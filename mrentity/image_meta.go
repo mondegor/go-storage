@@ -12,19 +12,21 @@ import (
 
 type (
 	// ImageMeta - метаинформация об изображении, позволяет сохранять в БД и читать из неё в виде json.
+	// Реализует интерфейсы sql.Scanner и driver.Valuer.
 	ImageMeta struct {
-		Path         string     `json:"path,omitempty"`
-		ContentType  string     `json:"type,omitempty"`
-		OriginalName string     `json:"origin,omitempty"`
-		Width        int32      `json:"width,omitempty"`
-		Height       int32      `json:"height,omitempty"`
-		Size         int64      `json:"size,omitempty"`
-		CreatedAt    *time.Time `json:"created,omitempty"`
-		UpdatedAt    *time.Time `json:"updated,omitempty"`
+		Path         string     `json:"path,omitempty"`    // Path - путь к изображению в хранилище
+		ContentType  string     `json:"type,omitempty"`    // ContentType - MIME-тип изображения (например: "image/png")
+		OriginalName string     `json:"origin,omitempty"`  // OriginalName - оригинальное имя файла при загрузке
+		Width        int32      `json:"width,omitempty"`   // Width - ширина изображения в пикселях
+		Height       int32      `json:"height,omitempty"`  // Height - высота изображения в пикселях
+		Size         int64      `json:"size,omitempty"`    // Size - размер файла в байтах
+		CreatedAt    *time.Time `json:"created,omitempty"` // CreatedAt - время создания записи
+		UpdatedAt    *time.Time `json:"updated,omitempty"` // UpdatedAt - время последнего обновления записи
 	}
 )
 
 // Empty - сообщает, является ли объект пустым.
+// Проверяет только Path и OriginalName, так как эти поля являются обязательными идентификаторами изображения.
 func (e ImageMeta) Empty() bool {
 	return e.Path == "" &&
 		e.OriginalName == ""
@@ -65,8 +67,8 @@ func (e ImageMeta) Value() (driver.Value, error) {
 	return json.Marshal(e)
 }
 
-// ImageMetaToInfo - преобразование данных изображения предназначенных
-// для хранилища в формат данных для передачи клиенту.
+// ImageMetaToInfo - преобразование данных изображения, предназначенных для хранения в БД,
+// в формат данных для передачи клиенту (mrmodel.ImageInfo).
 func ImageMetaToInfo(meta ImageMeta) mrmodel.ImageInfo {
 	return mrmodel.ImageInfo{
 		ContentType: meta.ContentType,
@@ -81,7 +83,7 @@ func ImageMetaToInfo(meta ImageMeta) mrmodel.ImageInfo {
 	}
 }
 
-// ImageMetaToInfoPointer - аналог ImageMetaToInfo, но принимает и возвращает указатель.
+// ImageMetaToInfoPointer - аналог ImageMetaToInfo, но работает с указателями.
 func ImageMetaToInfoPointer(meta *ImageMeta) *mrmodel.ImageInfo {
 	if meta == nil {
 		return nil

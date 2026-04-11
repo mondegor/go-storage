@@ -13,20 +13,26 @@ import (
 )
 
 const (
-	// ModelNameEntityMetaOrderBy - название сущности.
-	ModelNameEntityMetaOrderBy = "EntityMetaOrderBy"
+	// modelNameEntityMetaOrderBy - имя сущности для логирования и сообщений об ошибках.
+	modelNameEntityMetaOrderBy = "EntityMetaOrderBy"
 
+	// fieldTagSortByField - имя тега для указания полей/выражений сортировки.
 	fieldTagSortByField = "sort"
 )
 
 type (
-	// EntityMetaOrderBy - объект для управления порядком следования записей БД.
-	// Информация о порядке следования считывается из тегов структуры.
+	// EntityMetaOrderBy - объект для управления порядком сортировки записей БД.
+	// Информация о порядке считывается из тегов структуры с именем `sort`.
+	// Формат тега: "имя_поля_БД[,default][,asc|desc]"
+	//   - имя_поля_БД: обязательное, имя поля или выражения в БД;
+	//   - default - необязательное, указывает поле сортировки по умолчанию;
+	//   - asc|desc - необязательное, направление сортировки (по умолчанию: ASC).
 	EntityMetaOrderBy struct {
 		fieldMap    map[string]bool
 		defaultSort mrtype.SortParams
 	}
 
+	// parsedTagSort - результат разбора тега sort.
 	parsedTagSort struct {
 		SortName      string
 		IsDefault     bool
@@ -34,10 +40,14 @@ type (
 	}
 )
 
-// NewEntityMetaOrderBy - создаёт объект EntityMetaOrderBy.
+// NewEntityMetaOrderBy - создаёт объект EntityMetaOrderBy для управления сортировкой.
+// Анализирует теги `sort` структуры entity и формирует карту допустимых полей сортировки.
+// Параметры:
+//   - logger - логгер для вывода информации о разборе тегов;
+//   - entity - структура для разбора (может быть указателем).
 func NewEntityMetaOrderBy(logger mrlog.Logger, entity any) (*EntityMetaOrderBy, error) {
 	rvt := reflect.TypeOf(entity)
-	logger = mrlog.WithAttrs(logger, "object", fmt.Sprintf("[%s] %s", ModelNameEntityMetaOrderBy, rvt.String()))
+	logger = mrlog.WithAttrs(logger, "object", fmt.Sprintf("[%s] %s", modelNameEntityMetaOrderBy, rvt.String()))
 
 	for rvt.Kind() == reflect.Pointer {
 		rvt = rvt.Elem()
@@ -99,18 +109,20 @@ func NewEntityMetaOrderBy(logger mrlog.Logger, entity any) (*EntityMetaOrderBy, 
 	return &meta, nil
 }
 
-// HasColumn - сообщает, зарегистрировано ли указанное поле в распарсенной структуре.
+// HasColumn - сообщает, зарегистрировано ли указанное поле как допустимое для сортировки.
 func (m *EntityMetaOrderBy) HasColumn(name string) bool {
 	_, ok := m.fieldMap[name]
 
 	return ok
 }
 
-// DefaultSort - возвращает данные о сортировке по умолчанию.
+// DefaultSort - возвращает параметры сортировки по умолчанию.
+// Если в структуре не указано поле с флагом `default`, возвращает пустые параметры.
 func (m *EntityMetaOrderBy) DefaultSort() mrtype.SortParams {
 	return m.defaultSort
 }
 
+// parseTagSort - разбирает тег sort поля структуры.
 func parseTagSort(rvt reflect.Type, value string, canBeDefault bool) (parsedTagSort, error) {
 	parsed := strings.Split(value, ",")
 	count := len(parsed)
@@ -118,7 +130,7 @@ func parseTagSort(rvt reflect.Type, value string, canBeDefault bool) (parsedTagS
 	errFunc := func(errString string) (parsedTagSort, error) {
 		return parsedTagSort{}, fmt.Errorf(
 			"[%s] %s: parse error in '%s': %s",
-			ModelNameEntityMetaOrderBy,
+			modelNameEntityMetaOrderBy,
 			rvt.String(),
 			value,
 			errString,

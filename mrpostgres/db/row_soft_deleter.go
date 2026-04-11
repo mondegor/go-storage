@@ -9,7 +9,8 @@ import (
 )
 
 type (
-	// RowSoftDeleter - формирователь запроса для пометки записи таблицы как удалённая.
+	// RowSoftDeleter - формирователь запроса для пометки записи таблицы как удалённой (мягкое удаление).
+	// Устанавливает в поле deleted_at текущее время и увеличивает версию записи (OPTIONAL).
 	RowSoftDeleter[RowID any] struct {
 		client           mrstorage.DBConnManager
 		sqlSoftDeleteRow string
@@ -17,6 +18,12 @@ type (
 )
 
 // NewRowSoftDeleter - создаёт объект RowSoftDeleter.
+// Параметры:
+//   - client - менеджер подключений к БД;
+//   - tableName - имя таблицы для запроса;
+//   - fieldKeyName - имя ключевого поля для фильтрации;
+//   - fieldVersionName - имя поля версии для увеличения (может быть пустым);
+//   - fieldDeletedName - имя поля для отметки об удалении.
 func NewRowSoftDeleter[RowID any](
 	client mrstorage.DBConnManager,
 	tableName, fieldKeyName, fieldVersionName, fieldDeletedName string,
@@ -27,7 +34,7 @@ func NewRowSoftDeleter[RowID any](
 	}
 }
 
-// Delete - помечает указанную запись в качестве удалённой, если такая существует.
+// Delete - помечает указанную запись как удалённую, если она существует и не была удалена ранее.
 func (re RowSoftDeleter[RowID]) Delete(ctx context.Context, id RowID) error {
 	err := re.client.Conn(ctx).Exec(
 		ctx,

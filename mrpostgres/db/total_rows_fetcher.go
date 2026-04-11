@@ -9,7 +9,8 @@ import (
 )
 
 type (
-	// TotalRowsFetcher - формирователь запроса для получения кол-ва записей в заданной таблице.
+	// TotalRowsFetcher - формирователь запроса для получения количества записей в заданной таблице.
+	// Поддерживает динамические условия WHERE для фильтрации записей.
 	TotalRowsFetcher[CountRows constraints.Integer] struct {
 		client        mrstorage.DBConnManager
 		sqlFetchTotal string
@@ -17,6 +18,9 @@ type (
 )
 
 // NewTotalRowsFetcher - создаёт объект TotalRowsFetcher.
+// Параметры:
+//   - client - менеджер подключений к БД;
+//   - tableName - имя таблицы для подсчёта записей.
 func NewTotalRowsFetcher[CountRows constraints.Integer](client mrstorage.DBConnManager, tableName string) TotalRowsFetcher[CountRows] {
 	return TotalRowsFetcher[CountRows]{
 		client:        client,
@@ -24,7 +28,7 @@ func NewTotalRowsFetcher[CountRows constraints.Integer](client mrstorage.DBConnM
 	}
 }
 
-// Fetch - возвращает кол-ва записей в таблице по указанному условию.
+// Fetch - возвращает количество записей в таблице по указанному условию WHERE.
 func (re TotalRowsFetcher[CountRows]) Fetch(ctx context.Context, where mrstorage.SQLPart) (CountRows, error) {
 	whereStr, whereArgs := where.WithPrefix(" WHERE ").ToSQL()
 

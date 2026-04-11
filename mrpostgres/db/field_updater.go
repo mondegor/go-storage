@@ -9,7 +9,8 @@ import (
 )
 
 type (
-	// FieldUpdater - формирователь запроса для получения/обновления значения заданного поля таблицы.
+	// FieldUpdater - формирователь запроса для получения и обновления значения заданного поля таблицы.
+	// Включает возможность чтения текущего значения перед обновлением.
 	FieldUpdater[RowID any, FieldValue any] struct {
 		fetcher        FieldFetcher[RowID, FieldValue]
 		sqlUpdateValue string
@@ -17,6 +18,12 @@ type (
 )
 
 // NewFieldUpdater - создаёт объект FieldUpdater.
+// Параметры:
+//   - client - менеджер подключений к БД;
+//   - tableName - имя таблицы для запроса;
+//   - fieldKeyName - имя ключевого поля для фильтрации;
+//   - fieldName - имя поля для чтения/обновления;
+//   - fieldDeletedName - имя поля мягкого удаления (может быть пустым).
 func NewFieldUpdater[RowID, FieldValue any](
 	client mrstorage.DBConnManager,
 	tableName, fieldKeyName, fieldName string,
@@ -29,12 +36,12 @@ func NewFieldUpdater[RowID, FieldValue any](
 }
 
 // Fetch - возвращает значение поля для указанной записи в таблице.
-// result: nil - exists, errors.ErrEventStorageNoRecordFound - not exists, error - query error.
 func (re FieldUpdater[RowID, FieldValue]) Fetch(ctx context.Context, id RowID) (FieldValue, error) {
 	return re.fetcher.Fetch(ctx, id)
 }
 
 // Update - обновляет значение поля указанной записи в таблице.
+// Автоматически устанавливает updated_at = NOW().
 func (re FieldUpdater[RowID, FieldValue]) Update(ctx context.Context, id RowID, value FieldValue) error {
 	err := re.fetcher.client.Conn(ctx).Exec(
 		ctx,

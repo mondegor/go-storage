@@ -12,21 +12,23 @@ import (
 )
 
 const (
-	reconnectDelay = 5 * time.Second
+	defaultReadyTimeout   = 5 * time.Second
+	defaultReconnectDelay = 5 * time.Second
 )
 
 type (
-	// ReceiverChannel - comment struct.
+	// ReceiverChannel - канал для получения уведомлений от PostgreSQL.
+	// Содержит имя канала и сам канал для передачи сигналов.
 	ReceiverChannel struct {
-		Name    string
-		Channel <-chan struct{}
+		Name    string          // Name - имя канала подписки PostgreSQL
+		Channel <-chan struct{} // Channel - канал для получения уведомлений
 	}
 
-	// ReceiverChannels - comment array.
+	// ReceiverChannels - коллекция каналов для получения уведомлений от PostgreSQL.
 	ReceiverChannels []ReceiverChannel
 )
 
-// Find - comment method.
+// Find - находит канал по имени и возвращает его для получения уведомлений.
 func (rc *ReceiverChannels) Find(name string) (<-chan struct{}, error) {
 	for _, rch := range *rc {
 		if name == rch.Name {
@@ -37,7 +39,7 @@ func (rc *ReceiverChannels) Find(name string) (<-chan struct{}, error) {
 	return nil, fmt.Errorf("no such channel (name='%s')", name)
 }
 
-// MustFind - comment method.
+// MustFind - находит канал по имени и возвращает его для получения уведомлений.
 func (rc *ReceiverChannels) MustFind(name string) <-chan struct{} {
 	ch, err := rc.Find(name)
 	if err != nil {
@@ -48,21 +50,26 @@ func (rc *ReceiverChannels) MustFind(name string) <-chan struct{} {
 }
 
 type (
-	// ProcessWaitForNotification - объект для прослушивания и обработки событий присылаемых БД.
+	// ProcessWaitForNotification - процесс прослушивания и обработки событий (NOTIFY) от PostgreSQL.
+	// Переподключается к БД при разрыве соединения с настраиваемой задержкой.
 	ProcessWaitForNotification struct {
 		conn               *ConnAdapter
 		logger             mrlog.Logger
-		listenerChannelMap map[string]chan struct{}
-		reconnectDelay     time.Duration
+		listenerChannelMap map[string]chan struct{} // listenerChannelMap - маппинг имён каналов на каналы уведомлений
+		reconnectDelay     time.Duration            // reconnectDelay - задержка между попытками переподключения
 
 		wg   sync.WaitGroup
 		done chan struct{}
 
-		ReceiverChannels ReceiverChannels
+		ReceiverChannels ReceiverChannels // ReceiverChannels - публичная коллекция каналов для подписчиков
 	}
 )
 
-// NewProcessWaitForNotification - создаёт объект ProcessWaitForNotification.
+// NewProcessWaitForNotification - создаёт объект ProcessWaitForNotification для прослушивания NOTIFY от PostgreSQL.
+// Параметры:
+//   - conn - адаптер подключения к PostgreSQL;
+//   - logger - логгер для вывода сообщений;
+//   - channels - список имён каналов для подписки.
 func NewProcessWaitForNotification(
 	conn *ConnAdapter,
 	logger mrlog.Logger,
@@ -74,7 +81,7 @@ func NewProcessWaitForNotification(
 		conn:               conn,
 		logger:             logger,
 		listenerChannelMap: listenerChannelMap,
-		reconnectDelay:     reconnectDelay,
+		reconnectDelay:     defaultReconnectDelay,
 
 		wg:   sync.WaitGroup{},
 		done: make(chan struct{}),
@@ -83,17 +90,19 @@ func NewProcessWaitForNotification(
 	}
 }
 
-// Caption - comment struct.
+// Caption - возвращает название процесса в свободной форме.
 func (p *ProcessWaitForNotification) Caption() string {
 	return "ProcessWaitForNotification"
 }
 
-// ReadyTimeout - comment struct.
+// ReadyTimeout - возвращает таймаут готовности процесса для ожидания запуска.
 func (p *ProcessWaitForNotification) ReadyTimeout() time.Duration {
-	return 5 * time.Second
+	return defaultReadyTimeout
 }
 
-// Start - comment struct.
+// Start - запускает процесс прослушивания NOTIFY от PostgreSQL.
+// Блокирует выполнение до завершения контекста или возникновения ошибки.
+// Автоматически переподключается при разрыве соединения с задержкой defaultReconnectDelay.
 func (p *ProcessWaitForNotification) Start(ctx context.Context, ready func()) error {
 	p.wg.Add(1)
 	defer p.wg.Done()
@@ -142,7 +151,7 @@ func (p *ProcessWaitForNotification) Start(ctx context.Context, ready func()) er
 	}
 }
 
-// Shutdown - comment struct.
+// Shutdown - корректно завершает процесс прослушивания NOTIFY.
 func (p *ProcessWaitForNotification) Shutdown(ctx context.Context) error {
 	p.logger.Info(ctx, "Shutting down the WaitForNotification...")
 	close(p.done)

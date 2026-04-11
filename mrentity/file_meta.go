@@ -12,17 +12,19 @@ import (
 
 type (
 	// FileMeta - метаинформация о файле, позволяет сохранять в БД и читать из неё в виде json.
+	// Реализует интерфейсы sql.Scanner и driver.Valuer.
 	FileMeta struct {
-		Path         string     `json:"path,omitempty"`
-		ContentType  string     `json:"type,omitempty"`
-		OriginalName string     `json:"origin,omitempty"`
-		Size         int64      `json:"size,omitempty"`
-		CreatedAt    *time.Time `json:"created,omitempty"`
-		UpdatedAt    *time.Time `json:"updated,omitempty"`
+		Path         string     `json:"path,omitempty"`    // Path - путь к файлу в хранилище
+		ContentType  string     `json:"type,omitempty"`    // ContentType - MIME-тип файла (например: "image/png")
+		OriginalName string     `json:"origin,omitempty"`  // OriginalName - оригинальное имя файла при загрузке
+		Size         int64      `json:"size,omitempty"`    // Size - размер файла в байтах
+		CreatedAt    *time.Time `json:"created,omitempty"` // CreatedAt - время создания записи
+		UpdatedAt    *time.Time `json:"updated,omitempty"` // UpdatedAt - время последнего обновления записи
 	}
 )
 
 // Empty - сообщает, является ли объект пустым.
+// Проверяет только Path и OriginalName, так как эти поля являются обязательными идентификаторами файла.
 func (e FileMeta) Empty() bool {
 	return e.Path == "" &&
 		e.OriginalName == ""
@@ -63,8 +65,8 @@ func (e FileMeta) Value() (driver.Value, error) {
 	return json.Marshal(e)
 }
 
-// FileMetaToInfo - преобразование данных файла предназначенных
-// для хранилища в формат данных для передачи клиенту.
+// FileMetaToInfo - преобразование данных файла, предназначенных для хранения в БД,
+// в формат данных для передачи клиенту (mrmodel.FileInfo).
 func FileMetaToInfo(meta FileMeta) mrmodel.FileInfo {
 	return mrmodel.FileInfo{
 		ContentType: meta.ContentType,
@@ -77,7 +79,7 @@ func FileMetaToInfo(meta FileMeta) mrmodel.FileInfo {
 	}
 }
 
-// FileMetaToInfoPointer - аналог FileMetaToInfo, но принимает и возвращает указатель.
+// FileMetaToInfoPointer - аналог FileMetaToInfo, но работает с указателями.
 func FileMetaToInfoPointer(meta *FileMeta) *mrmodel.FileInfo {
 	if meta == nil {
 		return nil
