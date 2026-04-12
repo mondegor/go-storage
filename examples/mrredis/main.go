@@ -31,7 +31,9 @@ func main() {
 		mrlog.Fatal(logger, "redisAdapter.Connect()", "error", err)
 	}
 
-	defer redisAdapter.Close()
+	defer func() {
+		_ = redisAdapter.Close()
+	}()
 
 	redisCli, err := redisAdapter.Cli()
 	if err != nil {

@@ -29,7 +29,9 @@ func main() {
 		mrlog.Fatal(logger, "rabbitAdapter.Connect()", "error", err)
 	}
 
-	defer rabbitAdapter.Close()
+	defer func() {
+		_ = rabbitAdapter.Close()
+	}()
 
 	mrlog.Info(logger, "Create rabbitmq channel")
 
@@ -43,7 +45,9 @@ func main() {
 		mrlog.Fatal(logger, "rabbitCli.Channel()", "error", err)
 	}
 
-	defer rabbitChannel.Close()
+	defer func() {
+		_ = rabbitChannel.Close()
+	}()
 
 	_, err = rabbitChannel.QueueDeclare(
 		"my.test.queue", // name

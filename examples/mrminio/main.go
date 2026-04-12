@@ -25,19 +25,22 @@ func main() {
 	}
 
 	ctx := context.Background()
-	minioAdapter := mrminio.New(true, mime.NewTypeList([]mime.Type{}), logger)
+	minioAdapter := mrminio.New(true, mime.NewTypeList(nil), logger)
 
 	if err := minioAdapter.Connect(ctx, opts); err != nil {
 		mrlog.Fatal(logger, "minioAdapter.Connect()", "error", err)
 	}
 
-	defer minioAdapter.Close()
+	defer func() {
+		_ = minioAdapter.Close()
+	}()
 
 	if err := minioAdapter.Ping(ctx); err != nil {
 		mrlog.Fatal(logger, "minioAdapter.Ping()", "error", err)
 	}
 
 	mrlog.Info(logger, "Create test bucket")
+
 	bucketName := "test-bucket"
 
 	if created, err := minioAdapter.InitBucket(ctx, bucketName); err != nil {

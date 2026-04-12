@@ -167,7 +167,10 @@ func (p *ProcessWaitForNotification) listen(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("connect: %w", err)
 	}
-	defer conn.Close(ctx)
+
+	defer func() {
+		_ = conn.Close(ctx)
+	}()
 
 	for name := range p.listenerChannelMap {
 		if _, err := conn.Exec(ctx, "LISTEN "+pgx.Identifier{name}.Sanitize()); err != nil {

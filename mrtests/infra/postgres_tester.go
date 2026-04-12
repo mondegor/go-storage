@@ -104,14 +104,16 @@ func (t *PostgresTester) ApplyMigrations(dirPath string) {
 	require.NoError(t.ownerT, err)
 
 	db := stdlib.OpenDBFromPool(pgxPool)
-	defer db.Close()
+
+	defer func() { _ = db.Close() }()
 
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	require.NoError(t.ownerT, err)
 
 	dbMigrate, err := migrate.NewWithDatabaseInstance("file://"+dirPath, postgresDB, driver)
 	require.NoError(t.ownerT, err)
-	defer dbMigrate.Close()
+
+	defer func() { _, _ = dbMigrate.Close() }()
 
 	err = dbMigrate.Up()
 	require.NoError(t.ownerT, err)
@@ -126,7 +128,8 @@ func (t *PostgresTester) ApplyFixtures(dirPath string) {
 	require.NoError(t.ownerT, err)
 
 	db := stdlib.OpenDBFromPool(pgxPool)
-	defer db.Close()
+
+	defer func() { _ = db.Close() }()
 
 	fixtures, err := testfixtures.New(
 		testfixtures.Database(db),

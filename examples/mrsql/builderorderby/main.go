@@ -18,6 +18,7 @@ func main() {
 	logger, _ := slog.NewLoggerAdapter(slog.WithWriter(os.Stdout))
 
 	mrlog.Info(logger, "SAMPLE1:")
+
 	orderByBuilder := part.NewSQLOrderByBuilder(
 		mrtype.SortParams{
 			Column:    "id",
@@ -38,6 +39,7 @@ func main() {
 	mrlog.Info(logger, "generated sql", "value", value)
 
 	mrlog.Info(logger, "SAMPLE2:")
+
 	orderByBuilder = part.NewSQLOrderByBuilder(
 		mrtype.SortParams{
 			Column:    "id",
@@ -51,6 +53,7 @@ func main() {
 	mrlog.Info(logger, "generated sql", "value", value)
 
 	mrlog.Info(logger, "SAMPLE3:")
+
 	type OrderedStruct struct {
 		ID        string    `sort:"id"`
 		Caption   string    `sort:"caption"`

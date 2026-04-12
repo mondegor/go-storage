@@ -123,7 +123,9 @@ func (fp *FileProvider) Upload(ctx context.Context, file mrmodel.File) error {
 		return fp.wrapError(err)
 	}
 
-	defer dst.Close()
+	defer func() {
+		_ = dst.Close()
+	}()
 
 	if _, err = io.Copy(dst, file.Body); err != nil {
 		return fp.wrapError(err)
@@ -182,7 +184,7 @@ func (fp *FileProvider) openFile(_ context.Context, filePath string) (*os.File, 
 		return nil, err
 	}
 
-	return os.Open(fp.rootDir + filePath)
+	return os.Open(fp.rootDir + filePath) //nolint:gosec
 }
 
 func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) (mrmodel.FileInfo, error) {

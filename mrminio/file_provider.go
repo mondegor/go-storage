@@ -70,7 +70,7 @@ func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrmodel.
 
 	info, err := object.Stat()
 	if err != nil {
-		object.Close()
+		_ = object.Close()
 
 		return mrmodel.File{}, fp.wrapError(err)
 	}
@@ -98,7 +98,7 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 	}
 
 	if _, err = object.Stat(); err != nil {
-		object.Close()
+		_ = object.Close()
 
 		return nil, fp.wrapError(err)
 	}

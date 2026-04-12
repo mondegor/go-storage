@@ -18,7 +18,7 @@ func main() {
 
 	condBuilder := part.NewSQLConditionBuilder()
 
-	partSql := condBuilder.BuildFunc(
+	partSQL := condBuilder.BuildFunc(
 		func(c mrstorage.SQLConditionHelper) mrstorage.SQLPartFunc {
 			return c.JoinOr(
 				c.JoinAnd(
@@ -55,7 +55,7 @@ func main() {
 		},
 	)
 
-	cc, vv := partSql.WithStartArg(4).ToSQL()
+	cc, vv := partSQL.WithStartArg(4).ToSQL()
 
 	mrlog.Info(logger, "generated sql", "value", cc)
 	mrlog.Info(logger, "generated args", "value", vv)

@@ -27,7 +27,7 @@ func (b *SQLSet) JoinComma(fields ...mrstorage.SQLPartFunc) mrstorage.SQLPartFun
 	}
 
 	return func(_ int) (string, []any) {
-		var prepared []string
+		prepared := make([]string, 0, len(fields))
 
 		for i := range fields {
 			item, _ := fields[i](0)
