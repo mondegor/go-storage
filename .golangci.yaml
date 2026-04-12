@@ -277,6 +277,7 @@ linters:
           arguments:
             - "json,inline"
             - "bson,outline,gnu"
+            - "!validate"
         - name: superfluous-else
           severity: warning
           disabled: false
@@ -332,6 +333,9 @@ linters:
         - name: waitgroup-by-value
           severity: warning
           disabled: false
+
+    staticcheck:
+      checks: [ "all", "-ST1000", "-ST1003", "-QF1008" ]
 
 issues:
   include:
