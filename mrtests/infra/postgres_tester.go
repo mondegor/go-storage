@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	postgresDockerImage   = "p/postgres:15.7"
+	postgresDockerImage   = "p/postgres:18.3"
 	postgresDB            = "db_pg_test"
 	postgresUser          = "user_pg"
 	postgresPassword      = "123456_test"
