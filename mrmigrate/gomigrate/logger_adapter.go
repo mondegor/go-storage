@@ -2,6 +2,7 @@ package gomigrate
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/mondegor/go-sysmess/mrlog"
@@ -24,7 +25,7 @@ func NewLoggerAdapter(logger mrlog.Logger) *LoggerAdapter {
 // Printf - реализует метод интерфейса migrate.Logger для вывода сообщений миграции.
 // Использует уровень логирования Info для всех сообщений.
 func (l *LoggerAdapter) Printf(format string, v ...any) {
-	l.logger.Info(context.Background(), strings.TrimSpace(format), v...)
+	l.logger.Info(context.Background(), fmt.Sprintf(strings.TrimSpace(format), v...))
 }
 
 // Verbose - реализует метод интерфейса migrate.Logger для проверки уровня детализации логов.
