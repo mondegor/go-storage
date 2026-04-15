@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	minioDockerImage = "p/minio:2024-07-13"
+	minioDockerImage = "p/minio:2024-12-18" // TODO: вынести в настройки
 	minioUser        = "admin_test"
 	minioPassword    = "12345678_test"
 )

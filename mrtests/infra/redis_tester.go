@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	redisDockerImage = "p/redis:7.2.5"
+	redisDockerImage = "p/redis:7.4.8" // TODO: вынести в настройки
 	redisPassword    = "123456"
 )
 
