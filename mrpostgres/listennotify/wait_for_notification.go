@@ -1,4 +1,4 @@
-package mrpostgres
+package listennotify
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/mondegor/go-storage/mrpostgres"
 	"github.com/mondegor/go-sysmess/mrlog"
 )
 
@@ -17,43 +18,10 @@ const (
 )
 
 type (
-	// ReceiverChannel - канал для получения уведомлений от PostgreSQL.
-	// Содержит имя канала и сам канал для передачи сигналов.
-	ReceiverChannel struct {
-		Name    string          // Name - имя канала подписки PostgreSQL
-		Channel <-chan struct{} // Channel - канал для получения уведомлений
-	}
-
-	// ReceiverChannels - коллекция каналов для получения уведомлений от PostgreSQL.
-	ReceiverChannels []ReceiverChannel
-)
-
-// Find - находит канал по имени и возвращает его для получения уведомлений.
-func (rc *ReceiverChannels) Find(name string) (<-chan struct{}, error) {
-	for _, rch := range *rc {
-		if name == rch.Name {
-			return rch.Channel, nil
-		}
-	}
-
-	return nil, fmt.Errorf("no such channel (name='%s')", name)
-}
-
-// MustFind - находит канал по имени и возвращает его для получения уведомлений.
-func (rc *ReceiverChannels) MustFind(name string) <-chan struct{} {
-	ch, err := rc.Find(name)
-	if err != nil {
-		panic(err)
-	}
-
-	return ch
-}
-
-type (
 	// ProcessWaitForNotification - процесс прослушивания и обработки событий (NOTIFY) от PostgreSQL.
 	// Переподключается к БД при разрыве соединения с настраиваемой задержкой.
 	ProcessWaitForNotification struct {
-		conn               *ConnAdapter
+		conn               *mrpostgres.ConnAdapter
 		logger             mrlog.Logger
 		listenerChannelMap map[string]chan struct{} // listenerChannelMap - маппинг имён каналов на каналы уведомлений
 		reconnectDelay     time.Duration            // reconnectDelay - задержка между попытками переподключения
@@ -61,7 +29,7 @@ type (
 		wg   sync.WaitGroup
 		done chan struct{}
 
-		ReceiverChannels ReceiverChannels // ReceiverChannels - публичная коллекция каналов для подписчиков
+		receiverChannels receiveChannels // receiverChannels - коллекция каналов для подписчиков
 	}
 )
 
@@ -71,11 +39,11 @@ type (
 //   - logger - логгер для вывода сообщений;
 //   - channels - список имён каналов для подписки.
 func NewProcessWaitForNotification(
-	conn *ConnAdapter,
+	conn *mrpostgres.ConnAdapter,
 	logger mrlog.Logger,
 	channels []string,
 ) *ProcessWaitForNotification {
-	listenerChannelMap, receiverChannels := createListenerChannels(channels)
+	listenerChannelMap, receiverChannelList := createListenerChannels(logger, channels)
 
 	return &ProcessWaitForNotification{
 		conn:               conn,
@@ -86,7 +54,7 @@ func NewProcessWaitForNotification(
 		wg:   sync.WaitGroup{},
 		done: make(chan struct{}),
 
-		ReceiverChannels: receiverChannels,
+		receiverChannels: receiverChannelList,
 	}
 }
 
@@ -151,6 +119,25 @@ func (p *ProcessWaitForNotification) Start(ctx context.Context, ready func()) er
 	}
 }
 
+// Find - находит канал по имени и возвращает его для получения уведомлений.
+func (p *ProcessWaitForNotification) Find(name string) (<-chan struct{}, error) {
+	return p.receiverChannels.Find(name)
+}
+
+// MustFind - находит канал по имени и возвращает его для получения уведомлений.
+// Если имя канала не зарегистрировано, то регистрируется ошибка и возвращается
+// фиктивный канал, который будет заблокирован до завершения процесса.
+func (p *ProcessWaitForNotification) MustFind(name string) <-chan struct{} {
+	ch, err := p.receiverChannels.Find(name)
+	if err != nil {
+		mrlog.Error(p.logger, "ProcessWaitForNotification.MustFind", "error", err)
+
+		return p.done
+	}
+
+	return ch
+}
+
 // Shutdown - корректно завершает процесс прослушивания NOTIFY.
 func (p *ProcessWaitForNotification) Shutdown(ctx context.Context) error {
 	p.logger.Info(ctx, "Shutting down the WaitForNotification...")
@@ -211,13 +198,14 @@ func (p *ProcessWaitForNotification) listen(ctx context.Context) error {
 	}
 }
 
-func createListenerChannels(channels []string) (map[string]chan struct{}, []ReceiverChannel) {
+func createListenerChannels(logger mrlog.Logger, channels []string) (map[string]chan struct{}, []receiveChannel) {
 	listenerChannels := make(map[string]chan struct{}, len(channels))
-	receiveChannels := make([]ReceiverChannel, 0, len(channels))
+	receiveChannels := make([]receiveChannel, 0, len(channels))
 
 	for _, name := range channels {
 		if _, ok := listenerChannels[name]; ok {
-			// TODO: можно логировать
+			mrlog.Warn(logger, "Duplicate listen channel", "channel", name)
+
 			continue
 		}
 
@@ -226,7 +214,7 @@ func createListenerChannels(channels []string) (map[string]chan struct{}, []Rece
 		listenerChannels[name] = channel
 		receiveChannels = append(
 			receiveChannels,
-			ReceiverChannel{
+			receiveChannel{
 				Name:    name,
 				Channel: channel,
 			},
