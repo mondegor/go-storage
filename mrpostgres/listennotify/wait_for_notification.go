@@ -8,13 +8,15 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/mondegor/go-storage/mrpostgres"
 	"github.com/mondegor/go-sysmess/mrlog"
+
+	"github.com/mondegor/go-storage/mrpostgres"
 )
 
 const (
-	defaultReadyTimeout   = 5 * time.Second
-	defaultReconnectDelay = 5 * time.Second
+	defaultReadyTimeout    = 5 * time.Second
+	defaultReconnectDelay  = 5 * time.Second
+	defaultCheckConnPeriod = time.Minute
 )
 
 type (
@@ -25,6 +27,7 @@ type (
 		logger             mrlog.Logger
 		listenerChannelMap map[string]chan struct{} // listenerChannelMap - маппинг имён каналов на каналы уведомлений
 		reconnectDelay     time.Duration            // reconnectDelay - задержка между попытками переподключения
+		checkConnPeriod    time.Duration            // checkConnPeriod - период, через которое будет проверяться активность соединения
 
 		wg   sync.WaitGroup
 		done chan struct{}
@@ -42,20 +45,52 @@ func NewProcessWaitForNotification(
 	conn *mrpostgres.ConnAdapter,
 	logger mrlog.Logger,
 	channels []string,
+	checkConnPeriod time.Duration,
 ) *ProcessWaitForNotification {
 	listenerChannelMap, receiverChannelList := createListenerChannels(logger, channels)
+
+	if checkConnPeriod < 1 {
+		checkConnPeriod = defaultCheckConnPeriod
+	}
 
 	return &ProcessWaitForNotification{
 		conn:               conn,
 		logger:             logger,
 		listenerChannelMap: listenerChannelMap,
 		reconnectDelay:     defaultReconnectDelay,
+		checkConnPeriod:    checkConnPeriod,
 
 		wg:   sync.WaitGroup{},
 		done: make(chan struct{}),
 
 		receiverChannels: receiverChannelList,
 	}
+}
+
+func createListenerChannels(logger mrlog.Logger, channels []string) (map[string]chan struct{}, []receiveChannel) {
+	listenerChannels := make(map[string]chan struct{}, len(channels))
+	receiveChannelList := make([]receiveChannel, 0, len(channels))
+
+	for _, name := range channels {
+		if _, ok := listenerChannels[name]; ok {
+			mrlog.Warn(logger, "Duplicate listen channel", "channel", name)
+
+			continue
+		}
+
+		channel := make(chan struct{})
+
+		listenerChannels[name] = channel
+		receiveChannelList = append(
+			receiveChannelList,
+			receiveChannel{
+				Name:    name,
+				Channel: channel,
+			},
+		)
+	}
+
+	return listenerChannels, receiveChannelList
 }
 
 // Caption - возвращает название процесса в свободной форме.
@@ -94,6 +129,8 @@ func (p *ProcessWaitForNotification) Start(ctx context.Context, ready func()) er
 
 	for {
 		if err := p.listen(ctxListen); err != nil {
+			// если ошибка вызвана текущим контекстом, то
+			// это просто завершается работа процесса
 			if errors.Is(err, ctxListen.Err()) {
 				return nil
 			}
@@ -117,6 +154,130 @@ func (p *ProcessWaitForNotification) Start(ctx context.Context, ready func()) er
 		case <-time.After(p.reconnectDelay):
 		}
 	}
+}
+
+func (p *ProcessWaitForNotification) listen(ctx context.Context) error {
+	conn, err := p.conn.HijackConn(ctx)
+	if err != nil {
+		return fmt.Errorf("listen connect: %w", err)
+	}
+
+	defer func() {
+		_ = conn.Close(ctx)
+	}()
+
+	for name := range p.listenerChannelMap {
+		if _, err := conn.Exec(ctx, "LISTEN "+pgx.Identifier{name}.Sanitize()); err != nil {
+			return fmt.Errorf("unable to start listening channel '%s': %w", name, err)
+		}
+	}
+
+	for {
+		// если контекст завершен, то это значит, что сервис завершает работу (Shutdown)
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		p.logger.Debug(ctx, "Waiting for the notification or event timeout...")
+
+		if err = p.waitSomePeriod(ctx, conn); err != nil {
+			// если это отмена внутреннего контекста, то работа продолжится,
+			// иначе процесс будет завершен при проверке `ctx.Err()` выше
+			if errors.Is(err, context.Canceled) {
+				continue
+			}
+
+			return fmt.Errorf("listen process error: %w", err)
+		}
+	}
+}
+
+func (p *ProcessWaitForNotification) waitSomePeriod(ctx context.Context, conn *pgx.Conn) error {
+	errChan := make(chan error)
+
+	// создаётся контекст, для возможности прерывания WaitForNotification по таймауту
+	waitCtx, waitCancel := context.WithCancel(ctx)
+	defer waitCancel()
+
+	go func() {
+		for {
+			note, err := conn.WaitForNotification(waitCtx)
+			if err != nil {
+				errChan <- fmt.Errorf("conn.WaitForNotification: %w", err)
+
+				return
+			}
+
+			if ch, ok := p.listenerChannelMap[note.Channel]; ok {
+				// если канал занят, значит такое же событие ещё не обработано получателем,
+				// поэтому нет смысла отправлять повторное событие, поэтому оно пропускается
+				select {
+				case ch <- struct{}{}:
+					p.logger.Debug(ctx, fmt.Sprintf("Received notification: PID=%d, Channel='%s', Payload='%s'", note.PID, note.Channel, note.Payload))
+				default:
+					p.logger.Info(ctx, fmt.Sprintf("Repeated notification: PID=%d, Channel='%s', Payload='%s' [skipped]", note.PID, note.Channel, note.Payload))
+				}
+
+				continue
+			}
+
+			p.logger.Warn(
+				ctx,
+				"Unknown channel",
+				"pid", note.PID,
+				"channel", note.Channel,
+				"payload", note.Payload,
+			)
+		}
+	}()
+
+	// функция вызывается при срабатывании таймаута для очередной проверки соединения
+	// с целью прервать WaitForNotification и перехватить от него ошибку отмены контекста
+	interruptWaitForNotification := func() error {
+		waitCancel()
+
+		// проверяется, действительно ошибка связана с необходимостью следующей
+		// проверки соединения, если нет, то значит, что-то не так с самим соединением
+		if err := <-errChan; err != nil {
+			if !errors.Is(err, context.Canceled) {
+				return fmt.Errorf("interruptWaitForNotification: %w", err)
+			}
+		}
+
+		return nil
+	}
+
+	timeForCheckCtx, timeForCheckCancel := context.WithTimeout(ctx, p.checkConnPeriod)
+	defer timeForCheckCancel()
+
+	// Ожидается одно из следующих событий:
+	//   - срабатывание таймаута для проверки активности соединения;
+	//   - ошибка соединения для WaitForNotification;
+	//   - завершение основного процесса сервиса (Shutdown);
+	select {
+	case <-timeForCheckCtx.Done():
+		if err := interruptWaitForNotification(); err != nil {
+			return err
+		}
+
+		if err := conn.Ping(ctx); err != nil {
+			return fmt.Errorf("waitSomePeriod.conn.Ping: %w", err)
+		}
+
+		p.logger.Debug(ctx, "conn.Ping is successful")
+	case err := <-errChan:
+		if err != nil {
+			if !errors.Is(err, context.Canceled) {
+				return fmt.Errorf("waitSomePeriod: %w", err)
+			}
+		}
+
+		p.logger.Debug(ctx, "Received canceled event from errChan")
+	case <-ctx.Done():
+		return <-errChan // дожидается остановки WaitForNotification
+	}
+
+	return nil
 }
 
 // Find - находит канал по имени и возвращает его для получения уведомлений.
@@ -147,79 +308,4 @@ func (p *ProcessWaitForNotification) Shutdown(ctx context.Context) error {
 	p.logger.Info(ctx, "The WaitForNotification has been shut down")
 
 	return nil
-}
-
-func (p *ProcessWaitForNotification) listen(ctx context.Context) error {
-	conn, err := p.conn.HijackConn(ctx)
-	if err != nil {
-		return fmt.Errorf("connect: %w", err)
-	}
-
-	defer func() {
-		_ = conn.Close(ctx)
-	}()
-
-	for name := range p.listenerChannelMap {
-		if _, err := conn.Exec(ctx, "LISTEN "+pgx.Identifier{name}.Sanitize()); err != nil {
-			return fmt.Errorf("unable to start listening channel '%s': %w", name, err)
-		}
-	}
-
-	for {
-		note, err := conn.WaitForNotification(ctx)
-		if err != nil {
-			return fmt.Errorf("waiting for notification: %w", err)
-		}
-
-		if ch, ok := p.listenerChannelMap[note.Channel]; ok {
-			// если канал занят, значит такое же событие ещё не обработано,
-			// поэтому нет смысла отправлять повторное событие
-			select {
-			case ch <- struct{}{}:
-				p.logger.Debug(ctx, fmt.Sprintf("Received notification: PID=%d, Channel='%s', Payload='%s'", note.PID, note.Channel, note.Payload))
-			default:
-				p.logger.Info(ctx, fmt.Sprintf("Double notification: PID=%d, Channel='%s', Payload='%s' [skipped]", note.PID, note.Channel, note.Payload))
-			}
-		} else {
-			p.logger.Warn(
-				ctx,
-				"Unknown channel",
-				"pid", note.PID,
-				"channel", note.Channel,
-				"payload", note.Payload,
-			)
-		}
-
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-		}
-	}
-}
-
-func createListenerChannels(logger mrlog.Logger, channels []string) (map[string]chan struct{}, []receiveChannel) {
-	listenerChannels := make(map[string]chan struct{}, len(channels))
-	receiveChannels := make([]receiveChannel, 0, len(channels))
-
-	for _, name := range channels {
-		if _, ok := listenerChannels[name]; ok {
-			mrlog.Warn(logger, "Duplicate listen channel", "channel", name)
-
-			continue
-		}
-
-		channel := make(chan struct{})
-
-		listenerChannels[name] = channel
-		receiveChannels = append(
-			receiveChannels,
-			receiveChannel{
-				Name:    name,
-				Channel: channel,
-			},
-		)
-	}
-
-	return listenerChannels, receiveChannels
 }
