@@ -8,12 +8,14 @@ import (
 	"github.com/mondegor/go-sysmess/mrtrace"
 )
 
-// QueryTracer - трассировщик SQL-запросов для библиотеки pgx.
-// Отслеживает начало выполнения запросов Query, QueryRow и Exec.
-type QueryTracer struct {
-	tracer mrtrace.Tracer
-	source string
-}
+type (
+	// QueryTracer - трассировщик SQL-запросов для библиотеки pgx.
+	// Отслеживает начало выполнения запросов Query, QueryRow и Exec.
+	QueryTracer struct {
+		tracer mrtrace.Tracer
+		source string
+	}
+)
 
 // NewQueryTracer - создаёт объект QueryTracer для трассировки SQL-запросов.
 // Параметры:
