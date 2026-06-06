@@ -103,4 +103,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/mondegor/go-sysmess => ../go-sysmess
+// replace github.com/mondegor/go-sysmess => ../go-sysmess
