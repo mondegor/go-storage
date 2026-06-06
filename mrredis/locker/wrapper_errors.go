@@ -1,16 +1,15 @@
-package redislocker
+package locker
 
 import (
 	"context"
 
 	"github.com/bsm/redislock"
 	"github.com/mondegor/go-sysmess/errors"
-
-	"github.com/mondegor/go-storage/mrlock"
+	"github.com/mondegor/go-sysmess/mrlock"
 )
 
 // wrapError - обёртывает ошибки Redis Locker в стандартные ошибки приложения.
-func (l *LockerAdapter) wrapError(err error, key string) error {
+func (l *Adapter) wrapError(err error, key string) error {
 	if errors.Is(err, redislock.ErrNotObtained) {
 		return mrlock.ErrSystemStorageLockKeyNotObtained.New(
 			"source", lockerName,
@@ -33,7 +32,7 @@ func (l *LockerAdapter) wrapError(err error, key string) error {
 }
 
 // traceCmd - логирует выполняемую операцию блокировки для трассировки.
-func (l *LockerAdapter) traceCmd(ctx context.Context, command, key string) {
+func (l *Adapter) traceCmd(ctx context.Context, command, key string) {
 	l.tracer.Trace(
 		ctx,
 		"source", lockerName,

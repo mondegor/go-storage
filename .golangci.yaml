@@ -364,6 +364,7 @@ formatters:
 
   settings:
     gofumpt:
+      module-path: github.com/mondegor/go-storage
       extra-rules: true
 
     goimports:

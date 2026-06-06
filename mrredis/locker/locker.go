@@ -1,15 +1,14 @@
-package redislocker
+package locker
 
 import (
 	"context"
 	"time"
 
 	"github.com/bsm/redislock"
+	"github.com/mondegor/go-sysmess/mrlock"
 	"github.com/mondegor/go-sysmess/mrlog"
 	"github.com/mondegor/go-sysmess/mrtrace"
 	"github.com/redis/go-redis/v9"
-
-	"github.com/mondegor/go-storage/mrlock"
 )
 
 // https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html
@@ -23,21 +22,21 @@ const (
 )
 
 type (
-	// LockerAdapter - адаптер для работы с сетевыми блокировками на основе Redis.
-	LockerAdapter struct {
+	// Adapter - адаптер для работы с сетевыми блокировками на основе Redis.
+	Adapter struct {
 		lock   *redislock.Client
 		logger mrlog.Logger
 		tracer mrtrace.Tracer
 	}
 )
 
-// NewLockerAdapter - создаёт объект LockerAdapter.
-func NewLockerAdapter(
+// NewAdapter - создаёт объект Adapter.
+func NewAdapter(
 	conn redis.UniversalClient,
 	logger mrlog.Logger,
 	tracer mrtrace.Tracer,
-) *LockerAdapter {
-	return &LockerAdapter{
+) *Adapter {
+	return &Adapter{
 		lock:   redislock.New(conn),
 		logger: logger,
 		tracer: tracer,
@@ -46,13 +45,13 @@ func NewLockerAdapter(
 
 // Lock - захватывает блокировку указанного ключа с временем жизни по умолчанию.
 // Возвращает функцию для освобождения блокировки.
-func (l *LockerAdapter) Lock(ctx context.Context, key string) (func(), error) {
+func (l *Adapter) Lock(ctx context.Context, key string) (func(), error) {
 	return l.LockWithExpiry(ctx, key, 0)
 }
 
 // LockWithExpiry - захватывает блокировку указанного ключа с заданным временем жизни.
 // Возвращает функцию для освобождения блокировки.
-func (l *LockerAdapter) LockWithExpiry(ctx context.Context, key string, expiry time.Duration) (func(), error) {
+func (l *Adapter) LockWithExpiry(ctx context.Context, key string, expiry time.Duration) (func(), error) {
 	if expiry == 0 {
 		expiry = mrlock.DefaultExpiry
 	}
