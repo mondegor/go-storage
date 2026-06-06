@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/mondegor/go-sysmess/errors"
-	"github.com/mondegor/go-sysmess/mrmodel"
+	modelmedia "github.com/mondegor/go-sysmess/mrmodel/media"
 	"github.com/mondegor/go-sysmess/util/copyptr"
 )
 
@@ -69,8 +69,8 @@ func (e ImageMeta) Value() (driver.Value, error) {
 
 // ImageMetaToInfo - преобразование данных изображения, предназначенных для хранения в БД,
 // в формат данных для передачи клиенту (mrmodel.ImageInfo).
-func ImageMetaToInfo(meta ImageMeta) mrmodel.ImageInfo {
-	return mrmodel.ImageInfo{
+func ImageMetaToInfo(meta ImageMeta) modelmedia.ImageInfo {
+	return modelmedia.ImageInfo{
 		ContentType: meta.ContentType,
 		// OriginalName: meta.OriginalName,
 		// Name:         path.Base(meta.Path),
@@ -84,7 +84,7 @@ func ImageMetaToInfo(meta ImageMeta) mrmodel.ImageInfo {
 }
 
 // ImageMetaToInfoPointer - аналог ImageMetaToInfo, но работает с указателями.
-func ImageMetaToInfoPointer(meta *ImageMeta) *mrmodel.ImageInfo {
+func ImageMetaToInfoPointer(meta *ImageMeta) *modelmedia.ImageInfo {
 	if meta == nil {
 		return nil
 	}

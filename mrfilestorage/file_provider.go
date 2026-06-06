@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/mondegor/go-sysmess/errors"
-	"github.com/mondegor/go-sysmess/mrmodel"
+	modelmedia "github.com/mondegor/go-sysmess/mrmodel/media"
 	"github.com/mondegor/go-sysmess/mrtrace"
 	"github.com/mondegor/go-sysmess/util/casttype"
 )
@@ -43,47 +43,47 @@ func NewFileProvider(fs *FileSystem, tracer mrtrace.Tracer, rootDir string) *Fil
 }
 
 // Info - возвращает метаинформацию о файле (размер, тип контента, даты).
-func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrmodel.FileInfo, error) {
+func (fp *FileProvider) Info(ctx context.Context, filePath string) (modelmedia.FileInfo, error) {
 	fp.traceCmd(ctx, "Info", filePath)
 
 	if err := fp.checkFilePath(filePath); err != nil {
-		return mrmodel.FileInfo{}, err
+		return modelmedia.FileInfo{}, err
 	}
 
 	fi, err := os.Stat(fp.rootDir + filePath)
 	if err != nil {
-		return mrmodel.FileInfo{}, fp.wrapError(err)
+		return modelmedia.FileInfo{}, fp.wrapError(err)
 	}
 
 	fileInfo, err := fp.getFileInfo(filePath, fi)
 	if err != nil {
-		return mrmodel.FileInfo{}, fp.wrapError(err)
+		return modelmedia.FileInfo{}, fp.wrapError(err)
 	}
 
 	return fileInfo, nil
 }
 
 // Download - открывает файл и возвращает его метаинформацию вместе с содержимым.
-// Возвращаемая структура mrmodel.File включает тело файла (Body), которое нужно закрыть после использования.
-func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrmodel.File, error) {
+// Возвращаемая структура modelmedia.File включает тело файла (Body), которое нужно закрыть после использования.
+func (fp *FileProvider) Download(ctx context.Context, filePath string) (modelmedia.File, error) {
 	fp.traceCmd(ctx, "Download", filePath)
 
 	fd, err := fp.openFile(ctx, filePath)
 	if err != nil {
-		return mrmodel.File{}, fp.wrapError(err)
+		return modelmedia.File{}, fp.wrapError(err)
 	}
 
 	fi, err := fd.Stat()
 	if err != nil {
-		return mrmodel.File{}, fp.wrapError(err)
+		return modelmedia.File{}, fp.wrapError(err)
 	}
 
 	fileInfo, err := fp.getFileInfo(filePath, fi)
 	if err != nil {
-		return mrmodel.File{}, fp.wrapError(err)
+		return modelmedia.File{}, fp.wrapError(err)
 	}
 
-	return mrmodel.File{
+	return modelmedia.File{
 		FileInfo: fileInfo,
 		Body:     fd,
 	}, nil
@@ -105,7 +105,7 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 
 // Upload - сохраняет файл в хранилище.
 // Автоматически создаёт необходимые директории, если они не существуют.
-func (fp *FileProvider) Upload(ctx context.Context, file mrmodel.File) error {
+func (fp *FileProvider) Upload(ctx context.Context, file modelmedia.File) error {
 	fp.traceCmd(ctx, "Upload", file.Path)
 
 	if err := fp.checkFilePath(file.Path); err != nil {
@@ -187,20 +187,20 @@ func (fp *FileProvider) openFile(_ context.Context, filePath string) (*os.File, 
 	return os.Open(fp.rootDir + filePath) //nolint:gosec
 }
 
-func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) (mrmodel.FileInfo, error) {
+func (fp *FileProvider) getFileInfo(filePath string, fileInfo os.FileInfo) (modelmedia.FileInfo, error) {
 	contentType, err := fp.fs.MimeTypes().ContentTypeByExt(path.Ext(filePath))
 	if err != nil {
-		return mrmodel.FileInfo{}, err
+		return modelmedia.FileInfo{}, err
 	}
 
 	if fileInfo.Size() < 0 {
-		return mrmodel.FileInfo{}, errors.NewInternalError(
+		return modelmedia.FileInfo{}, errors.NewInternalError(
 			"file size is negative",
 			"file", filePath,
 		)
 	}
 
-	return mrmodel.FileInfo{
+	return modelmedia.FileInfo{
 		ContentType: contentType,
 		Name:        fileInfo.Name(),
 		Path:        filePath,

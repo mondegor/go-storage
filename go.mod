@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/minio/minio-go/v7 v7.2.0
-	github.com/mondegor/go-sysmess v0.15.4-0.20260531222435-e553863f6cf9
+	github.com/mondegor/go-sysmess v0.15.4-0.20260606071946-4910a082c316
 	github.com/prometheus/client_golang v1.23.2
 	github.com/rabbitmq/amqp091-go v1.11.0
 	github.com/redis/go-redis/v9 v9.20.0
@@ -103,4 +103,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-// replace github.com/mondegor/go-sysmess => ../go-sysmess
+replace github.com/mondegor/go-sysmess => ../go-sysmess

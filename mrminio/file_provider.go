@@ -8,7 +8,7 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/mondegor/go-sysmess/errors"
-	"github.com/mondegor/go-sysmess/mrmodel"
+	modelmedia "github.com/mondegor/go-sysmess/mrmodel/media"
 	"github.com/mondegor/go-sysmess/util/casttype"
 )
 
@@ -37,7 +37,7 @@ func NewFileProvider(conn *ConnAdapter, bucketName string) *FileProvider {
 }
 
 // Info - возвращает метаинформацию о файле (размер, тип контента, даты).
-func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrmodel.FileInfo, error) {
+func (fp *FileProvider) Info(ctx context.Context, filePath string) (modelmedia.FileInfo, error) {
 	fp.traceCmd(ctx, "Info", filePath)
 
 	info, err := fp.conn.StatObject(
@@ -47,12 +47,12 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrmodel.File
 		minio.StatObjectOptions{},
 	)
 	if err != nil {
-		return mrmodel.FileInfo{}, fp.wrapError(err)
+		return modelmedia.FileInfo{}, fp.wrapError(err)
 	}
 
 	fileInfo, err := fp.getFileInfo(&info)
 	if err != nil {
-		return mrmodel.FileInfo{}, fp.wrapError(err)
+		return modelmedia.FileInfo{}, fp.wrapError(err)
 	}
 
 	return fileInfo, nil
@@ -60,27 +60,27 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrmodel.File
 
 // Download - открывает файл и возвращает его метаинформацию вместе с содержимым.
 // Возвращаемая структура mrmodel.File включает тело файла (Body), которое нужно закрыть после использования.
-func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrmodel.File, error) {
+func (fp *FileProvider) Download(ctx context.Context, filePath string) (modelmedia.File, error) {
 	fp.traceCmd(ctx, "Download", filePath)
 
 	object, err := fp.openObject(ctx, filePath)
 	if err != nil {
-		return mrmodel.File{}, fp.wrapError(err)
+		return modelmedia.File{}, fp.wrapError(err)
 	}
 
 	info, err := object.Stat()
 	if err != nil {
 		_ = object.Close()
 
-		return mrmodel.File{}, fp.wrapError(err)
+		return modelmedia.File{}, fp.wrapError(err)
 	}
 
 	fileInfo, err := fp.getFileInfo(&info)
 	if err != nil {
-		return mrmodel.File{}, fp.wrapError(err)
+		return modelmedia.File{}, fp.wrapError(err)
 	}
 
-	return mrmodel.File{
+	return modelmedia.File{
 		FileInfo: fileInfo,
 		Body:     object,
 	}, nil
@@ -110,7 +110,7 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 // Если размер файла не указан (равен 0), автоматически вычисляет его при загрузке.
 // Определяет ContentType по расширению файла, если он не указан явно.
 // Устанавливает Content-Disposition для корректного скачивания с оригинальным именем.
-func (fp *FileProvider) Upload(ctx context.Context, file mrmodel.File) error {
+func (fp *FileProvider) Upload(ctx context.Context, file modelmedia.File) error {
 	fp.traceCmd(ctx, "Upload", file.Path)
 
 	fileSize := file.Size
@@ -171,20 +171,20 @@ func (fp *FileProvider) openObject(ctx context.Context, filePath string) (*minio
 
 // getFileInfo - извлекает метаинформацию из minio.ObjectInfo.
 // Определяет ContentType, парсит оригинальное имя файла из Content-Disposition.
-func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) (mrmodel.FileInfo, error) {
+func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) (modelmedia.FileInfo, error) {
 	contentType, err := fp.getContentType(info.ContentType, info.Key)
 	if err != nil {
-		return mrmodel.FileInfo{}, err
+		return modelmedia.FileInfo{}, err
 	}
 
 	if info.Size < 0 {
-		return mrmodel.FileInfo{}, errors.NewInternalError(
+		return modelmedia.FileInfo{}, errors.NewInternalError(
 			"file size is negative",
 			"file", info.Key,
 		)
 	}
 
-	return mrmodel.FileInfo{
+	return modelmedia.FileInfo{
 		ContentType:  contentType,
 		OriginalName: fp.parseOriginalName(info.Metadata.Get("Content-Disposition")),
 		Name:         path.Base(info.Key),

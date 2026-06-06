@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/mondegor/go-sysmess/errors"
-	"github.com/mondegor/go-sysmess/mrmodel"
+	modelmedia "github.com/mondegor/go-sysmess/mrmodel/media"
 	"github.com/mondegor/go-sysmess/util/copyptr"
 )
 
@@ -67,8 +67,8 @@ func (e FileMeta) Value() (driver.Value, error) {
 
 // FileMetaToInfo - преобразование данных файла, предназначенных для хранения в БД,
 // в формат данных для передачи клиенту (mrmodel.FileInfo).
-func FileMetaToInfo(meta FileMeta) mrmodel.FileInfo {
-	return mrmodel.FileInfo{
+func FileMetaToInfo(meta FileMeta) modelmedia.FileInfo {
+	return modelmedia.FileInfo{
 		ContentType: meta.ContentType,
 		// OriginalName: meta.OriginalName,
 		// Name:         path.Base(meta.Path),
@@ -80,7 +80,7 @@ func FileMetaToInfo(meta FileMeta) mrmodel.FileInfo {
 }
 
 // FileMetaToInfoPointer - аналог FileMetaToInfo, но работает с указателями.
-func FileMetaToInfoPointer(meta *FileMeta) *mrmodel.FileInfo {
+func FileMetaToInfoPointer(meta *FileMeta) *modelmedia.FileInfo {
 	if meta == nil {
 		return nil
 	}
