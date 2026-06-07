@@ -2,6 +2,7 @@ package locker
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/bsm/redislock"
 	"github.com/mondegor/go-sysmess/errors"
@@ -11,16 +12,16 @@ import (
 // wrapError - обёртывает ошибки Redis Locker в стандартные ошибки приложения.
 func (l *Adapter) wrapError(err error, key string) error {
 	if errors.Is(err, redislock.ErrNotObtained) {
-		return mrlock.ErrSystemStorageLockKeyNotObtained.New(
-			"source", lockerName,
-			"lock_key", key,
+		return fmt.Errorf(
+			"%w [source=%s, lock_key=%s]",
+			mrlock.ErrLockKeyNotObtained, lockerName, key,
 		)
 	}
 
 	if errors.Is(err, redislock.ErrLockNotHeld) {
-		return mrlock.ErrSystemStorageLockKeyNotHeld.New(
-			"source", lockerName,
-			"lock_key", key,
+		return fmt.Errorf(
+			"%w [source=%s, lock_key=%s]",
+			mrlock.ErrLockKeyNotHeld, lockerName, key,
 		)
 	}
 
