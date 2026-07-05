@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mondegor/go-sysmess/errors"
-	"github.com/mondegor/go-sysmess/mrtrace"
+	"github.com/mondegor/go-core/errors"
+	"github.com/mondegor/go-core/mrtrace"
 	"github.com/redis/go-redis/v9"
 )
 

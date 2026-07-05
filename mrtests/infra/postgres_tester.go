@@ -11,8 +11,8 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // WARNING: используется в migrate.NewWithDatabaseInstance
 	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/mondegor/go-sysmess/mrlog"
-	"github.com/mondegor/go-sysmess/mrpostgres"
+	"github.com/mondegor/go-core/mrlog"
+	"github.com/mondegor/go-core/mrpostgres"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrtests/helpers"

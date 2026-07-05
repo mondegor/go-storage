@@ -4,9 +4,9 @@ import (
 	"context"
 	"os"
 
-	"github.com/mondegor/go-sysmess/mrlog"
-	"github.com/mondegor/go-sysmess/mrlog/slog"
-	"github.com/mondegor/go-sysmess/util/mime"
+	"github.com/mondegor/go-core/mrlog"
+	"github.com/mondegor/go-core/mrlog/slog"
+	"github.com/mondegor/go-core/util/mime"
 
 	"github.com/mondegor/go-storage/mrminio"
 )

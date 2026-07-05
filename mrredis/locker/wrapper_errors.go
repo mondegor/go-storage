@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/bsm/redislock"
-	"github.com/mondegor/go-sysmess/errors"
-	"github.com/mondegor/go-sysmess/mrlock"
+	"github.com/mondegor/go-core/errors"
+	"github.com/mondegor/go-core/mrlock"
 )
 
 // wrapError - обёртывает ошибки Redis Locker в стандартные ошибки приложения.

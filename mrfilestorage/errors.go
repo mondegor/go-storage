@@ -1,7 +1,7 @@
 package mrfilestorage
 
 import (
-	"github.com/mondegor/go-sysmess/errors"
+	"github.com/mondegor/go-core/errors"
 )
 
 // ErrInternalInvalidPath - недопустимый путь к файлу.

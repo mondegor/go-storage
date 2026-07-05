@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mondegor/go-sysmess/errors"
+	"github.com/mondegor/go-core/errors"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
