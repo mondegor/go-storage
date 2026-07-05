@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mondegor/go-sysmess/mrlib/extfile"
-	"github.com/mondegor/go-sysmess/mrtrace/noptracer"
+	"github.com/mondegor/go-sysmess/mrtrace"
+	"github.com/mondegor/go-sysmess/util/mime"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrminio"
@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	minioDockerImage = "p/minio:2024-07-13"
+	minioDockerImage = "p/minio:2024-12-18" // TODO: вынести в настройки
 	minioUser        = "admin_test"
 	minioPassword    = "12345678_test"
 )
@@ -28,7 +28,7 @@ type (
 )
 
 // NewMinioTester - создаёт объект MinioTester.
-func NewMinioTester(t *testing.T, mimeTypes *extfile.MimeTypeList) *MinioTester {
+func NewMinioTester(t *testing.T, mimeTypes *mime.TypeList) *MinioTester {
 	t.Helper()
 
 	ctx := context.Background()
@@ -64,8 +64,8 @@ func (t *MinioTester) Destroy(ctx context.Context) {
 	require.NoError(t.ownerT, t.container.Terminate(ctx))
 }
 
-func newMinio(ctx context.Context, dsn string, mimeTypes *extfile.MimeTypeList) (*mrminio.ConnAdapter, error) {
-	conn := mrminio.New(false, mimeTypes, noptracer.NewTracer())
+func newMinio(ctx context.Context, dsn string, mimeTypes *mime.TypeList) (*mrminio.ConnAdapter, error) {
+	conn := mrminio.New(false, mimeTypes, mrtrace.NopTracer())
 	opts := mrminio.Options{
 		DSN:      dsn,
 		User:     minioUser,

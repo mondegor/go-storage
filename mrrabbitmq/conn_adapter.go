@@ -4,40 +4,43 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mondegor/go-sysmess/mrerr/mr"
+	"github.com/mondegor/go-sysmess/errors"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // go get github.com/rabbitmq/amqp091-go@v1.8.1
 
 const (
+	// connectionName - имя подключения для логирования и трассировки.
 	connectionName = "Rabbitmq"
 )
 
 type (
-	// ConnAdapter - адаптер для работы с Rabbitmq клиентом.
+	// ConnAdapter - адаптер для работы с RabbitMQ клиентом (AMQP 0.9.1).
+	// Предоставляет методы для подключения, получения нативного соединения и закрытия.
 	ConnAdapter struct {
 		conn *amqp.Connection
 	}
 
-	// Options - опции для создания соединения для ConnAdapter.
+	// Options - опции для создания соединения в ConnAdapter.
+	// Подключение формируется по схеме: amqp://User:Password@Host:Port/
 	Options struct {
-		Host     string
-		Port     string
-		User     string
-		Password string
+		Host     string // Host - адрес сервера RabbitMQ
+		Port     string // Port - порт сервера RabbitMQ (обычно 5672)
+		User     string // User - имя пользователя для аутентификации
+		Password string // Password - пароль для аутентификации
 	}
 )
 
-// New - создаёт объект ConnAdapter.
+// New - создаёт объект ConnAdapter без активного соединения.
 func New() *ConnAdapter {
 	return &ConnAdapter{}
 }
 
-// Connect - создаёт соединение с указанными опциями.
+// Connect - устанавливает соединение с сервером RabbitMQ по указанным опциям.
 func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	if c.conn != nil {
-		return mr.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
+		return errors.ErrInternalStorageConnectionIsAlreadyCreated.New("source", connectionName)
 	}
 
 	conn, err := amqp.Dial(
@@ -50,7 +53,7 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 		),
 	)
 	if err != nil {
-		return mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return errors.ErrSystemStorageConnectionFailed.Wrap(err, "source", connectionName)
 	}
 
 	c.conn = conn
@@ -58,23 +61,24 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	return nil
 }
 
-// Cli - возвращается нативный объект, с которым работает данный адаптер.
+// Cli - возвращает нативное соединение amqp.Connection для прямого доступа к API RabbitMQ.
+// Позволяет создавать каналы (Channel) для публикации и потребления сообщений.
 func (c *ConnAdapter) Cli() (*amqp.Connection, error) {
 	if c.conn == nil {
-		return nil, mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return nil, errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
 	}
 
 	return c.conn, nil
 }
 
-// Close - закрывает текущее соединение.
+// Close - закрывает соединение с RabbitMQ и очищает ссылку на соединение.
 func (c *ConnAdapter) Close() error {
 	if c.conn == nil {
-		return mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
 	}
 
 	if err := c.conn.Close(); err != nil {
-		return mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return errors.ErrSystemStorageFailedToClose.Wrap(err, "source", connectionName)
 	}
 
 	c.conn = nil

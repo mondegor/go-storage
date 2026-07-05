@@ -9,17 +9,17 @@ import (
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file" // используется в migrate.NewWithDatabaseInstance
+	_ "github.com/golang-migrate/migrate/v4/source/file" // WARNING: используется в migrate.NewWithDatabaseInstance
 	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/mondegor/go-sysmess/mrlog/slog/nop"
+	"github.com/mondegor/go-sysmess/mrlog"
+	"github.com/mondegor/go-sysmess/mrpostgres"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mondegor/go-storage/mrpostgres"
 	"github.com/mondegor/go-storage/mrtests/helpers"
 )
 
 const (
-	postgresDockerImage   = "p/postgres:15.7"
+	postgresDockerImage   = "p/postgres:18.3" // TODO: вынести в настройки
 	postgresDB            = "db_pg_test"
 	postgresUser          = "user_pg"
 	postgresPassword      = "123456_test"
@@ -64,7 +64,7 @@ func NewPostgresTester(t *testing.T, dbSchemas, excludedTables []string) *Postgr
 		container:         container,
 		truncateCondition: prepareTruncateCondition(dbSchemas, excludedTables),
 		conn:              conn,
-		connManager:       mrpostgres.NewConnManager(conn, nop.NewLoggerAdapter()),
+		connManager:       mrpostgres.NewConnManager(conn, mrlog.NopLogger()),
 	}
 }
 
@@ -104,14 +104,16 @@ func (t *PostgresTester) ApplyMigrations(dirPath string) {
 	require.NoError(t.ownerT, err)
 
 	db := stdlib.OpenDBFromPool(pgxPool)
-	defer db.Close()
+
+	defer func() { _ = db.Close() }()
 
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	require.NoError(t.ownerT, err)
 
 	dbMigrate, err := migrate.NewWithDatabaseInstance("file://"+dirPath, postgresDB, driver)
 	require.NoError(t.ownerT, err)
-	defer dbMigrate.Close()
+
+	defer func() { _, _ = dbMigrate.Close() }()
 
 	err = dbMigrate.Up()
 	require.NoError(t.ownerT, err)
@@ -126,7 +128,8 @@ func (t *PostgresTester) ApplyFixtures(dirPath string) {
 	require.NoError(t.ownerT, err)
 
 	db := stdlib.OpenDBFromPool(pgxPool)
-	defer db.Close()
+
+	defer func() { _ = db.Close() }()
 
 	fixtures, err := testfixtures.New(
 		testfixtures.Database(db),

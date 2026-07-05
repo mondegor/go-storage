@@ -2,46 +2,55 @@ package mrminio
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"github.com/mondegor/go-sysmess/mrerr/mr"
-	"github.com/mondegor/go-sysmess/mrlib/extfile"
+	"github.com/mondegor/go-sysmess/errors"
 	"github.com/mondegor/go-sysmess/mrtrace"
+	"github.com/mondegor/go-sysmess/util/mime"
 )
 
 // go get -u github.com/minio/minio-go/v7
 // https://min.io/docs/minio/linux/developers/go/API.html
 
 const (
+	// connectionName - имя подключения для логирования и трассировки.
 	connectionName = "Minio"
 )
 
 type (
-	// ConnAdapter - адаптер для работы с Minio клиентом.
+	// ConnAdapter - адаптер для работы с MinIO клиентом (S3-совместимое хранилище).
+	// Предоставляет методы для подключения, проверки работоспособности,
+	// инициализации бакетов и получения нативного клиента MinIO.
 	ConnAdapter struct {
-		conn          *minio.Client
-		tracer        mrtrace.Tracer
-		createBuckets bool // if not exists
-		mimeTypes     *extfile.MimeTypeList
+		conn          *minio.Client  // conn - нативный клиент MinIO
+		tracer        mrtrace.Tracer // tracer - трассировщик для логирования операций
+		createBuckets bool           // createBuckets - флаг автоматического создания бакетов, если они не существуют
+		mimeTypes     *mime.TypeList // mimeTypes - список MIME-типов для определения типа контента
 	}
 
-	// Options - опции для создания соединения для ConnAdapter.
+	// Options - опции для создания соединения в ConnAdapter.
+	// Позволяет подключаться либо по DSN, либо по отдельным параметрам Host/Port.
 	Options struct {
-		DSN      string // если указано, то Host, Port не используются
-		Host     string
-		Port     string
-		UseSSL   bool
-		User     string
-		Password string
+		DSN      string // DSN - строка подключения в формате "host:port" (если указана, Host и Port игнорируются)
+		Host     string // Host - адрес сервера MinIO (используется, если DSN не указан)
+		Port     string // Port - порт сервера MinIO (используется, если DSN не указан)
+		UseSSL   bool   // UseSSL - флаг использования SSL/TLS соединения
+		User     string // User - имя пользователя для аутентификации
+		Password string // Password - пароль для аутентификации
 	}
 )
 
-// New - создаёт объект ConnAdapter.
-func New(createBuckets bool, mimeTypes *extfile.MimeTypeList, tracer mrtrace.Tracer) *ConnAdapter {
+var errSystemStorageConnectionIsBusy = errors.NewSystemProto("connection is busy")
+
+// New - создаёт объект ConnAdapter без активного соединения.
+// Параметры:
+//   - createBuckets - если true, автоматически создавать бакеты при их отсутствии;
+//   - mimeTypes - список MIME-типов для определения типа контента;
+//   - tracer - трассировщик для логирования операций.
+func New(createBuckets bool, mimeTypes *mime.TypeList, tracer mrtrace.Tracer) *ConnAdapter {
 	return &ConnAdapter{
 		createBuckets: createBuckets,
 		mimeTypes:     mimeTypes,
@@ -49,10 +58,10 @@ func New(createBuckets bool, mimeTypes *extfile.MimeTypeList, tracer mrtrace.Tra
 	}
 }
 
-// Connect - создаёт соединение с указанными опциями.
+// Connect - устанавливает соединение с сервером MinIO по указанным опциям.
 func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	if c.conn != nil {
-		return mr.ErrStorageConnectionIsAlreadyCreated.New(connectionName)
+		return errors.ErrInternalStorageConnectionIsAlreadyCreated.New("source", connectionName)
 	}
 
 	if opts.DSN == "" {
@@ -67,7 +76,7 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 		},
 	)
 	if err != nil {
-		return mr.ErrStorageConnectionFailed.Wrap(err, connectionName)
+		return errors.ErrSystemStorageConnectionFailed.Wrap(err, "source", connectionName)
 	}
 
 	c.conn = conn
@@ -75,29 +84,33 @@ func (c *ConnAdapter) Connect(_ context.Context, opts Options) error {
 	return nil
 }
 
-// Ping - сообщает, установлено ли соединение и является ли оно стабильным.
+// Ping - проверяет работоспособность соединения с MinIO.
 func (c *ConnAdapter) Ping(_ context.Context) error {
 	if c.conn == nil {
-		return mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
 	}
 
 	// TODO: желательно вызывать cancel(), если внешний контекст отменился, без этого HealthCheck вылетит по таймауту только через 3 секунды
 
 	cancel, err := c.conn.HealthCheck(time.Hour) // 1 час - нужно чтобы внутренняя горутина гарантирована не вызвалась
 	if err != nil {
-		return mr.ErrStorageConnectionIsBusy.Wrap(err, connectionName)
+		return errSystemStorageConnectionIsBusy.Wrap(err, "source", connectionName)
 	}
 	defer cancel()
 
 	if c.conn.IsOffline() {
-		return mr.ErrStorageConnectionFailed.Wrap(errors.New("expected status 'online' but found 'offline'"), connectionName)
+		return errors.ErrSystemStorageConnectionFailed.WithDetails(
+			"expected status 'online' but found 'offline'",
+			"source", connectionName,
+		)
 	}
 
 	return nil
 }
 
-// InitBucket - инициализирует бакет: проверяет что он существует, и если нет,
-// то или создаёт его (если разрешено) или выдаёт ошибку.
+// InitBucket - инициализирует бакет: проверяет его существование и при необходимости создаёт.
+// Возвращает true, если бакет был создан, false - если уже существовал.
+// Если бакет не существует и createBuckets=false, возвращает ошибку.
 func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string) (bool, error) {
 	exists, err := c.conn.BucketExists(ctx, bucketName)
 	if err != nil {
@@ -109,7 +122,7 @@ func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string) (bool, 
 	}
 
 	if !c.createBuckets {
-		return false, fmt.Errorf("bucket with name '%s' not exists", bucketName)
+		return false, fmt.Errorf("bucket not exists (name='%s')", bucketName)
 	}
 
 	err = c.conn.MakeBucket(
@@ -124,19 +137,19 @@ func (c *ConnAdapter) InitBucket(ctx context.Context, bucketName string) (bool, 
 	return true, nil
 }
 
-// Cli - возвращается нативный объект, с которым работает данный адаптер.
+// Cli - возвращает нативный клиент MinIO для прямого доступа к API.
 func (c *ConnAdapter) Cli() (*minio.Client, error) {
 	if c.conn == nil {
-		return nil, mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return nil, errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
 	}
 
 	return c.conn, nil
 }
 
-// Close - закрывает текущее соединение.
+// Close - закрывает соединение с MinIO и очищает ссылку на клиент.
 func (c *ConnAdapter) Close() error {
 	if c.conn == nil {
-		return mr.ErrStorageConnectionIsNotOpened.New(connectionName)
+		return errors.ErrInternalStorageConnectionIsNotOpened.New("source", connectionName)
 	}
 
 	c.conn = nil
