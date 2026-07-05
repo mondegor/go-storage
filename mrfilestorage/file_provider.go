@@ -8,10 +8,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mondegor/go-sysmess/errors"
-	modelmedia "github.com/mondegor/go-sysmess/mrmodel/media"
-	"github.com/mondegor/go-sysmess/mrtrace"
-	"github.com/mondegor/go-sysmess/util/casttype"
+	"github.com/mondegor/go-core/errors"
+	modelmedia "github.com/mondegor/go-core/mrmodel/media"
+	"github.com/mondegor/go-core/mrtrace"
+	"github.com/mondegor/go-core/util/casttype"
 )
 
 const (

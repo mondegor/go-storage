@@ -3,7 +3,7 @@ package mrredis
 import (
 	"context"
 
-	"github.com/mondegor/go-sysmess/errors"
+	"github.com/mondegor/go-core/errors"
 	"github.com/redis/go-redis/v9"
 )
 

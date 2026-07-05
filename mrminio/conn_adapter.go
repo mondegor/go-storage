@@ -7,9 +7,9 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"github.com/mondegor/go-sysmess/errors"
-	"github.com/mondegor/go-sysmess/mrtrace"
-	"github.com/mondegor/go-sysmess/util/mime"
+	"github.com/mondegor/go-core/errors"
+	"github.com/mondegor/go-core/mrtrace"
+	"github.com/mondegor/go-core/util/mime"
 )
 
 // go get -u github.com/minio/minio-go/v7

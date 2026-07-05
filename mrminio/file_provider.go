@@ -7,9 +7,9 @@ import (
 	"path"
 
 	"github.com/minio/minio-go/v7"
-	"github.com/mondegor/go-sysmess/errors"
-	modelmedia "github.com/mondegor/go-sysmess/mrmodel/media"
-	"github.com/mondegor/go-sysmess/util/casttype"
+	"github.com/mondegor/go-core/errors"
+	modelmedia "github.com/mondegor/go-core/mrmodel/media"
+	"github.com/mondegor/go-core/util/casttype"
 )
 
 // https://min.io/docs/minio/linux/developers/go/API.html

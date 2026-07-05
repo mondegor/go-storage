@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/bsm/redislock"
-	"github.com/mondegor/go-sysmess/mrlock"
-	"github.com/mondegor/go-sysmess/mrlog"
-	"github.com/mondegor/go-sysmess/mrtrace"
+	"github.com/mondegor/go-core/mrlock"
+	"github.com/mondegor/go-core/mrlog"
+	"github.com/mondegor/go-core/mrtrace"
 	"github.com/redis/go-redis/v9"
 )
 

@@ -4,8 +4,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mondegor/go-sysmess/errors"
-	"github.com/mondegor/go-sysmess/util/mime"
+	"github.com/mondegor/go-core/errors"
+	"github.com/mondegor/go-core/util/mime"
 )
 
 type (

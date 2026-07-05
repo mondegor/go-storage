@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mondegor/go-sysmess/mrtrace"
+	"github.com/mondegor/go-core/mrtrace"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrredis"

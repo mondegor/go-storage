@@ -3,7 +3,7 @@ package locker_test
 import (
 	"testing"
 
-	"github.com/mondegor/go-sysmess/mrlock"
+	"github.com/mondegor/go-core/mrlock"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mondegor/go-storage/mrredis/locker"

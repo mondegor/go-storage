@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mondegor/go-sysmess/mrtrace"
-	"github.com/mondegor/go-sysmess/util/mime"
+	"github.com/mondegor/go-core/mrtrace"
+	"github.com/mondegor/go-core/util/mime"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrminio"

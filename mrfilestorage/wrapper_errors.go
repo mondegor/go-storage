@@ -5,7 +5,7 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/mondegor/go-sysmess/errors"
+	"github.com/mondegor/go-core/errors"
 )
 
 // wrapError - обёртывает ошибки файловой системы в стандартные ошибки приложения.

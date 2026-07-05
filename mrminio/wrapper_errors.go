@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/minio/minio-go/v7"
-	"github.com/mondegor/go-sysmess/errors"
+	"github.com/mondegor/go-core/errors"
 )
 
 // wrapError - обёртывает ошибки MinIO в стандартные ошибки приложения.
