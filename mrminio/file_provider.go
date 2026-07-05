@@ -2,35 +2,33 @@ package mrminio
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
-	"math"
 	"path"
 
 	"github.com/minio/minio-go/v7"
-	"github.com/mondegor/go-sysmess/mrdto"
-	"github.com/mondegor/go-sysmess/mrerr/mr"
-	"github.com/mondegor/go-sysmess/mrlib/casttype"
-	"github.com/mondegor/go-sysmess/mrtype"
+	"github.com/mondegor/go-sysmess/errors"
+	modelmedia "github.com/mondegor/go-sysmess/mrmodel/media"
+	"github.com/mondegor/go-sysmess/util/casttype"
 )
 
 // https://min.io/docs/minio/linux/developers/go/API.html
 
 const (
+	// providerName - имя провайдера для логирования и трассировки.
 	providerName = "Minio"
 )
 
 type (
-	// FileProvider - файловый провайдер S3,
-	// позволяет читать, сохранять, удалять файлы.
+	// FileProvider - файловый провайдер для S3-совместимого хранилища MinIO.
+	// Позволяет читать, сохранять, удалять файлы и проверять их метаинформацию.
 	FileProvider struct {
 		*ConnAdapter
 		bucketName string
 	}
 )
 
-// NewFileProvider - создаёт объект FileProvider.
+// NewFileProvider - создаёт объект FileProvider для работы с конкретным бакетом.
 func NewFileProvider(conn *ConnAdapter, bucketName string) *FileProvider {
 	return &FileProvider{
 		ConnAdapter: conn,
@@ -38,8 +36,8 @@ func NewFileProvider(conn *ConnAdapter, bucketName string) *FileProvider {
 	}
 }
 
-// Info - comment method.
-func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrdto.FileInfo, error) {
+// Info - возвращает метаинформацию о файле (размер, тип контента, даты).
+func (fp *FileProvider) Info(ctx context.Context, filePath string) (modelmedia.FileInfo, error) {
 	fp.traceCmd(ctx, "Info", filePath)
 
 	info, err := fp.conn.StatObject(
@@ -49,45 +47,48 @@ func (fp *FileProvider) Info(ctx context.Context, filePath string) (mrdto.FileIn
 		minio.StatObjectOptions{},
 	)
 	if err != nil {
-		return mrdto.FileInfo{}, fp.wrapError(err)
+		return modelmedia.FileInfo{}, fp.wrapError(err)
 	}
 
 	fileInfo, err := fp.getFileInfo(&info)
 	if err != nil {
-		return mrdto.FileInfo{}, fp.wrapError(err)
+		return modelmedia.FileInfo{}, fp.wrapError(err)
 	}
 
 	return fileInfo, nil
 }
 
-// Download - comment method.
-func (fp *FileProvider) Download(ctx context.Context, filePath string) (mrtype.File, error) {
+// Download - открывает файл и возвращает его метаинформацию вместе с содержимым.
+// Возвращаемая структура mrmodel.File включает тело файла (Body), которое нужно закрыть после использования.
+func (fp *FileProvider) Download(ctx context.Context, filePath string) (modelmedia.File, error) {
 	fp.traceCmd(ctx, "Download", filePath)
 
 	object, err := fp.openObject(ctx, filePath)
 	if err != nil {
-		return mrtype.File{}, fp.wrapError(err)
+		return modelmedia.File{}, fp.wrapError(err)
 	}
 
 	info, err := object.Stat()
 	if err != nil {
-		object.Close()
+		_ = object.Close()
 
-		return mrtype.File{}, fp.wrapError(err)
+		return modelmedia.File{}, fp.wrapError(err)
 	}
 
 	fileInfo, err := fp.getFileInfo(&info)
 	if err != nil {
-		return mrtype.File{}, fp.wrapError(err)
+		return modelmedia.File{}, fp.wrapError(err)
 	}
 
-	return mrtype.File{
+	return modelmedia.File{
 		FileInfo: fileInfo,
 		Body:     object,
 	}, nil
 }
 
-// DownloadFile - comment method.
+// DownloadFile - открывает файл и возвращает только его содержимое как io.ReadCloser.
+// В отличие от Download, не включает метаинформацию.
+// Вызывающая сторона обязана закрыть ReadCloser после использования.
 func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.ReadCloser, error) {
 	fp.traceCmd(ctx, "DownloadFile", filePath)
 
@@ -97,7 +98,7 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 	}
 
 	if _, err = object.Stat(); err != nil {
-		object.Close()
+		_ = object.Close()
 
 		return nil, fp.wrapError(err)
 	}
@@ -105,15 +106,14 @@ func (fp *FileProvider) DownloadFile(ctx context.Context, filePath string) (io.R
 	return object, nil
 }
 
-// Upload - comment method.
-func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
+// Upload - сохраняет файл в бакет MinIO.
+// Если размер файла не указан (равен 0), автоматически вычисляет его при загрузке.
+// Определяет ContentType по расширению файла, если он не указан явно.
+// Устанавливает Content-Disposition для корректного скачивания с оригинальным именем.
+func (fp *FileProvider) Upload(ctx context.Context, file modelmedia.File) error {
 	fp.traceCmd(ctx, "Upload", file.Path)
 
-	if file.Size > math.MaxInt64 {
-		return errors.New("file size too big")
-	}
-
-	fileSize := int64(file.Size) //nolint:gosec
+	fileSize := file.Size
 
 	if fileSize == 0 {
 		fileSize = -1 // -1 - calculating size
@@ -142,7 +142,7 @@ func (fp *FileProvider) Upload(ctx context.Context, file mrtype.File) error {
 	return nil
 }
 
-// Remove - comment method.
+// Remove - удаляет файл из бакета MinIO.
 func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
 	fp.traceCmd(ctx, "Remove", filePath)
 
@@ -159,6 +159,7 @@ func (fp *FileProvider) Remove(ctx context.Context, filePath string) error {
 	return nil
 }
 
+// openObject - открывает объект из бакета MinIO для чтения.
 func (fp *FileProvider) openObject(ctx context.Context, filePath string) (*minio.Object, error) {
 	return fp.conn.GetObject(
 		ctx,
@@ -168,26 +169,34 @@ func (fp *FileProvider) openObject(ctx context.Context, filePath string) (*minio
 	)
 }
 
-func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) (mrdto.FileInfo, error) {
+// getFileInfo - извлекает метаинформацию из minio.ObjectInfo.
+// Определяет ContentType, парсит оригинальное имя файла из Content-Disposition.
+func (fp *FileProvider) getFileInfo(info *minio.ObjectInfo) (modelmedia.FileInfo, error) {
 	contentType, err := fp.getContentType(info.ContentType, info.Key)
 	if err != nil {
-		return mrdto.FileInfo{}, err
+		return modelmedia.FileInfo{}, err
 	}
 
 	if info.Size < 0 {
-		return mrdto.FileInfo{}, mr.ErrValidateFileSize.New()
+		return modelmedia.FileInfo{}, errors.NewInternalError(
+			"file size is negative",
+			"file", info.Key,
+		)
 	}
 
-	return mrdto.FileInfo{
+	return modelmedia.FileInfo{
 		ContentType:  contentType,
 		OriginalName: fp.parseOriginalName(info.Metadata.Get("Content-Disposition")),
 		Name:         path.Base(info.Key),
 		Path:         info.Key,
-		Size:         uint64(info.Size),
+		Size:         info.Size,
 		UpdatedAt:    casttype.TimeToPointer(info.LastModified),
 	}, nil
 }
 
+// getContentDisposition - формирует значение заголовка Content-Disposition для скачивания файла.
+// Если оригинальное имя файла пустое, возвращает пустую строку.
+// :TODO: добавить экранирование значения для безопасности.
 func (fp *FileProvider) getContentDisposition(value string) string {
 	if value == "" {
 		return ""
@@ -196,6 +205,9 @@ func (fp *FileProvider) getContentDisposition(value string) string {
 	return fmt.Sprintf("attachment; filename=\"%s\"", value) // :TODO: escape value
 }
 
+// getContentType - определяет тип контента файла.
+// Если ContentType уже указан, возвращает его.
+// Иначе определяет по расширению файла через список MIME-типов.
 func (fp *FileProvider) getContentType(contentType, fileName string) (string, error) {
 	if contentType != "" {
 		return contentType, nil
@@ -209,6 +221,7 @@ func (fp *FileProvider) getContentType(contentType, fileName string) (string, er
 	return contentType, nil
 }
 
+// parseOriginalName - извлекает оригинальное имя файла из заголовка Content-Disposition.
 func (fp *FileProvider) parseOriginalName(contentDisposition string) string {
 	const (
 		prefix    = "attachment; filename=\""

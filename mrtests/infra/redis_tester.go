@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mondegor/go-sysmess/mrtrace/noptracer"
+	"github.com/mondegor/go-sysmess/mrtrace"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrredis"
@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	redisDockerImage = "p/redis:7.2.5"
+	redisDockerImage = "p/redis:7.4.8" // TODO: вынести в настройки
 	redisPassword    = "123456"
 )
 
@@ -72,7 +72,7 @@ func (t *RedisTester) Destroy(ctx context.Context) {
 }
 
 func newRedis(ctx context.Context, dsn string) (*mrredis.ConnAdapter, error) {
-	conn := mrredis.New(noptracer.NewTracer())
+	conn := mrredis.New(mrtrace.NopTracer())
 	opts := mrredis.Options{
 		DSN:      dsn,
 		Password: redisPassword,

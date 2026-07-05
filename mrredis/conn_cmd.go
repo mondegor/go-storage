@@ -6,7 +6,8 @@ import (
 	"time"
 )
 
-// GetStruct - comment method.
+// GetStruct - получает значение из Redis по ключу и десериализует его в переданную структуру.
+// Параметр data должен быть указателем на структуру, в которую будет записан результат.
 func (c *ConnAdapter) GetStruct(ctx context.Context, key string, data any) error {
 	c.traceCmd(ctx, "get-struct", key, data)
 
@@ -17,7 +18,9 @@ func (c *ConnAdapter) GetStruct(ctx context.Context, key string, data any) error
 	return nil
 }
 
-// SetStruct - comment method.
+// SetStruct - сохраняет структуру в Redis с указанным ключом и временем жизни.
+// Параметр data сериализуется перед сохранением (используется встроенная сериализация go-redis).
+// Если expiration равен 0, ключ будет храниться бессрочно.
 func (c *ConnAdapter) SetStruct(ctx context.Context, key string, data any, expiration time.Duration) error {
 	c.traceCmd(ctx, "set-struct", key, data)
 
@@ -28,7 +31,8 @@ func (c *ConnAdapter) SetStruct(ctx context.Context, key string, data any, expir
 	return nil
 }
 
-// Delete - comment method.
+// Delete - удаляет один или несколько ключей из Redis.
+// Принимает переменное количество ключей для удаления.
 func (c *ConnAdapter) Delete(ctx context.Context, key ...string) error {
 	c.traceCmd(ctx, "delete-row", strings.Join(key, ", "), nil)
 
