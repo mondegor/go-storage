@@ -49,7 +49,7 @@ var errSystemStorageConnectionIsBusy = errors.NewSystemProto("connection is busy
 // Параметры:
 //   - createBuckets - если true, автоматически создавать бакеты при их отсутствии;
 //   - mimeTypes - список MIME-типов для определения типа контента;
-//   - tracer - трассировщик для логирования операций.
+//   - tracer - трассировщик для трассировки операций с хранилищем.
 func New(createBuckets bool, mimeTypes *mime.TypeList, tracer mrtrace.Tracer) *ConnAdapter {
 	return &ConnAdapter{
 		createBuckets: createBuckets,
