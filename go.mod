@@ -8,7 +8,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.20.1
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/minio/minio-go/v7 v7.3.0
-	github.com/mondegor/go-core v0.15.4-0.20260926202729-f98d8ef98d92
+	github.com/mondegor/go-core v0.15.4-0.20261003072237-998eee40d901
 	github.com/rabbitmq/amqp091-go v1.15.0
 	github.com/redis/go-redis/v9 v9.22.0
 	github.com/stretchr/testify v1.12.1
