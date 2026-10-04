@@ -7,21 +7,29 @@
 ## Описание библиотеки
 Библиотека для работы с хранилищами данных.
 На данный момент реализованы адаптеры для следующих клиентов:
-- postgres (`pgx/v5`);
-- rabbitmq (`amqp-go/v1`);
-- redis (`go-redis/v9` + `redislock/v0.9`);
-- `S3 minio` + `FileProvider`;
-- `Native File System` + `FileProvider`;
+- rabbitmq - `mrrabbitmq` (`amqp091-go`);
+- redis - `mrredis` (`go-redis/v9`) + распределённые блокировки `mrredis/locker` (`redislock`);
+- S3 minio - `mrminio` (`minio-go/v7`) + `FileProvider`;
+- Native File System - `mrfilestorage` + `FileProvider`;
 
-Также реализован вспомогательный пакет для тестирования приложения без необходимости
+Абстрактные интерфейсы, которые реализуют адаптеры (`mrstorage`, `mrlock`), модели файлов (`mrmodel/media`),
+а также адаптер для PostgreSQL (`mrpostgres`) находятся в библиотеке
+[GoCore](https://github.com/mondegor/go-core).
+
+Также реализован вспомогательный пакет `mrtests` для тестирования приложения без необходимости
 разворачивания инфраструктуры (БД, S3 и т.д.), для этого используется библиотека `testcontainers`.
-На базе этой библиотеки подготовлены следующие контейнеры:
+На базе этой библиотеки подготовлены следующие контейнеры (`mrtests/helpers`):
 - postgres;
 - redis;
 - minio;
 
+и объекты для работы с ними в тестах (`mrtests/infra`: `PostgresTester`, `RedisTester`, `MinioTester`),
+которые применяют миграции (`golang-migrate`), загружают и очищают фикстуры (`testfixtures`).
+
 ## Подключение библиотеки
 `go get -u github.com/mondegor/go-storage@v0.17.1`
+
+Требуется Go 1.26 или новее.
 
 ## Установка библиотеки для её локальной разработки
 - Выбрать рабочую директорию, где должна быть расположена библиотека
@@ -29,8 +37,15 @@
 - `git clone git@github.com:mondegor/go-storage.git .`
 - `cp .env.dist .env`
 - `mrcmd go-dev deps` // загрузка зависимостей проекта
-- Для работы утилит `gofumpt`, `goimports`, `mockgen` необходимо в `.env` проверить
-  значения переменных `GO_DEV_TOOLS_INSTALL_*` и запустить `mrcmd go-dev install-tools`
+- Для работы утилит `gofumpt`, `goimports`, `gci`, `golangci-lint`, `mockgen` необходимо запустить
+  `mrcmd go-dev install-tools`. По умолчанию `gofumpt`, `goimports`, `gci`, `golangci-lint` устанавливаются
+  последних версий; чтобы закрепить версию, раскомментируйте переменную `GO_DEV_TOOLS_INSTALL_*` в `.env`.
+  `mockgen` в go-dev по умолчанию выключен, но в `.env.dist` для него задана версия, поэтому он тоже
+  будет установлен (сейчас в библиотеке нет моков, он понадобится только при их добавлении);
+
+### Запуск тестов
+Тесты библиотеки не требуют внешних сервисов и запускаются командой `go test ./...`.
+Для использования пакета `mrtests` (контейнеры `testcontainers`) в тестах приложения необходим запущенный Docker.
 
 ### Консольные команды используемые при разработке библиотеки
 
@@ -40,7 +55,8 @@
 - `mrcmd go-dev help` // выводит список всех доступных go-dev команд;
 - `mrcmd go-dev generate` // генерирует go файлы через встроенный механизм go:generate;
 - `mrcmd go-dev gofumpt-fix` // исправляет форматирование кода (`gofumpt -l -w -extra ./`);
-- `mrcmd go-dev goimports-fix` // исправляет imports, если это требуется (`goimports -d -local ${GO_DEV_IMPORTS_LOCAL_PREFIXES} ./`);
+- `mrcmd go-dev goimports-fix` // исправляет imports, если это требуется (`goimports -l -w -local ${GO_DEV_IMPORTS_LOCAL_PREFIXES}` для всех go файлов, кроме сгенерированных);
+- `mrcmd go-dev gci-fix` // упорядочивает imports (`gci write --skip-generated -s standard -s default -s prefix(${GO_DEV_IMPORTS_LOCAL_PREFIXES}) .`);
 - `mrcmd go-dev lint` // запускает линтеры для проверки кода (на основе `.golangci.yaml`);
 - `mrcmd go-dev test` // запускает тесты библиотеки;
 - `mrcmd go-dev test-report` // запускает тесты библиотеки с формированием отчёта о покрытии кода (`test-coverage-full.html`);
@@ -48,11 +64,18 @@
 
 #### Короткий вариант выше приведённых команд (Makefile)
 - `make deps` // аналог `mrcmd go-dev deps`
+- `make deps-upgrade` // аналог `mrcmd go-dev get -u ./...` + `mrcmd go-dev tidy`
 - `make generate` // аналог `mrcmd go-dev generate`
-- `make lint` // аналог `mrcmd go-dev lint`
+- `make lint` // аналог `mrcmd go-dev gofumpt-fix` + `goimports-fix` + `gci-fix` + `lint`
 - `make test` // аналог `mrcmd go-dev test`
 - `make test-report` // аналог `mrcmd go-dev test-report`
 - `make plantuml` // аналог `mrcmd plantuml build-all`
+
+Дополнительные команды (Makefile.mk):
+- `make check-and-fix` // generate + форматирование + lint + test + plantuml;
+- `make full` // `make deps` + `make check-and-fix`;
+- `make full2` // `make deps-upgrade` + `make check-and-fix`;
+- `make archive` // упаковывает проект в `../go-storage.tar.gz`;
 
 > Чтобы расширить список команд, необходимо создать Makefile.mk и добавить
 > туда дополнительные команды, все они будут добавлены в единый список команд make утилиты.
