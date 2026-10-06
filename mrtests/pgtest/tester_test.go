@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
 
 	"github.com/mondegor/go-storage/mrtests/pgtest"
 )
@@ -16,8 +15,6 @@ import (
 // TestTester - проверяет, что контейнер Postgres поднимается и тестер работает с БД:
 // накатывает миграции, загружает фикстуры, считает записи и очищает таблицы, кроме исключённых.
 func TestTester(t *testing.T) {
-	testcontainers.SkipIfProviderIsNotHealthy(t)
-
 	ctx := context.Background()
 
 	migrationsDir := t.TempDir()

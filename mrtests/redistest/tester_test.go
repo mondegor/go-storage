@@ -8,7 +8,6 @@ import (
 	"github.com/mondegor/go-core/mrtrace"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
 
 	"github.com/mondegor/go-storage/mrredis"
 	"github.com/mondegor/go-storage/mrtests/redistest"
@@ -17,8 +16,6 @@ import (
 // TestTester - проверяет, что контейнер Redis поднимается с паролем и тестер работает с ним:
 // записывает и читает данные и очищает их.
 func TestTester(t *testing.T) {
-	testcontainers.SkipIfProviderIsNotHealthy(t)
-
 	ctx := context.Background()
 
 	rdt := redistest.NewTester(t)
@@ -42,8 +39,6 @@ func TestTester(t *testing.T) {
 // TestNewContainer_RequiresPassword - проверяет, что контейнер, запущенный с паролем,
 // отвергает подключение без пароля именно из-за отсутствия аутентификации.
 func TestNewContainer_RequiresPassword(t *testing.T) {
-	testcontainers.SkipIfProviderIsNotHealthy(t)
-
 	ctx := context.Background()
 
 	container, err := redistest.NewContainer(ctx, redistest.DockerImage(), "secret_test")
