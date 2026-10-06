@@ -8,11 +8,13 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrredis"
+	"github.com/mondegor/go-storage/mrtests/internal/testenv"
 )
 
 const (
-	dockerImage = "p/redis:7.4.8" // TODO: вынести в настройки
-	password    = "123456"
+	dockerImageEnv = "MRTESTS_REDIS_DOCKER_IMAGE"
+	dockerImage    = "redis:7.4.8-alpine3.21"
+	password       = "123456"
 )
 
 type (
@@ -25,6 +27,7 @@ type (
 )
 
 // NewTester - создаёт объект Tester.
+// Докер образ берётся из DockerImage, Redis запускается с паролем.
 func NewTester(t *testing.T) *Tester {
 	t.Helper()
 
@@ -32,6 +35,7 @@ func NewTester(t *testing.T) *Tester {
 	container, err := NewContainer(
 		ctx,
 		DockerImage(),
+		password,
 	)
 	require.NoError(t, err)
 
@@ -45,9 +49,10 @@ func NewTester(t *testing.T) *Tester {
 	}
 }
 
-// DockerImage - возвращает докер образ Redis, используемый в NewTester.
+// DockerImage - возвращает докер образ Redis из переменной окружения
+// MRTESTS_REDIS_DOCKER_IMAGE, а если она не задана, то берётся значение по умолчанию.
 func DockerImage() string {
-	return dockerImage
+	return testenv.DockerImage(dockerImageEnv, dockerImage)
 }
 
 // Conn - возвращает менеджер текущего соединения с БД.
