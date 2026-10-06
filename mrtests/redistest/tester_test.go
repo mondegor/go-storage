@@ -23,8 +23,6 @@ func TestTester(t *testing.T) {
 
 	rdt := redistest.NewTester(t)
 
-	defer rdt.Destroy(ctx)
-
 	cli, err := rdt.Conn().Cli()
 	require.NoError(t, err)
 
@@ -34,7 +32,7 @@ func TestTester(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "value", got)
 
-	rdt.FlushAll(ctx)
+	rdt.FlushAll(t, ctx)
 
 	exists, err := cli.Exists(ctx, "key").Result()
 	require.NoError(t, err)

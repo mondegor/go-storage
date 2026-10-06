@@ -34,20 +34,18 @@ func TestTester(t *testing.T) {
 
 	pgt := pgtest.NewTester(t, nil, []string{"public.settings"})
 
-	defer pgt.Destroy(ctx)
-
 	var one int
 	require.NoError(t, pgt.ConnManager().Conn(ctx).QueryRow(ctx, `SELECT 1`).Scan(&one))
 	assert.Equal(t, 1, one)
 
-	pgt.ApplyMigrations(migrationsDir)
-	pgt.ApplyFixtures(fixturesDir)
-	assert.Equal(t, 2, pgt.CountRows(ctx, "items"))
-	assert.Equal(t, 1, pgt.CountRows(ctx, "settings"))
+	pgt.ApplyMigrations(t, migrationsDir)
+	pgt.ApplyFixtures(t, fixturesDir)
+	assert.Equal(t, 2, pgt.CountRows(t, ctx, "items"))
+	assert.Equal(t, 1, pgt.CountRows(t, ctx, "settings"))
 
-	pgt.TruncateTables(ctx)
-	assert.Equal(t, 0, pgt.CountRows(ctx, "items"))
-	assert.Equal(t, 1, pgt.CountRows(ctx, "settings"))
+	pgt.TruncateTables(t, ctx)
+	assert.Equal(t, 0, pgt.CountRows(t, ctx, "items"))
+	assert.Equal(t, 1, pgt.CountRows(t, ctx, "settings"))
 }
 
 func writeFile(t *testing.T, dir, name, content string) {

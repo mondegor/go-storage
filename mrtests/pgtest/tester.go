@@ -2,6 +2,7 @@ package pgtest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -13,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/mondegor/go-core/mrlog"
 	"github.com/mondegor/go-core/mrpostgres"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrtests/internal/testenv"
@@ -30,7 +32,6 @@ const (
 type (
 	// Tester - вспомогательный объект для работы с тестовой БД.
 	Tester struct {
-		ownerT            *testing.T
 		container         *Container
 		truncateCondition string
 		conn              *mrpostgres.ConnAdapter
@@ -43,6 +44,8 @@ type (
 // если не указан, то будет использоваться схема defaultSchema.
 // excludedTables - список таблиц, которые будут исключены их очистки таблиц.
 // Докер образ берётся из DockerImage.
+// Соединение и контейнер освобождаются автоматически по завершении теста t,
+// а методы тестера принимают t того теста (подтеста), из которого они вызываются.
 func NewTester(t *testing.T, dbSchemas, excludedTables []string) *Tester {
 	t.Helper()
 
@@ -57,12 +60,20 @@ func NewTester(t *testing.T, dbSchemas, excludedTables []string) *Tester {
 	require.NoError(t, err)
 
 	conn, err := newPostgres(ctx, container.DSN())
+	if err != nil {
+		_ = container.Terminate(ctx)
+	}
+
 	require.NoError(t, err)
+
+	// ресурсы освобождаются по завершении теста t (после всех его подтестов)
+	t.Cleanup(func() {
+		assert.NoError(t, errors.Join(conn.Close(), container.Terminate(context.Background())))
+	})
 
 	excludedTables = append(excludedTables, migratepostgres.DefaultMigrationsTable)
 
 	return &Tester{
-		ownerT:            t,
 		container:         container,
 		truncateCondition: prepareTruncateCondition(dbSchemas, excludedTables),
 		conn:              conn,
@@ -77,15 +88,13 @@ func DockerImage() string {
 }
 
 // ConnManager - возвращает менеджер текущего соединения с БД.
-func (t *Tester) ConnManager() *mrpostgres.ConnManager {
-	t.ownerT.Helper()
-
-	return t.connManager
+func (pt *Tester) ConnManager() *mrpostgres.ConnManager {
+	return pt.connManager
 }
 
 // TruncateTables - очищает все таблицы текущей схемы со сбросом счётчика автоинкремента.
-func (t *Tester) TruncateTables(ctx context.Context) {
-	t.ownerT.Helper()
+func (pt *Tester) TruncateTables(t *testing.T, ctx context.Context) {
+	t.Helper()
 
 	sql := fmt.Sprintf(`
 		DO $do$
@@ -95,45 +104,43 @@ func (t *Tester) TruncateTables(ctx context.Context) {
 				 FROM pg_class
 				 WHERE relkind = 'r'%s);
 		END $do$;`,
-		t.truncateCondition,
+		pt.truncateCondition,
 	)
 
-	// t.ownerT.Log(sql)
-
-	err := t.conn.Exec(ctx, sql)
-	require.NoError(t.ownerT, err)
+	err := pt.conn.Exec(ctx, sql)
+	require.NoError(t, err)
 }
 
 // ApplyMigrations - накатывает миграции расположенные в указанной директории.
-func (t *Tester) ApplyMigrations(dirPath string) {
-	t.ownerT.Helper()
+func (pt *Tester) ApplyMigrations(t *testing.T, dirPath string) {
+	t.Helper()
 
-	pgxPool, err := t.conn.Cli()
-	require.NoError(t.ownerT, err)
+	pgxPool, err := pt.conn.Cli()
+	require.NoError(t, err)
 
 	db := stdlib.OpenDBFromPool(pgxPool)
 
 	defer func() { _ = db.Close() }()
 
 	driver, err := migratepostgres.WithInstance(db, &migratepostgres.Config{})
-	require.NoError(t.ownerT, err)
+	require.NoError(t, err)
 
 	dbMigrate, err := migrate.NewWithDatabaseInstance("file://"+dirPath, dbName, driver)
-	require.NoError(t.ownerT, err)
+	require.NoError(t, err)
 
 	defer func() { _, _ = dbMigrate.Close() }()
 
 	err = dbMigrate.Up()
-	require.NoError(t.ownerT, err)
+	require.NoError(t, err)
 }
 
 // ApplyFixtures - загружает данные из указанной директории (имя файла = схема + '.' + имя таблицы) в БД.
 // Перед добавлением данных таблица будет очищена.
-func (t *Tester) ApplyFixtures(dirPath string) {
-	t.ownerT.Helper()
+func (pt *Tester) ApplyFixtures(t *testing.T, dirPath string) {
+	t.Helper()
 
-	pgxPool, err := t.conn.Cli()
-	require.NoError(t.ownerT, err)
+	pgxPool, err := pt.conn.Cli()
+	require.NoError(t, err)
 
 	db := stdlib.OpenDBFromPool(pgxPool)
 
@@ -144,29 +151,22 @@ func (t *Tester) ApplyFixtures(dirPath string) {
 		testfixtures.Dialect("postgres"),
 		testfixtures.Directory(dirPath),
 	)
-	require.NoError(t.ownerT, err)
+	require.NoError(t, err)
 
-	require.NoError(t.ownerT, fixtures.Load())
+	require.NoError(t, fixtures.Load())
 }
 
 // CountRows - возвращает количество записей указанной таблицы находящейся в текущей схеме.
-func (t *Tester) CountRows(ctx context.Context, tableName string) (count int) {
-	t.ownerT.Helper()
+func (pt *Tester) CountRows(t *testing.T, ctx context.Context, tableName string) (count int) {
+	t.Helper()
 
-	err := t.conn.
+	err := pt.conn.
 		QueryRow(ctx, `SELECT COUNT(*) FROM `+tableName).
 		Scan(&count)
 
-	require.NoError(t.ownerT, err)
+	require.NoError(t, err)
 
 	return count
-}
-
-// Destroy - освобождает ресурсы объекта когда он уже больше не нужен.
-func (t *Tester) Destroy(ctx context.Context) {
-	t.ownerT.Helper()
-
-	require.NoError(t.ownerT, t.container.Terminate(ctx))
 }
 
 func newPostgres(ctx context.Context, dsn string) (*mrpostgres.ConnAdapter, error) {
@@ -179,7 +179,13 @@ func newPostgres(ctx context.Context, dsn string) (*mrpostgres.ConnAdapter, erro
 		return nil, err
 	}
 
-	return conn, conn.Ping(ctx)
+	if err := conn.Ping(ctx); err != nil {
+		_ = conn.Close()
+
+		return nil, err
+	}
+
+	return conn, nil
 }
 
 func prepareTruncateCondition(dbSchemas, excludedTables []string) (condition string) {
