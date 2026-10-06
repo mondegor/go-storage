@@ -14,9 +14,14 @@
   образ можно переопределить переменными окружения `MRTESTS_POSTGRES_DOCKER_IMAGE` и `MRTESTS_REDIS_DOCKER_IMAGE`;
 - В `redistest.NewContainer` добавлен параметр `password`, пароль Redis задаётся при запуске контейнера
   (`--requirepass`), а не в докер образе;
+- Методы тестеров теперь принимают `t *testing.T` вызывающего теста (подтеста),
+  а соединение и контейнер освобождаются автоматически через `t.Cleanup`;
+- Контейнеры Postgres и Redis ожидают готовности по порту и логу (до 30s, с учётом параллельного
+  `go test -p`), а не стартовавший контейнер сразу удаляется;
 
 ### Removed
 - Удалены `infra.MinioTester` и `helpers.MinioContainer`, а также зависимость `testcontainers-go/modules/minio`;
+- Удалён метод `Destroy` у `pgtest.Tester` и `redistest.Tester` (ресурсы освобождаются через `t.Cleanup`);
 
 ## 2025-09-29 (v0.17.1)
 ### Changed

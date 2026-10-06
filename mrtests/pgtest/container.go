@@ -10,8 +10,16 @@ import (
 )
 
 const (
+	containerPort = "5432/tcp"
+
+	// containerLogOccurrence - сколько раз Postgres пишет в лог о готовности
+	// (первый раз при инициализации БД, второй - после основного запуска).
 	containerLogOccurrence = 2
-	containerLogTimeout    = 5 * time.Second
+
+	// containerStartupTimeout - время ожидания готовности контейнера
+	// (при параллельном запуске пакетов (go test -p) одновременно стартуют
+	// несколько контейнеров, и их старт растягивается).
+	containerStartupTimeout = 30 * time.Second
 )
 
 type (
@@ -31,17 +39,26 @@ func NewContainer(ctx context.Context, dockerImage, database, username, password
 		tcpostgres.WithUsername(username),
 		tcpostgres.WithPassword(password),
 		testcontainers.WithWaitStrategy(
+			wait.ForListeningPort(containerPort).WithStartupTimeout(containerStartupTimeout),
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(containerLogOccurrence).
-				WithStartupTimeout(containerLogTimeout),
+				WithStartupTimeout(containerStartupTimeout),
 		),
 	)
 	if err != nil {
+		// контейнер, не дождавшийся готовности, удаляется сразу, иначе он продолжит
+		// работать до конца прогона и нагружать Docker, провоцируя новые таймауты
+		if container != nil {
+			_ = container.Terminate(context.WithoutCancel(ctx))
+		}
+
 		return nil, err
 	}
 
 	dsn, err := container.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
+		_ = container.Terminate(context.WithoutCancel(ctx))
+
 		return nil, err
 	}
 

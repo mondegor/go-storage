@@ -2,9 +2,11 @@ package redistest
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/mondegor/go-core/mrtrace"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrredis"
@@ -18,9 +20,8 @@ const (
 )
 
 type (
-	// Tester - вспомогательный объект для работы с тестовой БД.
+	// Tester - вспомогательный объект для работы с тестовым Redis.
 	Tester struct {
-		ownerT    *testing.T
 		container *Container
 		conn      *mrredis.ConnAdapter
 	}
@@ -28,6 +29,8 @@ type (
 
 // NewTester - создаёт объект Tester.
 // Докер образ берётся из DockerImage, Redis запускается с паролем.
+// Соединение и контейнер освобождаются автоматически по завершении теста t,
+// а методы тестера принимают t того теста (подтеста), из которого они вызываются.
 func NewTester(t *testing.T) *Tester {
 	t.Helper()
 
@@ -40,10 +43,18 @@ func NewTester(t *testing.T) *Tester {
 	require.NoError(t, err)
 
 	conn, err := newRedis(ctx, container.DSN())
+	if err != nil {
+		_ = container.Terminate(ctx)
+	}
+
 	require.NoError(t, err)
 
+	// ресурсы освобождаются по завершении теста t (после всех его подтестов)
+	t.Cleanup(func() {
+		assert.NoError(t, errors.Join(conn.Close(), container.Terminate(context.Background())))
+	})
+
 	return &Tester{
-		ownerT:    t,
 		container: container,
 		conn:      conn,
 	}
@@ -55,29 +66,20 @@ func DockerImage() string {
 	return testenv.DockerImage(dockerImageEnv, dockerImage)
 }
 
-// Conn - возвращает менеджер текущего соединения с БД.
-func (t *Tester) Conn() *mrredis.ConnAdapter {
-	t.ownerT.Helper()
-
-	return t.conn
+// Conn - возвращает адаптер текущего соединения с Redis.
+func (rt *Tester) Conn() *mrredis.ConnAdapter {
+	return rt.conn
 }
 
-// FlushAll - очистка всех данных в Redis.
-func (t *Tester) FlushAll(ctx context.Context) {
-	t.ownerT.Helper()
+// FlushAll - очищает все данные Redis.
+func (rt *Tester) FlushAll(t *testing.T, ctx context.Context) {
+	t.Helper()
 
-	redisCli, err := t.conn.Cli()
-	require.NoError(t.ownerT, err)
+	redisCli, err := rt.conn.Cli()
+	require.NoError(t, err)
 
 	cmd := redisCli.FlushAll(ctx)
-	require.NoError(t.ownerT, cmd.Err())
-}
-
-// Destroy - освобождает ресурсы объекта когда он уже больше не нужен.
-func (t *Tester) Destroy(ctx context.Context) {
-	t.ownerT.Helper()
-
-	require.NoError(t.ownerT, t.container.Terminate(ctx))
+	require.NoError(t, cmd.Err())
 }
 
 func newRedis(ctx context.Context, dsn string) (*mrredis.ConnAdapter, error) {
@@ -91,5 +93,11 @@ func newRedis(ctx context.Context, dsn string) (*mrredis.ConnAdapter, error) {
 		return nil, err
 	}
 
-	return conn, conn.Ping(ctx)
+	if err := conn.Ping(ctx); err != nil {
+		_ = conn.Close()
+
+		return nil, err
+	}
+
+	return conn, nil
 }
