@@ -1,4 +1,4 @@
-package infra
+package redistest
 
 import (
 	"context"
@@ -8,53 +8,57 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mondegor/go-storage/mrredis"
-	"github.com/mondegor/go-storage/mrtests/helpers"
 )
 
 const (
-	redisDockerImage = "p/redis:7.4.8" // TODO: вынести в настройки
-	redisPassword    = "123456"
+	dockerImage = "p/redis:7.4.8" // TODO: вынести в настройки
+	password    = "123456"
 )
 
 type (
-	// RedisTester - вспомогательный объект для работы с тестовой БД.
-	RedisTester struct {
+	// Tester - вспомогательный объект для работы с тестовой БД.
+	Tester struct {
 		ownerT    *testing.T
-		container *helpers.RedisContainer
+		container *Container
 		conn      *mrredis.ConnAdapter
 	}
 )
 
-// NewRedisTester - создаёт объект RedisTester.
-func NewRedisTester(t *testing.T) *RedisTester {
+// NewTester - создаёт объект Tester.
+func NewTester(t *testing.T) *Tester {
 	t.Helper()
 
 	ctx := context.Background()
-	container, err := helpers.NewRedisContainer(
+	container, err := NewContainer(
 		ctx,
-		redisDockerImage,
+		DockerImage(),
 	)
 	require.NoError(t, err)
 
 	conn, err := newRedis(ctx, container.DSN())
 	require.NoError(t, err)
 
-	return &RedisTester{
+	return &Tester{
 		ownerT:    t,
 		container: container,
 		conn:      conn,
 	}
 }
 
+// DockerImage - возвращает докер образ Redis, используемый в NewTester.
+func DockerImage() string {
+	return dockerImage
+}
+
 // Conn - возвращает менеджер текущего соединения с БД.
-func (t *RedisTester) Conn() *mrredis.ConnAdapter {
+func (t *Tester) Conn() *mrredis.ConnAdapter {
 	t.ownerT.Helper()
 
 	return t.conn
 }
 
-// FlushAll - очистка всех данных в RedisTester.
-func (t *RedisTester) FlushAll(ctx context.Context) {
+// FlushAll - очистка всех данных в Redis.
+func (t *Tester) FlushAll(ctx context.Context) {
 	t.ownerT.Helper()
 
 	redisCli, err := t.conn.Cli()
@@ -65,7 +69,7 @@ func (t *RedisTester) FlushAll(ctx context.Context) {
 }
 
 // Destroy - освобождает ресурсы объекта когда он уже больше не нужен.
-func (t *RedisTester) Destroy(ctx context.Context) {
+func (t *Tester) Destroy(ctx context.Context) {
 	t.ownerT.Helper()
 
 	require.NoError(t.ownerT, t.container.Terminate(ctx))
@@ -75,7 +79,7 @@ func newRedis(ctx context.Context, dsn string) (*mrredis.ConnAdapter, error) {
 	conn := mrredis.New(mrtrace.NopTracer())
 	opts := mrredis.Options{
 		DSN:      dsn,
-		Password: redisPassword,
+		Password: password,
 	}
 
 	if err := conn.Connect(ctx, opts); err != nil {

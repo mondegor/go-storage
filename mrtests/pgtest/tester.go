@@ -1,4 +1,4 @@
-package infra
+package pgtest
 
 import (
 	"context"
@@ -8,58 +8,56 @@ import (
 
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
+	migratepostgres "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // WARNING: используется в migrate.NewWithDatabaseInstance
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/mondegor/go-core/mrlog"
 	"github.com/mondegor/go-core/mrpostgres"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mondegor/go-storage/mrtests/helpers"
 )
 
 const (
-	postgresDockerImage   = "p/postgres:18.3" // TODO: вынести в настройки
-	postgresDB            = "db_pg_test"
-	postgresUser          = "user_pg"
-	postgresPassword      = "123456_test"
-	postgresDefaultSchema = "public"
+	dockerImage   = "p/postgres:18.3" // TODO: вынести в настройки
+	dbName        = "db_pg_test"
+	dbUser        = "user_pg"
+	dbPassword    = "123456_test"
+	defaultSchema = "public"
 )
 
 type (
-	// PostgresTester - вспомогательный объект для работы с тестовой БД.
-	PostgresTester struct {
+	// Tester - вспомогательный объект для работы с тестовой БД.
+	Tester struct {
 		ownerT            *testing.T
-		container         *helpers.PostgresContainer
+		container         *Container
 		truncateCondition string
 		conn              *mrpostgres.ConnAdapter
 		connManager       *mrpostgres.ConnManager
 	}
 )
 
-// NewPostgresTester - создаёт объект PostgresTester.
+// NewTester - создаёт объект Tester.
 // dbSchemas - список схем в которых будет происходить очистка таблиц,
-// если не указан, то будет использоваться схема postgresDefaultSchema.
+// если не указан, то будет использоваться схема defaultSchema.
 // excludedTables - список таблиц, которые будут исключены их очистки таблиц.
-func NewPostgresTester(t *testing.T, dbSchemas, excludedTables []string) *PostgresTester {
+func NewTester(t *testing.T, dbSchemas, excludedTables []string) *Tester {
 	t.Helper()
 
 	ctx := context.Background()
-	container, err := helpers.NewPostgresContainer(
+	container, err := NewContainer(
 		ctx,
-		postgresDockerImage,
-		postgresDB,
-		postgresUser,
-		postgresPassword,
+		DockerImage(),
+		dbName,
+		dbUser,
+		dbPassword,
 	)
 	require.NoError(t, err)
 
 	conn, err := newPostgres(ctx, container.DSN())
 	require.NoError(t, err)
 
-	excludedTables = append(excludedTables, postgres.DefaultMigrationsTable)
+	excludedTables = append(excludedTables, migratepostgres.DefaultMigrationsTable)
 
-	return &PostgresTester{
+	return &Tester{
 		ownerT:            t,
 		container:         container,
 		truncateCondition: prepareTruncateCondition(dbSchemas, excludedTables),
@@ -68,15 +66,20 @@ func NewPostgresTester(t *testing.T, dbSchemas, excludedTables []string) *Postgr
 	}
 }
 
+// DockerImage - возвращает докер образ Postgres, используемый в NewTester.
+func DockerImage() string {
+	return dockerImage
+}
+
 // ConnManager - возвращает менеджер текущего соединения с БД.
-func (t *PostgresTester) ConnManager() *mrpostgres.ConnManager {
+func (t *Tester) ConnManager() *mrpostgres.ConnManager {
 	t.ownerT.Helper()
 
 	return t.connManager
 }
 
 // TruncateTables - очищает все таблицы текущей схемы со сбросом счётчика автоинкремента.
-func (t *PostgresTester) TruncateTables(ctx context.Context) {
+func (t *Tester) TruncateTables(ctx context.Context) {
 	t.ownerT.Helper()
 
 	sql := fmt.Sprintf(`
@@ -97,7 +100,7 @@ func (t *PostgresTester) TruncateTables(ctx context.Context) {
 }
 
 // ApplyMigrations - накатывает миграции расположенные в указанной директории.
-func (t *PostgresTester) ApplyMigrations(dirPath string) {
+func (t *Tester) ApplyMigrations(dirPath string) {
 	t.ownerT.Helper()
 
 	pgxPool, err := t.conn.Cli()
@@ -107,10 +110,10 @@ func (t *PostgresTester) ApplyMigrations(dirPath string) {
 
 	defer func() { _ = db.Close() }()
 
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	driver, err := migratepostgres.WithInstance(db, &migratepostgres.Config{})
 	require.NoError(t.ownerT, err)
 
-	dbMigrate, err := migrate.NewWithDatabaseInstance("file://"+dirPath, postgresDB, driver)
+	dbMigrate, err := migrate.NewWithDatabaseInstance("file://"+dirPath, dbName, driver)
 	require.NoError(t.ownerT, err)
 
 	defer func() { _, _ = dbMigrate.Close() }()
@@ -121,7 +124,7 @@ func (t *PostgresTester) ApplyMigrations(dirPath string) {
 
 // ApplyFixtures - загружает данные из указанной директории (имя файла = схема + '.' + имя таблицы) в БД.
 // Перед добавлением данных таблица будет очищена.
-func (t *PostgresTester) ApplyFixtures(dirPath string) {
+func (t *Tester) ApplyFixtures(dirPath string) {
 	t.ownerT.Helper()
 
 	pgxPool, err := t.conn.Cli()
@@ -142,7 +145,7 @@ func (t *PostgresTester) ApplyFixtures(dirPath string) {
 }
 
 // CountRows - возвращает количество записей указанной таблицы находящейся в текущей схеме.
-func (t *PostgresTester) CountRows(ctx context.Context, tableName string) (count int) {
+func (t *Tester) CountRows(ctx context.Context, tableName string) (count int) {
 	t.ownerT.Helper()
 
 	err := t.conn.
@@ -155,7 +158,7 @@ func (t *PostgresTester) CountRows(ctx context.Context, tableName string) (count
 }
 
 // Destroy - освобождает ресурсы объекта когда он уже больше не нужен.
-func (t *PostgresTester) Destroy(ctx context.Context) {
+func (t *Tester) Destroy(ctx context.Context) {
 	t.ownerT.Helper()
 
 	require.NoError(t.ownerT, t.container.Terminate(ctx))
@@ -176,13 +179,13 @@ func newPostgres(ctx context.Context, dsn string) (*mrpostgres.ConnAdapter, erro
 
 func prepareTruncateCondition(dbSchemas, excludedTables []string) (condition string) {
 	if len(dbSchemas) == 0 {
-		dbSchemas = append(dbSchemas, postgresDefaultSchema)
+		dbSchemas = append(dbSchemas, defaultSchema)
 	}
 
 	condition = " AND relnamespace IN ('" + strings.Join(dbSchemas, "'::regnamespace,'") + "'::regnamespace)"
 
 	if len(excludedTables) > 0 {
-		prefix := postgresDefaultSchema + "."
+		prefix := defaultSchema + "."
 
 		// публичная схема срезается у всех таблиц, иначе условие работать не будет правильно
 		for i := range excludedTables {

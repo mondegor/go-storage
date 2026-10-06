@@ -1,6 +1,19 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2026-10-06
+### Changed
+- Пакет `mrtests` разделён по сервисам: `mrtests/helpers` и `mrtests/infra` заменены пакетами
+  `mrtests/pgtest` и `mrtests/redistest`, в каждом из которых есть `Container` (`NewContainer`, `DSN`)
+  и `Tester` (`NewTester`, `DockerImage`);
+- Переименованы: `infra.PostgresTester` -> `pgtest.Tester`, `infra.NewPostgresTester` -> `pgtest.NewTester`,
+  `infra.RedisTester` -> `redistest.Tester`, `infra.NewRedisTester` -> `redistest.NewTester`,
+  `helpers.PostgresContainer` -> `pgtest.Container`, `helpers.RedisContainer` -> `redistest.Container`;
+- Добавлены интеграционные тесты `pgtest` и `redistest` (пропускаются, если Docker недоступен);
+
+### Removed
+- Удалены `infra.MinioTester` и `helpers.MinioContainer`, а также зависимость `testcontainers-go/modules/minio`;
+
 ## 2025-09-29 (v0.17.1)
 ### Changed
 - Все переменные используемые в качестве счётчиков приведены к типу `int`;
