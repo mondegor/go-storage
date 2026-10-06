@@ -22,7 +22,12 @@
 с ним в тестах (`Tester`):
 - `mrtests/pgtest` - postgres; `pgtest.Tester` применяет миграции (`golang-migrate`),
   загружает и очищает фикстуры (`testfixtures`);
-- `mrtests/redistest` - redis.
+- `mrtests/redistest` - redis (запускается с паролем).
+
+По умолчанию поднимаются публичные образы Docker Hub (`postgres:18.3-alpine3.23`, `redis:7.4.8-alpine3.21`),
+а вся настройка контейнера задаётся в коде. Образ можно переопределить переменными окружения
+`MRTESTS_POSTGRES_DOCKER_IMAGE` и `MRTESTS_REDIS_DOCKER_IMAGE`; итоговый образ возвращают функции
+`pgtest.DockerImage()` и `redistest.DockerImage()` (пригодится при прямом вызове `NewContainer`).
 
 ## Подключение библиотеки
 `go get -u github.com/mondegor/go-storage@v0.17.1`

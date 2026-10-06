@@ -3,6 +3,7 @@ package redistest
 import (
 	"context"
 
+	"github.com/testcontainers/testcontainers-go"
 	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
 )
 
@@ -15,11 +16,16 @@ type (
 )
 
 // NewContainer - создаёт объект Container.
-func NewContainer(ctx context.Context, dockerImage string) (*Container, error) {
-	container, err := tcredis.Run(
-		ctx,
-		dockerImage,
-	)
+// Если указан password, то сервер запускается с требованием аутентификации,
+// иначе используется команда запуска, заданная в докер образе.
+func NewContainer(ctx context.Context, dockerImage, password string) (*Container, error) {
+	var opts []testcontainers.ContainerCustomizer
+
+	if password != "" {
+		opts = append(opts, testcontainers.WithCmd("redis-server", "--requirepass", password))
+	}
+
+	container, err := tcredis.Run(ctx, dockerImage, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -10,6 +10,10 @@
   `infra.RedisTester` -> `redistest.Tester`, `infra.NewRedisTester` -> `redistest.NewTester`,
   `helpers.PostgresContainer` -> `pgtest.Container`, `helpers.RedisContainer` -> `redistest.Container`;
 - Добавлены интеграционные тесты `pgtest` и `redistest` (пропускаются, если Docker недоступен);
+- По умолчанию используются публичные образы Docker Hub (`postgres:18.3-alpine3.23`, `redis:7.4.8-alpine3.21`),
+  образ можно переопределить переменными окружения `MRTESTS_POSTGRES_DOCKER_IMAGE` и `MRTESTS_REDIS_DOCKER_IMAGE`;
+- В `redistest.NewContainer` добавлен параметр `password`, пароль Redis задаётся при запуске контейнера
+  (`--requirepass`), а не в докер образе;
 
 ### Removed
 - Удалены `infra.MinioTester` и `helpers.MinioContainer`, а также зависимость `testcontainers-go/modules/minio`;

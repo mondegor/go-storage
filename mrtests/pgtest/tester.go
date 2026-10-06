@@ -14,14 +14,17 @@ import (
 	"github.com/mondegor/go-core/mrlog"
 	"github.com/mondegor/go-core/mrpostgres"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mondegor/go-storage/mrtests/internal/testenv"
 )
 
 const (
-	dockerImage   = "p/postgres:18.3" // TODO: вынести в настройки
-	dbName        = "db_pg_test"
-	dbUser        = "user_pg"
-	dbPassword    = "123456_test"
-	defaultSchema = "public"
+	dockerImageEnv = "MRTESTS_POSTGRES_DOCKER_IMAGE"
+	dockerImage    = "postgres:18.3-alpine3.23"
+	dbName         = "db_pg_test"
+	dbUser         = "user_pg"
+	dbPassword     = "123456_test"
+	defaultSchema  = "public"
 )
 
 type (
@@ -39,6 +42,7 @@ type (
 // dbSchemas - список схем в которых будет происходить очистка таблиц,
 // если не указан, то будет использоваться схема defaultSchema.
 // excludedTables - список таблиц, которые будут исключены их очистки таблиц.
+// Докер образ берётся из DockerImage.
 func NewTester(t *testing.T, dbSchemas, excludedTables []string) *Tester {
 	t.Helper()
 
@@ -66,9 +70,10 @@ func NewTester(t *testing.T, dbSchemas, excludedTables []string) *Tester {
 	}
 }
 
-// DockerImage - возвращает докер образ Postgres, используемый в NewTester.
+// DockerImage - возвращает докер образ Postgres из переменной окружения
+// MRTESTS_POSTGRES_DOCKER_IMAGE, а если она не задана, то берётся значение по умолчанию.
 func DockerImage() string {
-	return dockerImage
+	return testenv.DockerImage(dockerImageEnv, dockerImage)
 }
 
 // ConnManager - возвращает менеджер текущего соединения с БД.
