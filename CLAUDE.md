@@ -22,7 +22,7 @@ The canonical workflow uses the external [`mrcmd`](https://github.com/mondegor/m
 | Upgrade deps | `make deps-upgrade` | `go get -u ./...` then `go mod tidy` |
 
 - Run a single test: `go test ./mrminio/ -run TestFileProvider -v`
-- `make check-and-fix` runs the full pre-commit chain: generate → format → lint → test → plantuml. `make full` adds dependency download first; `make full2` upgrades dependencies first. (`make generate` / `go generate ./...` is a no-op here — this repo currently has no `go:generate` directives or generated mocks; the mocked interfaces and their mocks live in `go-core`.)
+- `make check-and-fix` runs the full pre-commit chain: generate → format → lint → test. `make full` adds dependency download first; `make full2` upgrades dependencies first. (`make generate` / `go generate ./...` is a no-op here — this repo currently has no `go:generate` directives or generated mocks; the mocked interfaces and their mocks live in `go-core`.)
 
 ### Tests and the `mrtests` harness
 
@@ -46,7 +46,7 @@ Driver packages (`mrredis`, `mrminio`, `mrrabbitmq`, `mrfilestorage`) share a co
 Package specifics:
 - **`mrredis`** — `conn_adapter.go` (lifecycle, default read/write timeouts), `conn_cmd.go` (command helpers), and `locker/` — the distributed `Locker` built on `bsm/redislock` (`locker.Adapter`, constructed via `NewAdapter(conn, logger, tracer)`), translating `redislock` errors through its own `wrapper_errors.go`.
 - **`mrminio`** — `file_provider.go` implementing `FileProvider` over `minio-go/v7`.
-- **`mrfilestorage`** — `file_provider.go` (+ `file_system.go`, `errors.go`, `wrapper_errors.go`) implementing `FileProvider` over the local filesystem; `Ping` writes/reads a sentinel `testFile`.
+- **`mrfilestorage`** — `file_provider.go` (+ `file_system.go`, `errors.go`, `wrapper_errors.go`) implementing `FileProvider` over the local filesystem; `Ping` creates and removes a sentinel `testFile`.
 - **`mrrabbitmq`** — `conn_adapter.go` only: AMQP 0.9.1 connection management (`amqp://User:Password@Host:Port/`).
 
 ### Dependencies on `go-core`

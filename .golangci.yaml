@@ -68,7 +68,6 @@ linters:
   exclusions:
     paths:
       - ^\.github/
-      - ^docs/
       - ^vendor/
     rules:
       - path: _test\.go
@@ -351,7 +350,6 @@ formatters:
   exclusions:
     paths:
       - ^\.github/
-      - ^docs/
       - ^vendor/
 
   settings:

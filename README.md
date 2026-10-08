@@ -12,6 +12,64 @@
 - S3 minio - `mrminio` (`minio-go/v7`) + `FileProvider`;
 - Native File System - `mrfilestorage` + `FileProvider`;
 
+### Пакеты библиотеки
+
+#### `mrrabbitmq` - RabbitMQ (`amqp091-go`)
+`ConnAdapter` управляет соединением с сервером RabbitMQ (AMQP 0.9.1):
+- `New()` - создаёт адаптер без активного соединения;
+- `Connect(ctx, Options)` - подключается по схеме `amqp://User:Password@Host:Port/`;
+- `Cli()` - возвращает нативное соединение `*amqp.Connection`, через которое создаются каналы
+  для публикации и потребления сообщений;
+- `Close()` - закрывает соединение.
+
+#### `mrredis` - Redis (`go-redis/v9`)
+`ConnAdapter` управляет соединением с Redis:
+- `New(tracer)` - создаёт адаптер без активного соединения;
+- `Connect(ctx, Options)` - подключается по `DSN` либо по `Host`/`Port`, пароль (`Password`)
+  переопределяет пароль из DSN, таймауты чтения/записи (`ReadTimeout`/`WriteTimeout`) по умолчанию 5s;
+- `Ping(ctx)`, `Close()` - проверка и закрытие соединения;
+- `Cli()` - возвращает нативный клиент `redis.UniversalClient`;
+- `GetStruct` / `SetStruct` / `Delete` - чтение и запись структур по ключу (с временем жизни ключа),
+  удаление одного или нескольких ключей.
+
+#### `mrredis/locker` - распределённые блокировки (`bsm/redislock`)
+`Adapter` реализует интерфейс `mrlock.Locker` из GoCore поверх Redis:
+- `NewAdapter(conn, logger, tracer)` - создаёт адаптер на основе `redis.UniversalClient`
+  (например, полученного через `mrredis.ConnAdapter.Cli()`);
+- `Lock(ctx, key)` / `LockWithExpiry(ctx, key, expiry)` - захватывают блокировку ключа
+  (со временем жизни по умолчанию или заданным) и возвращают функцию её освобождения.
+
+#### `mrminio` - S3-совместимое хранилище MinIO (`minio-go/v7`)
+`ConnAdapter` управляет соединением с MinIO:
+- `New(createBuckets, mimeTypes, tracer)` - создаёт адаптер; `createBuckets` разрешает автоматически
+  создавать отсутствующие бакеты, `mimeTypes` используется для определения типа контента;
+- `Connect(ctx, Options)` - подключается по `DSN` (`host:port`) либо по `Host`/`Port`,
+  с учётом `UseSSL` и учётных данных `User`/`Password`;
+- `Ping(ctx)`, `Close()`, `Cli()` (нативный `*minio.Client`);
+- `InitBucket(ctx, bucketName)` - проверяет наличие бакета и при необходимости создаёт его.
+
+`FileProvider` (`NewFileProvider(conn, bucketName)`) реализует `mrstorage.FileProvider` для одного бакета:
+- `Info` - метаинформация файла (размер, тип контента, даты, оригинальное имя);
+- `Download` / `DownloadFile` - содержимое файла вместе с метаинформацией или только `io.ReadCloser`;
+- `Upload` - сохраняет файл, определяя `ContentType` по расширению (если он не указан)
+  и записывая оригинальное имя файла в `Content-Disposition`;
+- `Remove` - удаляет файл;
+- `Ping`, `Close`, `Cli` - унаследованы от встроенного `ConnAdapter`.
+
+#### `mrfilestorage` - файловое хранилище на локальной файловой системе
+- `FileSystem` (`New(dirMode, createDirs, mimeTypes)`) - работа с директориями: `InitRootDir`
+  инициализирует (и при `createDirs` создаёт) корневую директорию, `CreateDirIfNotExists` создаёт
+  вложенные директории;
+- `FileProvider` (`NewFileProvider(fs, tracer, rootDir)`) реализует `mrstorage.FileProvider`
+  относительно `rootDir`: `Info`, `Download` / `DownloadFile`, `Upload` (создаёт недостающие директории),
+  `Remove`, `Ping` (проверяет возможность записи, создавая и сразу удаляя тестовый файл), `Close`.
+  Пути короче 3 символов или содержащие `..` отклоняются с ошибкой `ErrInternalInvalidPath`.
+
+Благодаря общему интерфейсу `mrstorage.FileProvider` провайдеры `mrminio` и `mrfilestorage`
+взаимозаменяемы. В `mrredis`, `mrredis/locker`, `mrminio.FileProvider` и `mrfilestorage.FileProvider`
+ошибки драйверов транслируются в ошибки GoCore (`go-core/errors`), а операции трассируются через `mrtrace`.
+Примеры использования находятся в директории `examples/` (`mrminio`, `mrrabbitmq`, `mrredis`).
+
 Абстрактные интерфейсы, которые реализуют адаптеры (`mrstorage`, `mrlock`), модели файлов (`mrmodel/media`),
 а также адаптер для PostgreSQL (`mrpostgres`) находятся в библиотеке
 [GoCore](https://github.com/mondegor/go-core).
@@ -64,7 +122,6 @@
 - `mrcmd go-dev lint` // запускает линтеры для проверки кода (на основе `.golangci.yaml`);
 - `mrcmd go-dev test` // запускает тесты библиотеки;
 - `mrcmd go-dev test-report` // запускает тесты библиотеки с формированием отчёта о покрытии кода (`test-coverage-full.html`);
-- `mrcmd plantuml build-all` // генерирует файлы изображений из `.puml` [подробнее](https://github.com/mondegor/mrcmd-plugins/blob/master/plantuml/README.md#%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0-%D1%81-%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D1%86%D0%B8%D0%B5%D0%B9-%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B0-markdown--plantuml);
 
 #### Короткий вариант выше приведённых команд (Makefile)
 - `make deps` // аналог `mrcmd go-dev deps`
@@ -73,10 +130,9 @@
 - `make lint` // аналог `mrcmd go-dev gofumpt-fix` + `goimports-fix` + `gci-fix` + `lint`
 - `make test` // аналог `mrcmd go-dev test`
 - `make test-report` // аналог `mrcmd go-dev test-report`
-- `make plantuml` // аналог `mrcmd plantuml build-all`
 
 Дополнительные команды (Makefile.mk):
-- `make check-and-fix` // generate + форматирование + lint + test + plantuml;
+- `make check-and-fix` // generate + форматирование + lint + test;
 - `make full` // `make deps` + `make check-and-fix`;
 - `make full2` // `make deps-upgrade` + `make check-and-fix`;
 - `make archive` // упаковывает проект в `../go-storage.tar.gz`;
