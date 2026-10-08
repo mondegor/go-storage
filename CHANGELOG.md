@@ -18,10 +18,13 @@
   а соединение и контейнер освобождаются автоматически через `t.Cleanup`;
 - Контейнеры Postgres и Redis ожидают готовности по порту и логу (до 30s, с учётом параллельного
   `go test -p`), а не стартовавший контейнер сразу удаляется;
+- В README подробнее описаны пакеты библиотеки;
 
 ### Removed
 - Удалены `infra.MinioTester` и `helpers.MinioContainer`, а также зависимость `testcontainers-go/modules/minio`;
 - Удалён метод `Destroy` у `pgtest.Tester` и `redistest.Tester` (ресурсы освобождаются через `t.Cleanup`);
+- Удалена поддержка plantuml (`make plantuml`, шаг в `make check-and-fix` локального `Makefile.mk`,
+  плагин и переменные в `.env.dist`) и пустая директория `docs`;
 
 ## 2025-09-29 (v0.17.1)
 ### Changed

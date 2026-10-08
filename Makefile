@@ -22,7 +22,4 @@ test:
 test-report:
 	mrcmd go-dev test-report
 
-plantuml:
-	mrcmd plantuml build-all
-
-.PHONY: deps deps-upgrade generate lint test test-report plantuml
+.PHONY: deps deps-upgrade generate lint test test-report
