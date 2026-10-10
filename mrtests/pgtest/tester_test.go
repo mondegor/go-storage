@@ -29,7 +29,14 @@ func TestTester(t *testing.T) {
 	writeFile(t, fixturesDir, "items.yml", "- id: 1\n  caption: first\n- id: 2\n  caption: second\n")
 	writeFile(t, fixturesDir, "settings.yml", "- id: 1\n  caption: first\n")
 
-	pgt := pgtest.NewTester(t, nil, []string{"public.settings"})
+	// запас ёмкости у срезов нужен, чтобы append внутри NewTester мог записать в массив вызывающего,
+	// поэтому проверяются целиком массивы, а не только видимые части срезов;
+	// пустой dbSchemas также проверяет использование схемы по умолчанию
+	dbSchemas := make([]string, 0, 1)
+	excludedTables := append(make([]string, 0, 2), "public.settings")
+	pgt := pgtest.NewTester(t, dbSchemas, excludedTables)
+	assert.Equal(t, []string{""}, dbSchemas[:cap(dbSchemas)], "NewTester must not modify the caller's dbSchemas")
+	assert.Equal(t, []string{"public.settings", ""}, excludedTables[:cap(excludedTables)], "NewTester must not modify the caller's excludedTables")
 
 	var one int
 	require.NoError(t, pgt.ConnManager().Conn(ctx).QueryRow(ctx, `SELECT 1`).Scan(&one))

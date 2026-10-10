@@ -22,8 +22,7 @@ const (
 type (
 	// Tester - вспомогательный объект для работы с тестовым Redis.
 	Tester struct {
-		container *Container
-		conn      *mrredis.ConnAdapter
+		conn *mrredis.ConnAdapter
 	}
 )
 
@@ -55,8 +54,7 @@ func NewTester(t *testing.T) *Tester {
 	})
 
 	return &Tester{
-		container: container,
-		conn:      conn,
+		conn: conn,
 	}
 }
 

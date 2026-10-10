@@ -32,7 +32,6 @@ const (
 type (
 	// Tester - вспомогательный объект для работы с тестовой БД.
 	Tester struct {
-		container         *Container
 		truncateCondition string
 		conn              *mrpostgres.ConnAdapter
 		connManager       *mrpostgres.ConnManager
@@ -42,7 +41,15 @@ type (
 // NewTester - создаёт объект Tester.
 // dbSchemas - список схем в которых будет происходить очистка таблиц,
 // если не указан, то будет использоваться схема defaultSchema.
-// excludedTables - список таблиц, которые будут исключены их очистки таблиц.
+// excludedTables - список таблиц, которые будут исключены из очистки таблиц,
+// имя таблицы указывается со схемой или без неё (тогда она ищется через search_path).
+// Таблица миграций migratepostgres.DefaultMigrationsTable исключается всегда
+// (особенности очистки исключённых таблиц см. в TruncateTables).
+// Имена схем и таблиц задаются автором теста и подставляются в SQL как есть,
+// поэтому передавать в них внешние данные нельзя. Имена приводятся через ::regnamespace
+// и ::regclass намеренно: опечатка в имени схемы или таблицы приводит к ошибке
+// при вызове TruncateTables, а не к тихому пропуску (поэтому не to_regclass).
+// Переданные срезы не изменяются.
 // Докер образ берётся из DockerImage.
 // Соединение и контейнер освобождаются автоматически по завершении теста t,
 // а методы тестера принимают t того теста (подтеста), из которого они вызываются.
@@ -71,10 +78,7 @@ func NewTester(t *testing.T, dbSchemas, excludedTables []string) *Tester {
 		assert.NoError(t, errors.Join(conn.Close(), container.Terminate(context.Background())))
 	})
 
-	excludedTables = append(excludedTables, migratepostgres.DefaultMigrationsTable)
-
 	return &Tester{
-		container:         container,
 		truncateCondition: prepareTruncateCondition(dbSchemas, excludedTables),
 		conn:              conn,
 		connManager:       mrpostgres.NewConnManager(conn, mrlog.NopLogger()),
@@ -92,17 +96,31 @@ func (pt *Tester) ConnManager() *mrpostgres.ConnManager {
 	return pt.connManager
 }
 
-// TruncateTables - очищает все таблицы текущей схемы со сбросом счётчика автоинкремента.
+// TruncateTables - очищает все таблицы схем dbSchemas, кроме excludedTables,
+// со сбросом счётчика автоинкремента.
+// Вызывается после ApplyMigrations: до них таблицы миграций ещё нет и её приведение
+// к ::regclass завершается ошибкой.
+// Если очищать нечего (неверно указаны схемы или исключены все таблицы),
+// то тест завершается ошибкой с понятным сообщением, т.к. это ошибка настройки теста.
+// WARNING: очистка выполняется с CASCADE, поэтому таблицы, ссылающиеся внешним ключом
+// на очищаемые, будут очищены, даже если они указаны в excludedTables.
 func (pt *Tester) TruncateTables(t *testing.T, ctx context.Context) {
 	t.Helper()
 
 	sql := fmt.Sprintf(`
 		DO $do$
+		DECLARE
+			tables text;
 		BEGIN
-			EXECUTE
-				(SELECT 'TRUNCATE TABLE ' || string_agg(oid::regclass::text, ', ') || ' RESTART IDENTITY CASCADE'
-				 FROM pg_class
-				 WHERE relkind = 'r'%s);
+			SELECT string_agg(oid::regclass::text, ', ') INTO tables
+			FROM pg_class
+			WHERE relkind = 'r'%s;
+
+			IF tables IS NULL THEN
+				RAISE EXCEPTION 'pgtest: no tables to truncate (check dbSchemas and excludedTables)';
+			END IF;
+
+			EXECUTE 'TRUNCATE TABLE ' || tables || ' RESTART IDENTITY CASCADE';
 		END $do$;`,
 		pt.truncateCondition,
 	)
@@ -134,7 +152,9 @@ func (pt *Tester) ApplyMigrations(t *testing.T, dirPath string) {
 	require.NoError(t, err)
 }
 
-// ApplyFixtures - загружает данные из указанной директории (имя файла = схема + '.' + имя таблицы) в БД.
+// ApplyFixtures - загружает данные из файлов .yml/.yaml указанной директории в БД,
+// имя файла без расширения = [схема + '.'] + имя таблицы
+// (без схемы таблица ищется через search_path).
 // Перед добавлением данных таблица будет очищена.
 func (pt *Tester) ApplyFixtures(t *testing.T, dirPath string) {
 	t.Helper()
@@ -156,7 +176,9 @@ func (pt *Tester) ApplyFixtures(t *testing.T, dirPath string) {
 	require.NoError(t, fixtures.Load())
 }
 
-// CountRows - возвращает количество записей указанной таблицы находящейся в текущей схеме.
+// CountRows - возвращает количество записей указанной таблицы.
+// Имя таблицы указывается со схемой или без неё (тогда она ищется через search_path)
+// и подставляется в SQL как есть, поэтому передавать в него внешние данные нельзя.
 func (pt *Tester) CountRows(t *testing.T, ctx context.Context, tableName string) (count int) {
 	t.Helper()
 
@@ -190,21 +212,15 @@ func newPostgres(ctx context.Context, dsn string) (*mrpostgres.ConnAdapter, erro
 
 func prepareTruncateCondition(dbSchemas, excludedTables []string) (condition string) {
 	if len(dbSchemas) == 0 {
-		dbSchemas = append(dbSchemas, defaultSchema)
+		dbSchemas = []string{defaultSchema}
 	}
 
 	condition = " AND relnamespace IN ('" + strings.Join(dbSchemas, "'::regnamespace,'") + "'::regnamespace)"
 
-	if len(excludedTables) > 0 {
-		prefix := defaultSchema + "."
-
-		// публичная схема срезается у всех таблиц, иначе условие работать не будет правильно
-		for i := range excludedTables {
-			excludedTables[i] = strings.TrimPrefix(excludedTables[i], prefix)
-		}
-
-		condition += " AND oid::regclass NOT IN ('" + strings.Join(excludedTables, "'::regclass,'") + "'::regclass)"
-	}
+	// таблица миграций исключается всегда; срез собирается заново, чтобы не изменять переданный;
+	// значения regclass сравниваются по oid, поэтому 'public.t' и 't' - одна и та же таблица
+	excludedTables = append([]string{migratepostgres.DefaultMigrationsTable}, excludedTables...)
+	condition += " AND oid::regclass NOT IN ('" + strings.Join(excludedTables, "'::regclass,'") + "'::regclass)"
 
 	return condition
 }
