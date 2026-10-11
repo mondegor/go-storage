@@ -98,11 +98,10 @@
 - `git clone git@github.com:mondegor/go-storage.git .`
 - `cp .env.dist .env`
 - `mrcmd go-dev deps` // загрузка зависимостей проекта
-- Для работы утилит `gofumpt`, `goimports`, `gci`, `golangci-lint`, `mockgen` необходимо запустить
-  `mrcmd go-dev install-tools`. По умолчанию `gofumpt`, `goimports`, `gci`, `golangci-lint` устанавливаются
-  последних версий; чтобы закрепить версию, раскомментируйте переменную `GO_DEV_TOOLS_INSTALL_*` в `.env`.
-  `mockgen` в go-dev по умолчанию выключен, но в `.env.dist` для него задана версия, поэтому он тоже
-  будет установлен (сейчас в библиотеке нет моков, он понадобится только при их добавлении);
+- Для работы утилиты `golangci-lint` (линтеры и форматтеры) необходимо запустить
+  `mrcmd go-dev install-tools`. `golangci-lint` устанавливается версии из `.env.dist`
+  (та же, что в CI, меняются вместе).
+  `mockgen` и `gotext` в go-dev по умолчанию выключены и в библиотеке не используются;
 
 ### Запуск тестов
 Тесты библиотеки запускаются командой `go test ./...`. Интеграционные тесты пакетов `mrtests/*`
@@ -116,10 +115,10 @@
 
 - `mrcmd go-dev help` // выводит список всех доступных go-dev команд;
 - `mrcmd go-dev generate` // генерирует go файлы через встроенный механизм go:generate;
-- `mrcmd go-dev gofumpt-fix` // исправляет форматирование кода (`gofumpt -l -w -extra ./`);
-- `mrcmd go-dev goimports-fix` // исправляет imports, если это требуется (`goimports -l -w -local ${GO_DEV_IMPORTS_LOCAL_PREFIXES}` для всех go файлов, кроме сгенерированных);
-- `mrcmd go-dev gci-fix` // упорядочивает imports (`gci write --skip-generated -s standard -s default -s prefix(${GO_DEV_IMPORTS_LOCAL_PREFIXES}) .`);
+- `mrcmd go-dev fmt` // исправляет форматирование кода и imports (`golangci-lint fmt`: форматтеры из раздела `formatters` в `.golangci.yaml`, сгенерированные файлы пропускаются);
+- `mrcmd go-dev fmt-diff` // показывает изменения, которые внесёт `fmt`, не меняя файлы (`golangci-lint fmt -d`);
 - `mrcmd go-dev lint` // запускает линтеры для проверки кода (на основе `.golangci.yaml`);
+- `mrcmd go-dev lint-verify` // проверяет `.golangci.yaml` по JSON-схеме (`golangci-lint config verify`, нужен доступ к golangci-lint.run);
 - `mrcmd go-dev test` // запускает тесты библиотеки;
 - `mrcmd go-dev test-report` // запускает тесты библиотеки с формированием отчёта о покрытии кода (`test-coverage-full.html`);
 
@@ -127,15 +126,10 @@
 - `make deps` // аналог `mrcmd go-dev deps`
 - `make deps-upgrade` // аналог `mrcmd go-dev get -u ./...` + `mrcmd go-dev tidy`
 - `make generate` // аналог `mrcmd go-dev generate`
-- `make lint` // аналог `mrcmd go-dev gofumpt-fix` + `goimports-fix` + `gci-fix` + `lint`
+- `make lint` // аналог `mrcmd go-dev fmt` + `lint`
+- `make lint-verify` // аналог `mrcmd go-dev lint-verify`
 - `make test` // аналог `mrcmd go-dev test`
 - `make test-report` // аналог `mrcmd go-dev test-report`
-
-Дополнительные команды (Makefile.mk):
-- `make check-and-fix` // generate + форматирование + lint + test;
-- `make full` // `make deps` + `make check-and-fix`;
-- `make full2` // `make deps-upgrade` + `make check-and-fix`;
-- `make archive` // упаковывает проект в `../go-storage.tar.gz`;
 
 > Чтобы расширить список команд, необходимо создать Makefile.mk и добавить
 > туда дополнительные команды, все они будут добавлены в единый список команд make утилиты.

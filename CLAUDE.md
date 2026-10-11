@@ -10,19 +10,24 @@ The abstract interfaces these adapters implement (`mrstorage`, `mrlock`, the `mr
 
 ## Commands
 
-The canonical workflow uses the external [`mrcmd`](https://github.com/mondegor/mrcmd) tool, wrapped by `make` targets. `mrcmd` may not be installed locally; the plain `go`/tool equivalents are listed alongside.
+Tooling is driven by [`mrcmd`](https://github.com/mondegor/mrcmd) with the `go-dev` plugin; `make` targets wrap it. When `mrcmd` is not installed, use the direct equivalents.
 
-| Task | make / mrcmd | Direct equivalent |
-|------|--------------|-------------------|
-| Run all tests | `make test` | `go test ./...` |
-| Coverage report (`test-coverage-full.html`) | `make test-report` | — |
-| Lint | `make lint` (gofumpt → goimports → gci → golangci-lint); `mrcmd go-dev lint` runs only golangci-lint | `golangci-lint run` (config: `.golangci.yaml`) |
-| Format | (part of `make lint`) | `gofumpt -l -w -extra ./`, then `goimports -l -w -local github.com/mondegor/go-storage .` (mrcmd passes only non-generated `.go` files), then `gci write --skip-generated -s standard -s default -s "prefix(github.com/mondegor/go-storage)" .` (same sections as `.golangci.yaml`) |
-| Download deps | `make deps` | `go mod download` |
-| Upgrade deps | `make deps-upgrade` | `go get -u ./...` then `go mod tidy` |
+| Task | make | mrcmd | Without mrcmd |
+|------|------|-------|---------------|
+| Download deps | `make deps` | `mrcmd go-dev deps` | `go get ./... && go mod tidy` |
+| Upgrade deps | `make deps-upgrade` | `mrcmd go-dev get -u ./...` + `mrcmd go-dev tidy` | `go get -u ./... && go mod tidy` |
+| Codegen | `make generate` | `mrcmd go-dev generate` | `go generate ./...` |
+| Format + lint | `make lint` | `mrcmd go-dev fmt` + `mrcmd go-dev lint` | `golangci-lint fmt && golangci-lint run ./...` |
+| Format diff only | — | `mrcmd go-dev fmt-diff` | `golangci-lint fmt -d` |
+| Validate lint config | `make lint-verify` | `mrcmd go-dev lint-verify` | `golangci-lint config verify` (needs network access to golangci-lint.run; not part of CI) |
+| Run all tests | `make test` | `mrcmd go-dev test` | `go test -cover ./...` |
+| Coverage report (`test-coverage-full.html`) | `make test-report` | `mrcmd go-dev test-report` | — |
 
+- Extra local make targets can be added in a gitignored `Makefile.mk` (included by `Makefile` if present).
+- Formatters (gofmt, goimports, gci, gofumpt) and linters are both configured in `.golangci.yaml`; `golangci-lint fmt` skips generated files.
+- Dev tools are installed via `mrcmd go-dev install-tools`: `golangci-lint` is pinned in `.env.dist` to the version CI uses (bump both together); `mockgen` and `gotext` are disabled in go-dev and not used by this library.
+- `make generate` / `go generate ./...` is a no-op here — this repo currently has no `go:generate` directives or generated mocks; the mocked interfaces and their mocks live in `go-core`.
 - Run a single test: `go test ./mrminio/ -run TestFileProvider -v`
-- `make check-and-fix` runs the full pre-commit chain: generate → format → lint → test. `make full` adds dependency download first; `make full2` upgrades dependencies first. (`make generate` / `go generate ./...` is a no-op here — this repo currently has no `go:generate` directives or generated mocks; the mocked interfaces and their mocks live in `go-core`.)
 
 ### Tests and the `mrtests` harness
 

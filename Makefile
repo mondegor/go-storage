@@ -12,9 +12,10 @@ generate:
 
 lint:
 	mrcmd go-dev fmt
-	mrcmd go-dev fmti
-	mrcmd go-dev fmti2
 	mrcmd go-dev lint
+
+lint-verify:
+	mrcmd go-dev lint-verify
 
 test:
 	mrcmd go-dev test
@@ -22,4 +23,4 @@ test:
 test-report:
 	mrcmd go-dev test-report
 
-.PHONY: deps deps-upgrade generate lint test test-report
+.PHONY: deps deps-upgrade generate lint lint-verify test test-report

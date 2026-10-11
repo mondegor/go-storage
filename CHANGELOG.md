@@ -1,6 +1,17 @@
 # GoStorage Changelog
 Все изменения библиотеки GoStorage будут документироваться на этой странице.
 
+## 2026-10-11
+### Changed
+- Форматирование кода переведено на `golangci-lint fmt` (форматтеры и их настройки берутся
+  из раздела `formatters` в `.golangci.yaml`, сгенерированные файлы пропускаются):
+  `make lint` вызывает `mrcmd go-dev fmt` вместо `fmt`, `fmti`, `fmti2`;
+  для просмотра изменений без записи добавлена команда `mrcmd go-dev fmt-diff`;
+- Из `.env.dist` удалены переменные `GO_DEV_IMPORTS_LOCAL_PREFIXES` и
+  `GO_DEV_TOOLS_INSTALL_{GOFUMPT,GOIMPORTS,GCI}_VERSION`: утилиты `gofumpt`, `goimports`, `gci`
+  больше не нужны, локальный префикс imports задаётся только в `.golangci.yaml`;
+- В `.env.dist` выключен `mockgen` (`GO_DEV_TOOLS_INSTALL_MOCKGEN_VERSION` закомментирован): моков в библиотеке нет;
+
 ## 2026-10-06
 ### Changed
 - Пакет `mrtests` разделён по сервисам: `mrtests/helpers` и `mrtests/infra` заменены пакетами
